@@ -106,13 +106,15 @@ void MainWindow::defineToolBar()
     m_toolBar->setMovable(false);
     actSetViewMode = new QAction(tr("View"), m_toolBar);
     actSetMoveMode = new QAction(tr("Move"), m_toolBar);
-    actSetAddStationMode = new QAction(tr("Add Station"), m_toolBar);
-    actSetAddTraceMode = new QAction(tr("Add Trace"), m_toolBar);
+    actSetAddStateMode = new QAction(tr("Add State"), m_toolBar);
+    actSetAddTransitionMode = new QAction(tr("Add Transition"), m_toolBar);
+    actSetAddTraceMode = new QAction(tr("Add Track"), m_toolBar);
     actSetDeleteMode = new QAction(tr("Delete"), m_toolBar);
     QList<QAction*> actions_list;
     actions_list << actSetViewMode
                  << actSetMoveMode
-                 << actSetAddStationMode
+                 << actSetAddStateMode
+                 << actSetAddTransitionMode
                  << actSetAddTraceMode
                  << actSetDeleteMode;
     m_toolBar->addActions(actions_list);
@@ -230,30 +232,14 @@ void MainWindow::defineMap()
     int offset_y = m_toolBar->y() + m_toolBar->height() - 7;
     m_mapView->setGeometry(0, offset_y, this->width(), this->height() - offset_y - m_statusBar->height());
     m_mapScene = new MapScene(0, 0, m_mapView->width(), m_mapView->height(), this);
-
-    StateGraphicsObject* station = new StateGraphicsObject(30, 30, 10);
-    station->setFillColor(QColor::fromRgb(0, 200, 0));
-    station->setBorderWidth(3.f);
-    station->setBorderColor(QColor::fromRgb(0, 0, 200));
-    m_mapScene->addItem(station);
-
-    TransitionGraphicsObject* transition = new TransitionGraphicsObject(100, 100 , 5, 20);
-    m_mapScene->addItem(transition);
-
-    StateGraphicsObject* st = new StateGraphicsObject(60, 250, 30);
-    st->setBorderWidth(2.f);
-    m_mapScene->addItem(st);
-
-    TrackGraphicsObject* edge = new TrackGraphicsObject(st, transition);
-    edge->setColor(QColor::fromRgb(200, 0, 200));
-    m_mapScene->addItem(edge);
-
     m_mapView->setScene(m_mapScene);
 
+    connect(m_mapScene, &MapScene::itemsUpdated, [this](){m_mapView->repaint();});
     connect(actSetViewMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
     connect(actSetMoveMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
-    connect(actSetAddStationMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddStation);});
-    connect(actSetAddTraceMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrace);});
+    connect(actSetAddStateMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
+    connect(actSetAddTransitionMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTransition);});
+    connect(actSetAddTraceMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrack);});
     connect(actSetDeleteMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
 }
 
@@ -352,11 +338,14 @@ void MainWindow::changeMode(MapMode mode)
     case MapMode::Move:
         lbCurrentOperation->setText(tr("Current Operation: Move"));
         break;
-    case MapMode::AddStation:
-        lbCurrentOperation->setText(tr("Current Operation: Add Station"));
+    case MapMode::AddState:
+        lbCurrentOperation->setText(tr("Current Operation: Add State"));
         break;
-    case MapMode::AddTrace:
-        lbCurrentOperation->setText(tr("Current Operation: Add Trace"));
+    case MapMode::AddTransition:
+        lbCurrentOperation->setText(tr("Current Operation: Add Transition"));
+        break;
+    case MapMode::AddTrack:
+        lbCurrentOperation->setText(tr("Current Operation: Add Track"));
         break;
     case MapMode::Delete:
         lbCurrentOperation->setText(tr("Current Operation: Delete"));

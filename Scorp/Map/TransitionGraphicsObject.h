@@ -16,6 +16,8 @@ public:
     float getHeight();
     void setHeight(float height);
     QRectF boundingRect() const Q_DECL_OVERRIDE;
+    QPainterPath shape() const Q_DECL_OVERRIDE;
+    int type() const Q_DECL_OVERRIDE;
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;

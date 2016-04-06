@@ -80,7 +80,8 @@ private:
     QToolBar* m_toolBar;
     QAction* actSetViewMode;
     QAction* actSetMoveMode;
-    QAction* actSetAddStationMode;
+    QAction* actSetAddStateMode;
+    QAction* actSetAddTransitionMode;
     QAction* actSetAddTraceMode;
     QAction* actSetDeleteMode;
 

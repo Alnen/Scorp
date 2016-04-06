@@ -2,9 +2,110 @@
 #include <QPen>
 #include <QBrush>
 
-TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state, TransitionGraphicsObject* transition, TrackDirection direction, QColor color,
-    float width, QGraphicsItem *parent) : QGraphicsLineItem(parent), m_direction(direction), m_color(color), m_width(width)
+TrackGraphicsObject::TrackGraphicsObject(TrackDirection direction, QColor color,
+    float width, QGraphicsItem *parent)
+    : QGraphicsLineItem(parent), m_direction(direction), m_color(color), m_width(width)
+{
+    m_state1 = nullptr;
+    m_state2 = nullptr;
+    m_transition = nullptr;
+    setPen(QPen(QBrush(color), width));
+}
+
+TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state,
+    TransitionGraphicsObject* transition, TrackDirection direction, QColor color,
+    float width, QGraphicsItem *parent)
+    : QGraphicsLineItem(parent), m_direction(direction), m_color(color), m_width(width)
 {   
+    setLine(state, transition);
+    setPen(QPen(QBrush(color), width));
+}
+
+TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state1, StateGraphicsObject* state2,
+    TrackDirection direction, QColor color, float width, QGraphicsItem *parent)
+    : QGraphicsLineItem(parent), m_direction(direction), m_color(color), m_width(width)
+{
+    setLine(state1, state2);
+    setPen(QPen(QBrush(color), width));
+}
+
+StateGraphicsObject* TrackGraphicsObject::getState1()
+{
+    return m_state1;
+}
+
+StateGraphicsObject* TrackGraphicsObject::getState2()
+{
+    return m_state2;
+}
+
+TransitionGraphicsObject* TrackGraphicsObject::getTransition()
+{
+    return m_transition;
+}
+
+TrackDirection TrackGraphicsObject::getDirection()
+{
+    return m_direction;
+}
+
+void TrackGraphicsObject::setDirection(TrackDirection direction)
+{
+    m_direction = direction;
+}
+
+float TrackGraphicsObject::getX1()
+{
+    return m_x1;
+}
+
+float TrackGraphicsObject::getY1()
+{
+    return m_y1;
+}
+
+float TrackGraphicsObject::getX2()
+{
+    return m_x2;
+}
+
+float TrackGraphicsObject::getY2()
+{
+    return m_y2;
+}
+
+float TrackGraphicsObject::getLength()
+{
+    return m_length;
+}
+
+QColor TrackGraphicsObject::getColor()
+{
+    return m_color;
+}
+
+void TrackGraphicsObject::setColor(QColor color)
+{
+    m_color = color;
+    setPen(QPen(QBrush(m_color), m_width));
+}
+
+float TrackGraphicsObject::getWidth()
+{
+    return m_width;
+}
+
+void TrackGraphicsObject::setWidth(float width)
+{
+    m_width = width;
+    setPen(QPen(QBrush(m_color), m_width));
+}
+
+void TrackGraphicsObject::setLine(StateGraphicsObject* state, TransitionGraphicsObject* transition)
+{
+    m_state1 = state;
+    m_state2 = nullptr;
+    m_transition = transition;
     float delta_x = transition->getCenterX() - state->getCenterX();
     float delta_y = transition->getCenterY() - state->getCenterY();
     m_length = sqrt(delta_x * delta_x + delta_y * delta_y);
@@ -73,13 +174,14 @@ TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state, TransitionG
             m_y2 = a;
         }
     }
-    this->setLine(m_x1, m_y1, m_x2, m_y2);
-    setPen(QPen(QBrush(color), width));
+    QGraphicsLineItem::setLine(m_x1, m_y1, m_x2, m_y2);
 }
 
-TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state1, StateGraphicsObject* state2, TrackDirection direction, QColor color,
-    float width, QGraphicsItem *parent) : QGraphicsLineItem(parent), m_direction(direction), m_color(color), m_width(width)
+void TrackGraphicsObject::setLine(StateGraphicsObject* state1, StateGraphicsObject* state2)
 {
+    m_state1 = state1;
+    m_state2 = state2;
+    m_transition = nullptr;
     float delta_x = state2->getCenterX() - state1->getCenterX();
     float delta_y = state2->getCenterY() - state1->getCenterY();
     m_length = sqrt(delta_x * delta_x + delta_y * delta_y);
@@ -89,74 +191,10 @@ TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state1, StateGraph
     m_y1 = state1->getCenterY() + scale_factor1 * delta_y;
     m_x2 = state2->getCenterX() - scale_factor2 * delta_x;
     m_y2 = state2->getCenterY() - scale_factor2 * delta_y;
-
-    this->setLine(m_x1, m_y1, m_x2, m_y2);
-    setPen(QPen(QBrush(color), width));
+    QGraphicsLineItem::setLine(m_x1, m_y1, m_x2, m_y2);
 }
 
-PointGraphicsObject* TrackGraphicsObject::getFirstVertex()
+int TrackGraphicsObject::type() const
 {
-    return m_first_vertex;
-}
-
-PointGraphicsObject* TrackGraphicsObject::getSecondVertex()
-{
-    return m_second_vertex;
-}
-
-TrackDirection TrackGraphicsObject::getDirection()
-{
-    return m_direction;
-}
-
-void TrackGraphicsObject::setDirection(TrackDirection direction)
-{
-    m_direction = direction;
-}
-
-float TrackGraphicsObject::getX1()
-{
-    return m_x1;
-}
-
-float TrackGraphicsObject::getY1()
-{
-    return m_y1;
-}
-
-float TrackGraphicsObject::getX2()
-{
-    return m_x2;
-}
-
-float TrackGraphicsObject::getY2()
-{
-    return m_y2;
-}
-
-float TrackGraphicsObject::getLength()
-{
-    return m_length;
-}
-
-QColor TrackGraphicsObject::getColor()
-{
-    return m_color;
-}
-
-void TrackGraphicsObject::setColor(QColor color)
-{
-    m_color = color;
-    setPen(QPen(QBrush(m_color), m_width));
-}
-
-float TrackGraphicsObject::getWidth()
-{
-    return m_width;
-}
-
-void TrackGraphicsObject::setWidth(float width)
-{
-    m_width = width;
-    setPen(QPen(QBrush(m_color), m_width));
+    return GraphicsObjectType::TrackType;
 }

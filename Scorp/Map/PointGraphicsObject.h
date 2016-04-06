@@ -6,6 +6,14 @@
 #include <QPoint>
 #include <QGraphicsItem>
 #include <QObject>
+#include <vector>
+
+class TrackGraphicsObject;
+
+namespace GraphicsObjectType
+{
+    enum { PointType = 10000, StateType, TransitionType, TrackType };
+}
 
 class PointGraphicsObject : public QObject, public QAbstractGraphicsShapeItem
 {
@@ -25,6 +33,10 @@ public:
     float getBorderWidth();
     void setBorderWidth(float width);
     QRectF boundingRect() const Q_DECL_OVERRIDE;
+    int type() const Q_DECL_OVERRIDE;
+
+public:
+    std::vector<TrackGraphicsObject*> linkedTracks;
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
@@ -34,6 +46,7 @@ protected:
     QColor m_borderColor;
     float m_borderWidth;
     QColor m_fillColor;
+    QRectF m_boundingRect;
 };
 
 #endif // POINT_GRAPHICS_ITEM_H

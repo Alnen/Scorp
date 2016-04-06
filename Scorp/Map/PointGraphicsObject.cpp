@@ -8,10 +8,11 @@
 PointGraphicsObject::PointGraphicsObject(float center_x, float center_y, QColor fill_color, QColor border_color,
     float border_width, QGraphicsItem* parent)
     : QAbstractGraphicsShapeItem(parent), m_centerX(center_x), m_centerY(center_y), m_fillColor(fill_color),
-      m_borderWidth(border_width), m_borderColor(border_color)
+      m_borderWidth(border_width), m_borderColor(border_color), m_boundingRect(center_x, center_y, 1, 1)
 {
     setPen(QPen(QBrush(m_borderColor), m_borderWidth));
     setBrush(QBrush(m_fillColor));
+    setFlags(ItemIsSelectable | ItemIsMovable);
 }
 
 PointGraphicsObject::PointGraphicsObject(float center_x, float center_y, QGraphicsItem* parent)
@@ -76,7 +77,12 @@ void PointGraphicsObject::setBorderWidth(float width)
 
 QRectF PointGraphicsObject::boundingRect() const
 {
-    return QRectF(m_centerX, m_centerY, 1, 1);
+    return m_boundingRect;
+}
+
+int PointGraphicsObject::type() const
+{
+    return GraphicsObjectType::PointType;
 }
 
 void PointGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
