@@ -5,6 +5,8 @@
 #include <QStyleOptionGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 
+#include <QDebug>
+
 TransitionGraphicsObject::TransitionGraphicsObject(float center_x, float center_y, float width, float height, QColor fill_color, QGraphicsItem* parent)
     : PointGraphicsObject(center_x, center_y, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent), m_width(width), m_height(height)
 {
@@ -77,4 +79,14 @@ void TransitionGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphi
     painter->setPen(QPen(QBrush(m_borderColor), m_borderWidth));
     painter->setBrush(m_fillColor);
     painter->drawRect(m_centerX - 0.5*m_width, m_centerY - 0.5*m_height, m_width, m_height);
+}
+
+void TransitionGraphicsObject::select()
+{
+    int select_width = m_width + 6;
+    int select_height = m_height + 6;
+    m_boundingRect.setRect(m_centerX - 0.5*select_width - 1, m_centerY - 0.5*select_height - 1,
+                           select_width + 2, select_height + 2);
+    this->setSelected(true);
+    this->update();
 }

@@ -2,6 +2,7 @@
 #define MAP_SCENE_H
 
 #include <QGraphicsScene>
+#include <QGraphicsRectItem>
 #include "Map/StateGraphicsObject.h"
 #include "Map/TransitionGraphicsObject.h"
 #include "Map/TrackGraphicsObject.h"
@@ -31,20 +32,42 @@ signals:
     void itemSelected(QGraphicsItem *item);
 
 private:
-    void retainSelectedItems();
+    void retainSelectedItems(const QList<QGraphicsItem*>& items_list);
     void clearSelectedItems();
     void unselectItems();
     template <class T>
     bool contains(const std::vector<T>& container, T value);
 
 private:
+    struct StateTrackLink {
+        StateGraphicsObject* state;
+        TrackGraphicsObject* track;
+        StateTrackLink(StateGraphicsObject* n_state, TrackGraphicsObject* n_track)
+            : state(n_state), track(n_track)
+        {
+        }
+    };
+    struct TransitionTrackLink
+    {
+        TransitionGraphicsObject* transition;
+        TrackGraphicsObject* track;
+        TransitionTrackLink(TransitionGraphicsObject* n_transition, TrackGraphicsObject* n_track)
+            : transition(n_transition), track(n_track)
+        {
+        }
+    };
+
+private:
     MapMode m_mode;
-    //TrackGraphicsObject* m_createdTrack;
     StateGraphicsObject* m_linkedState;
     TransitionGraphicsObject* m_linkedTransition;
     std::vector<StateGraphicsObject*> m_selectedStates;
     std::vector<TransitionGraphicsObject*> m_selectedTransitions;
     std::vector<TrackGraphicsObject*> m_selectedTracks;
+
+    std::vector<StateTrackLink> m_stateLinks;
+    std::vector<TransitionTrackLink> m_transitionLinks;
+
 };
 
 #endif // MAP_SCENE_H

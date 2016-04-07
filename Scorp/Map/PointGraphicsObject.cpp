@@ -75,6 +75,11 @@ void PointGraphicsObject::setBorderWidth(float width)
     setPen(QPen(QBrush(m_borderColor), m_borderWidth));
 }
 
+void PointGraphicsObject::select()
+{
+    this->update();
+}
+
 QRectF PointGraphicsObject::boundingRect() const
 {
     return m_boundingRect;

@@ -12,33 +12,16 @@ public:
                   QGraphicsItem* parent = nullptr);
     float getRadius();
     void setRadius(float radius);
-    /*
-    void linkTrack(TrackGraphicsObject* track);
-    void unlinkTrack(TrackGraphicsObject* track);
-    std::vector<TrackGraphicsObject*> getLinkedTracks();
-    TrackGraphicsObject* firstLink();
-    TrackGraphicsObject* lastLink();
-    int linkedTracksCount();
-    */
     QRectF boundingRect() const Q_DECL_OVERRIDE;
     QPainterPath shape() const Q_DECL_OVERRIDE;
     int type() const Q_DECL_OVERRIDE;
-
-signals:
-    void selected();
+    void select();
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value) Q_DECL_OVERRIDE;
-
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
 
 protected:
-    //std::vector<TrackGraphicsObject*> m_linkedTracks;
     float m_radius;
-    bool m_isSelected;
 };
 
 #endif // STATE_GRAPHICS_OBJECT_H

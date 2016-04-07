@@ -194,8 +194,8 @@ void MainWindow::defineLoginForm()
     btnEnterLoginOk = new QPushButton(tr("Ok"), dlgEnterLogin);
     btnEnterLoginOk->setGeometry(btnEnterLoginClose->x() - 55, btnEnterLoginClose->y(), 50, 20);
 
-    connect(btnEnterLoginClose, &QPushButton::clicked, this, &MainWindow::btnEnterLoginOkClicked);
-    connect(btnEnterLoginOk, &QPushButton::clicked, this, &MainWindow::btnEnterLoginCloseClicked);
+    connect(btnEnterLoginClose, &QPushButton::clicked, this, &MainWindow::btnEnterLoginCloseClicked);
+    connect(btnEnterLoginOk, &QPushButton::clicked, this, &MainWindow::btnEnterLoginOkClicked);
 }
 
 void MainWindow::defineRegistrationForm()
@@ -233,8 +233,10 @@ void MainWindow::defineMap()
     m_mapView->setGeometry(0, offset_y, this->width(), this->height() - offset_y - m_statusBar->height());
     m_mapScene = new MapScene(0, 0, m_mapView->width(), m_mapView->height(), this);
     m_mapView->setScene(m_mapScene);
+    m_mapView->setDragMode(QGraphicsView::RubberBandDrag);
 
     connect(m_mapScene, &MapScene::itemsUpdated, [this](){m_mapView->repaint();});
+    //connect(m_mapScene, &MapScene::itemsUpdated, [this](){m_mapView->update();});
     connect(actSetViewMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
     connect(actSetMoveMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
     connect(actSetAddStateMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
@@ -246,9 +248,9 @@ void MainWindow::defineMap()
 void MainWindow::defineStationsList()
 {
     m_stationsListModel = std::move(std::unique_ptr<StationsListModel>(new StationsListModel()));//new StationsListModel();
-    m_stationsListModel->appendStation(tr("Station 1"));
-    m_stationsListModel->appendStation(tr("Station 2"));
-    m_stationsListModel->appendStation(tr("Station 3"));
+    m_stationsListModel->appendStation(tr("St. 1"));
+    m_stationsListModel->appendStation(tr("St. 2"));
+    m_stationsListModel->appendStation(tr("St. 3"));
     m_stationsListModel->appendTrain(0, 1);
     m_stationsListModel->appendTrain(0, 5);
     m_stationsListModel->appendTrain(0, 6);
@@ -287,12 +289,12 @@ void MainWindow::saveAs()
 
 void MainWindow::btnEnterLoginOkClicked()
 {
-    //
+    dlgEnterLogin->close();
 }
 
 void MainWindow::btnEnterLoginCloseClicked()
 {
-    //
+    dlgEnterLogin->close();
 }
 
 void MainWindow::btnRegistrationOkClicked()

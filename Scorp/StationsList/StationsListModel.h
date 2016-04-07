@@ -7,6 +7,8 @@ class StationsListModel
 {
 public:
     StationsListModel();
+    StationsListModel(const QString& station_prefix, const QString& station_postfix,
+                      const QString& train_prefix, const QString& train_postfix);
     ~StationsListModel();
     TreeModel* model();
     void appendStation(const QString& name);
@@ -25,6 +27,10 @@ public:
 
 private:
     TreeModel* m_model;
+    QString m_stationPrefix;
+    QString m_stationPostfix;
+    QString m_trainPrefix;
+    QString m_trainPostfix;
 };
 
 #endif // STATIONSLISTMODEL_H

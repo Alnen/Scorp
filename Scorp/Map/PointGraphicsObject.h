@@ -32,11 +32,9 @@ public:
     void setBorderColor(QColor color);
     float getBorderWidth();
     void setBorderWidth(float width);
+    virtual void select();
     QRectF boundingRect() const Q_DECL_OVERRIDE;
     int type() const Q_DECL_OVERRIDE;
-
-public:
-    std::vector<TrackGraphicsObject*> linkedTracks;
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
