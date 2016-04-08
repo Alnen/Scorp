@@ -110,6 +110,7 @@ void MainWindow::defineToolBar()
     actSetAddTransitionMode = new QAction(tr("Add Transition"), m_toolBar);
     actSetAddTraceMode = new QAction(tr("Add Track"), m_toolBar);
     actSetDeleteMode = new QAction(tr("Delete"), m_toolBar);
+
     QList<QAction*> actions_list;
     actions_list << actSetViewMode
                  << actSetMoveMode

@@ -5,21 +5,13 @@
 #include <QStyleOptionGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 
-TrackGraphicsObject::TrackGraphicsObject(TrackDirection direction, QColor fill_color,
-    float width, QGraphicsItem *parent)
-    : PointGraphicsObject(0.f, 0.f, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent),
-      m_direction(direction), m_width(width)
-{
-    setPen(QPen(QBrush(fill_color), width));
-    setFlags(ItemIsSelectable | ItemIsMovable);
-}
-
 TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state,
     TransitionGraphicsObject* transition, TrackDirection direction, QColor fill_color,
     float width, QGraphicsItem *parent)
     : PointGraphicsObject(0.f, 0.f, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent),
-      m_direction(direction), m_width(width)
+      m_direction(direction), m_width(width), m_isLinkWithTransition(true)
 {   
+    m_selectionExtrude = 2.f;
     setLine(state, transition);
     setPen(QPen(QBrush(fill_color), width));
     setFlags(ItemIsSelectable | ItemIsMovable);
@@ -28,8 +20,9 @@ TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state,
 TrackGraphicsObject::TrackGraphicsObject(StateGraphicsObject* state1, StateGraphicsObject* state2,
     TrackDirection direction, QColor fill_color, float width, QGraphicsItem *parent)
     : PointGraphicsObject(0.f, 0.f, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent),
-      m_direction(direction), m_width(width)
+      m_direction(direction), m_width(width), m_isLinkWithTransition(false)
 {
+    m_selectionExtrude = 2.f;
     setLine(state1, state2);
     setPen(QPen(QBrush(fill_color), width));
     setFlags(ItemIsSelectable | ItemIsMovable);
@@ -47,27 +40,51 @@ void TrackGraphicsObject::setDirection(TrackDirection direction)
 
 float TrackGraphicsObject::getX1()
 {
-    return m_x1;
+    return pos().x() + m_x1;
 }
 
 float TrackGraphicsObject::getY1()
 {
-    return m_y1;
+    return pos().y() + m_y1;
 }
 
 float TrackGraphicsObject::getX2()
 {
-    return m_x2;
+    return pos().x() + m_x2;
 }
 
 float TrackGraphicsObject::getY2()
 {
-    return m_y2;
+    return pos().y() + m_y2;
 }
 
 float TrackGraphicsObject::getLength()
 {
     return m_length;
+}
+
+void TrackGraphicsObject::setCenter(float x, float y)
+{
+    float center_x = (x < 0 ? 0.f : x);
+    float center_y = (y < 0 ? 0.f : y);
+    float old_center_x = pos().x() + 0.5*(m_x2 + m_x1);
+    float old_center_y = pos().y() + 0.5*(m_y2 + m_y1);
+    float delta_x = center_x - old_center_x;
+    float delta_y = center_y - old_center_y;
+    if (this->isSelected())
+    {
+        this->select();
+    }
+    else
+    {
+        m_boundingRect = getBoundingPolygon(3).boundingRect();
+    }
+    setPos(pos().x() + delta_x, pos().y() + delta_y);
+}
+
+QPointF TrackGraphicsObject::getCenter()
+{
+    return QPointF(pos().x() + 0.5*(m_x2 + m_x1), pos().y() + 0.5*(m_y2 + m_y1));
 }
 
 void TrackGraphicsObject::setFillColor(QColor color)
@@ -131,16 +148,113 @@ QPolygonF TrackGraphicsObject::getBoundingPolygon(float width)
 
 void TrackGraphicsObject::setLine(StateGraphicsObject* state, TransitionGraphicsObject* transition)
 {
-    float delta_x = transition->getCenterX() - state->getCenterX();
-    float delta_y = transition->getCenterY() - state->getCenterY();
+    m_isLinkWithTransition = true;
+    setLineLinkedTransitionWithState(state->getCenter().x(), state->getCenter().y(), state->getRadius(),
+        transition->getCenter().x(), transition->getCenter().y(), transition->getWidth(), transition->getHeight());
+}
+
+void TrackGraphicsObject::setLine(StateGraphicsObject* state1, StateGraphicsObject* state2)
+{
+    m_isLinkWithTransition = false;
+    setLineLinkedStates(state1->getCenter().x(), state1->getCenter().y(), state1->getRadius(),
+                        state2->getCenter().x(), state2->getCenter().y(), state2->getRadius());
+}
+
+QRectF TrackGraphicsObject::boundingRect() const
+{
+    return m_boundingRect;
+}
+
+int TrackGraphicsObject::type() const
+{
+    return GraphicsObjectType::TrackType;
+}
+
+void TrackGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+    Q_UNUSED(widget);
+    QColor fillColor;
+    if (option->state & QStyle::State_Selected)
+    {
+        fillColor = m_fillColor.dark(200);
+        QLineF expand_line = expandLine(m_selectionExtrude+1);
+        QLineF selected_line = expandLine(m_selectionExtrude);
+        QLineF line(m_x1, m_y1, m_x2, m_y2);
+        m_x1 = expand_line.p1().x();
+        m_y1 = expand_line.p1().y();
+        m_x2 = expand_line.p2().x();
+        m_y2 = expand_line.p2().y();
+        m_boundingRect = getBoundingPolygon(m_selectionExtrude+1).boundingRect();
+        m_x1 = selected_line.p1().x();
+        m_y1 = selected_line.p1().y();
+        m_x2 = selected_line.p2().x();
+        m_y2 = selected_line.p2().y();
+        painter->setPen(QPen(QBrush(QColor::fromRgb(0, 0, 0)), 1.f, Qt::DashLine));
+        painter->drawPolygon(getBoundingPolygon(m_selectionExtrude));
+        m_x1 = line.p1().x();
+        m_y1 = line.p1().y();
+        m_x2 = line.p2().x();
+        m_y2 = line.p2().y();
+    }
+    else
+    {
+        m_boundingRect = getBoundingPolygon(m_selectionExtrude).boundingRect();
+        fillColor = m_fillColor;
+    }
+    painter->setPen(QPen(QBrush(fillColor), m_width));
+    painter->drawLine(m_x1, m_y1, m_x2, m_y2);
+}
+
+void TrackGraphicsObject::select()
+{
+    QLineF expand_line = expandLine(m_selectionExtrude);
+    QLineF line(m_x1, m_y1, m_x2, m_y2);
+    m_x1 = expand_line.p1().x();
+    m_y1 = expand_line.p1().y();
+    m_x2 = expand_line.p2().x();
+    m_y2 = expand_line.p2().y();
+    m_boundingRect = getBoundingPolygon(m_selectionExtrude+1).boundingRect();
+    m_x1 = line.p1().x();
+    m_y1 = line.p1().y();
+    m_x2 = line.p2().x();
+    m_y2 = line.p2().y();
+    this->setSelected(true);
+    this->update();
+}
+
+void TrackGraphicsObject::setLineLinkedStates(float st_x1, float st_y1, float st_r1,
+                                              float st_x2, float st_y2, float st_r2)
+{
+    float delta_x = st_x2 - st_x1;
+    float delta_y = st_y2 - st_y1;
     m_length = sqrt(delta_x * delta_x + delta_y * delta_y);
-    float scale_factor1 = state->getRadius() / m_length;
-    m_x1 = state->getCenterX() + scale_factor1 * delta_x;
-    m_y1 = state->getCenterY() + scale_factor1 * delta_y;
+    float scale_factor1 = st_r1 / m_length;
+    float scale_factor2 = st_r2 / m_length;
+    m_x1 = st_x1 + scale_factor1 * delta_x - pos().x();
+    m_y1 = st_y1 + scale_factor1 * delta_y - pos().y();
+    m_x2 = st_x2 - scale_factor2 * delta_x - pos().x();
+    m_y2 = st_y2 - scale_factor2 * delta_y - pos().y();
+    if (this->isSelected())
+    {
+        this->select();
+    }
+    else
+    {
+        m_boundingRect = getBoundingPolygon(m_selectionExtrude).boundingRect();
+    }
+}
+
+void TrackGraphicsObject::setLineLinkedTransitionWithState(float st_x, float st_y, float st_radius,
+                                                           float tr_x, float tr_y, float tr_width, float tr_height)
+{
+    float delta_x = tr_x - st_x;
+    float delta_y = tr_y - st_y;
+    m_length = sqrt(delta_x * delta_x + delta_y * delta_y);
+    float scale_factor1 = st_radius / m_length;
+    m_x1 = st_x + scale_factor1 * delta_x;
+    m_y1 = st_y + scale_factor1 * delta_y;
     float cos_alpha = delta_x / m_length;
     float sin_alpha = delta_y / m_length;
-    float tr_width = transition->getWidth();
-    float tr_height = transition->getHeight();
     float tr_length = sqrt(tr_width * tr_width + tr_height * tr_height);
     float tr_cos = tr_width / tr_length;
     int part = 0;
@@ -172,10 +286,6 @@ void TrackGraphicsObject::setLine(StateGraphicsObject* state, TransitionGraphics
             part = (cos_alpha >= tr_cos ? 4 : 3);
         }
     }
-    float st_x = state->getCenterX();
-    float st_y = state->getCenterY();
-    float tr_x = transition->getCenterX();
-    float tr_y = transition->getCenterY();
     if (st_x == tr_x)
     {
         m_x2 = st_x;
@@ -199,88 +309,16 @@ void TrackGraphicsObject::setLine(StateGraphicsObject* state, TransitionGraphics
             m_y2 = a;
         }
     }
-    m_centerX = 0.5*(m_x2 + m_x1);
-    m_centerY = 0.5*(m_y2 + m_y1);
-    m_boundingRect = getBoundingPolygon(3).boundingRect();
-    //m_selectedPolygon = getBoundingPolygon(3);
-    //QGraphicsLineItem::setLine(m_x1, m_y1, m_x2, m_y2);
-}
-
-void TrackGraphicsObject::setLine(StateGraphicsObject* state1, StateGraphicsObject* state2)
-{
-    float delta_x = state2->getCenterX() - state1->getCenterX();
-    float delta_y = state2->getCenterY() - state1->getCenterY();
-    m_length = sqrt(delta_x * delta_x + delta_y * delta_y);
-    float scale_factor1 = state1->getRadius() / m_length;
-    float scale_factor2 = state2->getRadius() / m_length;
-    m_x1 = state1->getCenterX() + scale_factor1 * delta_x;
-    m_y1 = state1->getCenterY() + scale_factor1 * delta_y;
-    m_x2 = state2->getCenterX() - scale_factor2 * delta_x;
-    m_y2 = state2->getCenterY() - scale_factor2 * delta_y;
-    m_centerX = 0.5*(m_x2 + m_x1);
-    m_centerY = 0.5*(m_y2 + m_y1);
-    m_boundingRect = getBoundingPolygon(3).boundingRect();
-    //m_selectedPolygon = getBoundingPolygon(3);
-}
-
-QRectF TrackGraphicsObject::boundingRect() const
-{
-    return m_boundingRect;//m_selectedPolygon.boundingRect();
-}
-
-int TrackGraphicsObject::type() const
-{
-    return GraphicsObjectType::TrackType;
-}
-
-void TrackGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-    Q_UNUSED(widget);
-    QColor fillColor;
-    if (option->state & QStyle::State_Selected)
+    m_x1 -= pos().x();
+    m_y1 -= pos().y();
+    m_x2 -= pos().x();
+    m_y2 -= pos().y();
+    if (this->isSelected())
     {
-        fillColor = m_fillColor.dark(200);
-        QLineF expand_line = expandLine(2);
-        QLineF selected_line = expandLine(1);
-        QLineF line(m_x1, m_y1, m_x2, m_y2);
-        m_x1 = expand_line.p1().x();
-        m_y1 = expand_line.p1().y();
-        m_x2 = expand_line.p2().x();
-        m_y2 = expand_line.p2().y();
-        m_boundingRect = getBoundingPolygon(4).boundingRect();
-        m_x1 = selected_line.p1().x();
-        m_y1 = selected_line.p1().y();
-        m_x2 = selected_line.p2().x();
-        m_y2 = selected_line.p2().y();
-        painter->setPen(QPen(QBrush(QColor::fromRgb(0, 0, 0)), 1.f, Qt::DashLine));
-        painter->drawPolygon(getBoundingPolygon(3));
-        m_x1 = line.p1().x();
-        m_y1 = line.p1().y();
-        m_x2 = line.p2().x();
-        m_y2 = line.p2().y();
+        this->select();
     }
     else
     {
-        m_boundingRect = getBoundingPolygon(3).boundingRect();
-        fillColor = m_fillColor;
+        m_boundingRect = getBoundingPolygon(m_selectionExtrude).boundingRect();
     }
-    painter->setPen(QPen(QBrush(fillColor), m_width));
-    painter->drawLine(m_x1, m_y1, m_x2, m_y2);
-}
-
-void TrackGraphicsObject::select()
-{
-    QLineF expand_line = expandLine(2);
-    QLineF line(m_x1, m_y1, m_x2, m_y2);
-    m_x1 = expand_line.p1().x();
-    m_y1 = expand_line.p1().y();
-    m_x2 = expand_line.p2().x();
-    m_y2 = expand_line.p2().y();
-    m_boundingRect = getBoundingPolygon(4).boundingRect();
-    m_x1 = line.p1().x();
-    m_y1 = line.p1().y();
-    m_x2 = line.p2().x();
-    m_y2 = line.p2().y();
-    this->setSelected(true);
-    this->update();
 }

@@ -8,8 +8,6 @@
 #include <QObject>
 #include <vector>
 
-class TrackGraphicsObject;
-
 namespace GraphicsObjectType
 {
     enum { PointType = 10000, StateType, TransitionType, TrackType };
@@ -22,10 +20,8 @@ public:
     PointGraphicsObject(float center_x, float center_y, QColor fill_color,
                  QColor border_color = QColor::fromRgb(0, 0, 0), float border_width = 1.f, QGraphicsItem* parent = nullptr);
     PointGraphicsObject(float center_x, float center_y, QGraphicsItem* parent = nullptr);
-    float getCenterX();
-    void setCenterX(float center_x);
-    float getCenterY();
-    void setCenterY(float center_y);
+    virtual void setCenter(float x, float y);
+    virtual QPointF getCenter();
     QColor getFillColor();
     void setFillColor(QColor color);
     QColor getBorderColor();
@@ -39,12 +35,11 @@ public:
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
 
-    float m_centerX;
-    float m_centerY;
     QColor m_borderColor;
     float m_borderWidth;
     QColor m_fillColor;
     QRectF m_boundingRect;
+    float m_selectionExtrude;
 };
 
 #endif // POINT_GRAPHICS_ITEM_H

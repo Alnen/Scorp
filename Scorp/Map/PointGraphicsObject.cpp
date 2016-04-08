@@ -7,9 +7,11 @@
 
 PointGraphicsObject::PointGraphicsObject(float center_x, float center_y, QColor fill_color, QColor border_color,
     float border_width, QGraphicsItem* parent)
-    : QAbstractGraphicsShapeItem(parent), m_centerX(center_x), m_centerY(center_y), m_fillColor(fill_color),
-      m_borderWidth(border_width), m_borderColor(border_color), m_boundingRect(center_x, center_y, 1, 1)
+    : QAbstractGraphicsShapeItem(parent), m_fillColor(fill_color),
+      m_borderWidth(border_width), m_borderColor(border_color), m_boundingRect(center_x, center_y, 1, 1),
+      m_selectionExtrude(2.f)
 {
+    setPos(center_x, center_y);
     setPen(QPen(QBrush(m_borderColor), m_borderWidth));
     setBrush(QBrush(m_fillColor));
     setFlags(ItemIsSelectable | ItemIsMovable);
@@ -20,26 +22,16 @@ PointGraphicsObject::PointGraphicsObject(float center_x, float center_y, QGraphi
 {
 }
 
-float PointGraphicsObject::getCenterX()
+void PointGraphicsObject::setCenter(float x, float y)
 {
-    return m_centerX;
+    float center_x = (x < 0 ? 0.f : x);
+    float center_y = (y < 0 ? 0.f : y);
+    setPos(center_x, center_y);
 }
 
-void PointGraphicsObject::setCenterX(float x)
+QPointF PointGraphicsObject::getCenter()
 {
-    if (x < 0) m_centerX = 0.f;
-    else m_centerX = x;
-}
-
-float PointGraphicsObject::getCenterY()
-{
-    return m_centerY;
-}
-
-void PointGraphicsObject::setCenterY(float y)
-{
-    if (y < 0) m_centerY = 0.f;
-    else m_centerY = y;
+    return pos();
 }
 
 QColor PointGraphicsObject::getFillColor()
@@ -94,5 +86,5 @@ void PointGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
 {
     painter->setPen(QPen(QBrush(m_borderColor), m_borderWidth));
     painter->setBrush(m_fillColor);
-    painter->drawPoint(m_centerX, m_centerY);
+    painter->drawPoint(0, 0);
 }

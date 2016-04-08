@@ -1,29 +1,26 @@
 #include "MapScene.h"
-
 #include "Map/PointGraphicsObject.h"
 #include "Map/StateGraphicsObject.h"
 #include "Map/TransitionGraphicsObject.h"
 #include <QGraphicsSceneMouseEvent>
+#include <QKeyEvent>
 #include <QDebug>
 
 MapScene::MapScene(QObject *parent)
     : QGraphicsScene(parent), m_mode(MapMode::View)
 {
-    //m_createdTrack = nullptr;
     m_linkedState = nullptr;
     m_linkedTransition = nullptr;
-
 }
 
 MapScene::MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent)
     : QGraphicsScene(x, y, width, height, parent), m_mode(MapMode::View)
 {
-    //m_createdTrack = nullptr;
     m_linkedState = nullptr;
     m_linkedTransition = nullptr;
 }
 
-void MapScene::retainSelectedItems(const QList<QGraphicsItem*>& items_list)
+void MapScene::retainSelectedItems(const QList<QGraphicsItem*>& items_list, bool select_enable)
 {
     QList<QGraphicsItem*> selected_items(items_list);
     if (!selected_items.empty())
@@ -41,7 +38,10 @@ void MapScene::retainSelectedItems(const QList<QGraphicsItem*>& items_list)
                 {
                     m_selectedStates.push_back(selected_state);
                 }
-                selected_state->select();
+                if (select_enable)
+                {
+                    selected_state->select();
+                }
                 break;
             case GraphicsObjectType::TransitionType:
                 selected_transition = qgraphicsitem_cast<TransitionGraphicsObject*>(selected_items[i]);
@@ -49,7 +49,10 @@ void MapScene::retainSelectedItems(const QList<QGraphicsItem*>& items_list)
                 {
                     m_selectedTransitions.push_back(selected_transition);
                 }
-                selected_transition->select();
+                if (select_enable)
+                {
+                    selected_transition->select();
+                }
                 break;
             case GraphicsObjectType::TrackType:
                 selected_track = qgraphicsitem_cast<TrackGraphicsObject*>(selected_items[i]);
@@ -57,14 +60,13 @@ void MapScene::retainSelectedItems(const QList<QGraphicsItem*>& items_list)
                 {
                     m_selectedTracks.push_back(selected_track);
                 }
-                selected_track->select();
+                if (select_enable)
+                {
+                    selected_track->select();
+                }
                 break;
             }
         }
-    }
-    else if (m_mode == MapMode::AddTrack)
-    {
-        qDebug() << "selectedItems: empty!";
     }
 }
 
@@ -95,6 +97,136 @@ bool MapScene::contains(const std::vector<T>& container, T value)
         }
     }
     return false;
+}
+
+StateGraphicsObject* MapScene::findStateByLinkedTrack(TrackGraphicsObject* track)
+{
+    for (size_t i = 0; i < m_stateLinks.size(); ++i)
+    {
+        if (m_stateLinks[i].track == track)
+        {
+            return m_stateLinks[i].state;
+        }
+    }
+    return nullptr;
+}
+
+TransitionGraphicsObject* MapScene::findTransitionByLinkedTrack(TrackGraphicsObject* track)
+{
+    for (size_t i = 0; i < m_transitionLinks.size(); ++i)
+    {
+        if (m_transitionLinks[i].track == track)
+        {
+            return m_transitionLinks[i].transition;
+        }
+    }
+    return nullptr;
+}
+
+void MapScene::updateTracksPosition()
+{
+    retainSelectedItems(selectedItems(), false);
+    TransitionGraphicsObject* transition = nullptr;
+    StateGraphicsObject* state = nullptr;
+    for (size_t i = 0; i < m_selectedStates.size(); ++i)
+    {
+        for (size_t j = 0; j < m_stateLinks.size(); ++j)
+        {
+            if (m_stateLinks[j].state == m_selectedStates[i])
+            {
+                state = m_stateLinks[j].state;
+                transition = findTransitionByLinkedTrack(m_stateLinks[j].track);
+                if (transition)
+                {
+                    m_stateLinks[j].track->setLineLinkedTransitionWithState(state->getCenter().x(),
+                        state->getCenter().y(), state->getRadius(), transition->getCenter().x(),
+                        transition->getCenter().y(), transition->getWidth(), transition->getHeight());
+                }
+                state = nullptr;
+                transition = nullptr;
+            }
+        }
+    }
+    for (size_t i = 0; i < m_selectedTransitions.size(); ++i)
+    {
+        for (size_t j = 0; j < m_transitionLinks.size(); ++j)
+        {
+            if (m_transitionLinks[j].transition == m_selectedTransitions[i])
+            {
+                state = findStateByLinkedTrack(m_transitionLinks[j].track);
+                transition = m_transitionLinks[j].transition;
+                if (state)
+                {
+                    m_transitionLinks[j].track->setLineLinkedTransitionWithState(state->getCenter().x(),
+                        state->getCenter().y(), state->getRadius(), transition->getCenter().x(),
+                        transition->getCenter().y(), transition->getWidth(), transition->getHeight());
+                }
+                state = nullptr;
+                transition = nullptr;
+            }
+        }
+    }
+    clearSelectedItems();
+    this->update(this->sceneRect());
+}
+
+void MapScene::deleteSelectedItems()
+{
+    clearSelectedItems();
+    retainSelectedItems(selectedItems(), false);
+    // unlink tracks
+    for (size_t i = 0; i < m_selectedStates.size(); ++i)
+    {
+        for (int j = 0; j < m_stateLinks.size(); ++j)
+        {
+            if (m_stateLinks[j].state == m_selectedStates[i])
+            {
+                if (!contains(m_selectedTracks, m_stateLinks[j].track))
+                {
+                    m_selectedTracks.push_back(m_stateLinks[j].track);
+                }
+                m_stateLinks[j].track = nullptr;
+                m_stateLinks.erase(m_stateLinks.begin() + j);
+                --j;
+            }
+        }
+    }
+    for (size_t i = 0; i < m_selectedTransitions.size(); ++i)
+    {
+        for (int j = 0; j < m_transitionLinks.size(); ++j)
+        {
+            if (m_transitionLinks[j].transition == m_selectedTransitions[i])
+            {
+                if (!contains(m_selectedTracks, m_transitionLinks[j].track))
+                {
+                    m_selectedTracks.push_back(m_transitionLinks[j].track);
+                }
+                m_transitionLinks[j].track = nullptr;
+                m_transitionLinks.erase(m_transitionLinks.begin() + j);
+                --j;
+            }
+        }
+    }
+    // delete tracks, states, transitions
+    while (!m_selectedTracks.empty())
+    {
+        this->removeItem(m_selectedTracks[m_selectedTracks.size() - 1]);
+        m_selectedTracks[m_selectedTracks.size() - 1] = nullptr;
+        m_selectedTracks.pop_back();
+    }
+    while (!m_selectedStates.empty())
+    {
+        this->removeItem(m_selectedStates[m_selectedStates.size() - 1]);
+        m_selectedStates[m_selectedStates.size() - 1] = nullptr;
+        m_selectedStates.pop_back();
+    }
+    while (!m_selectedTransitions.empty())
+    {
+        this->removeItem(m_selectedTransitions[m_selectedTransitions.size() - 1]);
+        m_selectedTransitions[m_selectedTransitions.size() - 1] = nullptr;
+        m_selectedTransitions.pop_back();
+    }
+    clearSelectedItems();
 }
 
 void MapScene::selectItem(PointGraphicsObject* item)
@@ -129,11 +261,13 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     }
     else if (m_mode == MapMode::AddState)
     {
-        m_selectedStates.clear();
+        clearSelectedItems();
+        unselectItems();
         StateGraphicsObject* state = new StateGraphicsObject(mouse_pos.x(), mouse_pos.y(), 10);
         state->setFillColor(QColor::fromRgb(0, 200, 0));
         state->setBorderWidth(3.f);
         state->setBorderColor(QColor::fromRgb(0, 0, 200));
+        //state->setPos(mouseEvent->screenPos());
         addItem(state);
         m_selectedStates.push_back(state);
         state->select();
@@ -142,6 +276,8 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     }
     else if (m_mode == MapMode::AddTransition)
     {
+        clearSelectedItems();
+        unselectItems();
         m_selectedTransitions.clear();
         TransitionGraphicsObject* transition = new TransitionGraphicsObject(mouse_pos.x(), mouse_pos.y(), 5, 20);
         addItem(transition);
@@ -200,61 +336,9 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     }
     else if (m_mode == MapMode::Delete)
     {
-        // unlink tracks
-        for (size_t i = 0; i < m_selectedStates.size(); ++i)
-        {
-            for (int j = 0; j < m_stateLinks.size(); ++j)
-            {
-                if (m_stateLinks[j].state == m_selectedStates[i])
-                {
-                    if (!contains(m_selectedTracks, m_stateLinks[j].track))
-                    {
-                        m_selectedTracks.push_back(m_stateLinks[j].track);
-                    }
-                    m_stateLinks[j].track = nullptr;
-                    m_stateLinks.erase(m_stateLinks.begin() + j);
-                    --j;
-                }
-            }
-        }
-        for (size_t i = 0; i < m_selectedTransitions.size(); ++i)
-        {
-            for (int j = 0; j < m_transitionLinks.size(); ++j)
-            {
-                if (m_transitionLinks[j].transition == m_selectedTransitions[i])
-                {
-                    if (!contains(m_selectedTracks, m_transitionLinks[j].track))
-                    {
-                        m_selectedTracks.push_back(m_transitionLinks[j].track);
-                    }
-                    m_transitionLinks[j].track = nullptr;
-                    m_transitionLinks.erase(m_transitionLinks.begin() + j);
-                    --j;
-                }
-            }
-        }
-        // delete tracks, states, transitions
-        while (!m_selectedTracks.empty())
-        {
-            this->removeItem(m_selectedTracks[m_selectedTracks.size() - 1]);
-            m_selectedTracks[m_selectedTracks.size() - 1] = nullptr;
-            m_selectedTracks.pop_back();
-        }
-        while (!m_selectedStates.empty())
-        {
-            this->removeItem(m_selectedStates[m_selectedStates.size() - 1]);
-            m_selectedStates[m_selectedStates.size() - 1] = nullptr;
-            m_selectedStates.pop_back();
-        }
-        while (!m_selectedTransitions.empty())
-        {
-            this->removeItem(m_selectedTransitions[m_selectedTransitions.size() - 1]);
-            m_selectedTransitions[m_selectedTransitions.size() - 1] = nullptr;
-            m_selectedTransitions.pop_back();
-        }
     }
     clearSelectedItems();
-    emit itemsUpdated();
+    this->update(this->sceneRect());
     QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
@@ -262,13 +346,52 @@ void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     if (m_mode == MapMode::Move)
     {
-        // TODO: update selected items position
+        if (selectedItems().count() > 0)
+        {
+            updateTracksPosition();
+        }
         QGraphicsScene::mouseMoveEvent(mouseEvent);
     }
 }
 
 void MapScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
+    if (m_mode == MapMode::Move)
+    {
+        updateTracksPosition();
+    }
     QGraphicsScene::mouseReleaseEvent(mouseEvent);
-    emit itemsUpdated();
+}
+
+void MapScene::keyPressEvent(QKeyEvent *event)
+{
+    if (event->modifiers() & Qt::ControlModifier)
+    {
+        switch (event->key())
+        {
+        case Qt::Key_D:
+            if (m_mode == MapMode::Delete)
+            {
+                deleteSelectedItems();
+            }
+            break;
+        }
+    }
+    else
+    {
+        switch (event->key())
+        {
+        case Qt::Key_D:
+            this->unselectItems();
+            this->update(this->sceneRect());
+            break;
+        case Qt::Key_Delete:
+            if (m_mode == MapMode::Delete)
+            {
+                deleteSelectedItems();
+            }
+            break;
+        }
+    }
+    QGraphicsScene::keyPressEvent(event);
 }

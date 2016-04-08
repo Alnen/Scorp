@@ -21,6 +21,7 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent *event);
 
 public slots:
     void setMode(MapMode mode);
@@ -32,11 +33,15 @@ signals:
     void itemSelected(QGraphicsItem *item);
 
 private:
-    void retainSelectedItems(const QList<QGraphicsItem*>& items_list);
+    void retainSelectedItems(const QList<QGraphicsItem*>& items_list, bool select_enable = true);
     void clearSelectedItems();
     void unselectItems();
     template <class T>
     bool contains(const std::vector<T>& container, T value);
+    StateGraphicsObject* findStateByLinkedTrack(TrackGraphicsObject* track);
+    TransitionGraphicsObject* findTransitionByLinkedTrack(TrackGraphicsObject* track);
+    void updateTracksPosition();
+    void deleteSelectedItems();
 
 private:
     struct StateTrackLink {

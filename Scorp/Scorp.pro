@@ -14,7 +14,6 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    Map/GraphObject.cpp \
     StationsList/StationsListModel.cpp \
     StationsList/TreeModel.cpp \
     StationsList/TreeModelItem.cpp \
@@ -25,7 +24,6 @@ SOURCES += main.cpp\
     Map/PointGraphicsObject.cpp
 
 HEADERS  += mainwindow.h \
-    Map/GraphObject.h \
     StationsList/StationsListModel.h \
     StationsList/TreeModel.h \
     StationsList/TreeModelItem.h \
