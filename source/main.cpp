@@ -131,6 +131,7 @@ int main()
 
     TestPetriNet petriNet;
     auto stateId = petriNet.addState<int>(10);
+    auto transitionId = petriNet.addTransition<int>(20);
     stateId = petriNet.addState<int>(20);
     auto id = petriNet.addMarker<SpecialMarker>(stateId, SpecialMarker(20.0, 10.0));
     std::cout << "new marker ID: " << id << std::endl;
@@ -148,6 +149,25 @@ int main()
               << " MarkerX: " << markerRef2.getX()
               << " MarkerY: " << markerRef2.getY() << std::endl;
     petriNet.removeMarker<SpecialMarker>(id);
+
+    std::cout << "Number of markers with type SpecialMarker is " << petriNet.sizeMarker<SpecialMarker>() << std::endl;
+    std::cout << "Number of state with type int is " << petriNet.sizeState<int>() << std::endl;
+
+    id = petriNet.addMarker<SpecialMarker>(stateId, SpecialMarker(20.0, 10.0));
+
+    std::cout << "After adding new marker " << std::endl;
+    std::cout << "Number of markers with type SpecialMarker is " << petriNet.sizeMarker<SpecialMarker>() << std::endl;
+    std::cout << "Number of state with type int is " << petriNet.sizeState<int>() << std::endl;
+
+    petriNet.removeState<int>(stateId);
+    std::cout << "After deleting state with marker " << std::endl;
+    std::cout << "Number of markers with type SpecialMarker is " << petriNet.sizeMarker<SpecialMarker>() << std::endl;
+    std::cout << "Number of state with type int is " << petriNet.sizeState<int>() << std::endl;
+    std::cout << "Number of transition with type int is " << petriNet.sizeTransition<int>() << std::endl;
+
+    petriNet.removeTransition<int>(transitionId);
+
+    std::cout << "Number of transition with type int is " << petriNet.sizeTransition<int>() << std::endl;
 
     return 0;
 }
