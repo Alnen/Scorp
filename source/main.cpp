@@ -1,12 +1,11 @@
-#include "TypeStorage.h"
-#include "TypeListStorage.h"
-#include "PetriNet.h"
+#include "container/TypeStorage.h"
+#include "container/TypeListStorage.h"
+#include "container/PetriNet.h"
 #include <iostream>
-#include "PetriNetTraits.h"
-#include "TypeList.h"
-#include "IntegralIdGenerator.h"
-#include "PetriNetStorage.h"
-
+#include "container/PetriNetTraits.h"
+#include "container/TypeList.h"
+#include "container/IntegralIdGenerator.h"
+#include "container/PetriNetStorage.h"
 
 class SpecialMarker
 {
