@@ -1,23 +1,9 @@
 #include "gtest/gtest.h"
 #include "container/PetriNet.h"
-#include "container/TypeList.h"
-#include "container/IntegralIdGenerator.h"
-#include <memory>
 
 using TestMarkerList = TypeList<int>;
 using TestStateList = TypeList<int>;
 using TestTransitionList = TypeList<int>;
-
-template <>
-struct PetriNetTraits<TestMarkerList, TestStateList, TestTransitionList>
-{
-    using MarkerList = TestMarkerList;
-    using TransitionList = TestTransitionList;
-    using StateList = TestStateList;
-    using IdType = int;
-    using IdGenerator = IntegralIdGenerator<IdType>;
-};
-
 using TestPetriNetTrait = PetriNetTraits<TestMarkerList, TestStateList, TestTransitionList>;
 using TestPetriNet = PetriNet<TestPetriNetTrait>;
 

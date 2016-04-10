@@ -11,6 +11,8 @@ class MarkerObjectWrapper
 public:
     using Marker = _Marker;
 
+    MarkerObjectWrapper() = default;
+
     MarkerObjectWrapper(Marker&& marker) : m_marker(std::forward<Marker>(marker))
     {
     }
