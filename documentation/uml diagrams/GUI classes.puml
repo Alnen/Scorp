@@ -1,0 +1,321 @@
+@startuml
+
+package UI {
+
+PointGraphicsObject <|-- StateGraphicsObject
+PointGraphicsObject <|-- TrackGraphicsObject
+PointGraphicsObject <|-- TransitionGraphicsObject
+MapScene --|> QGraphicsScene
+MainWindow --|> QMainWindow
+PointGraphicsObject --|> QObject
+PointGraphicsObject --|> QAbstractGraphicsShapeItem
+TreeModel --|> QAbstractItemModel
+
+MapScene ..> StateGraphicsObject
+MapScene ..> TransitionGraphicsObject
+MapScene ..> TrackGraphicsObject
+MapScene +-- StateTrackLink
+MapScene +-- TransitionTrackLink
+MapScene ..> MapMode
+MapScene ..> MapViewType
+PointGraphicsObject ..> GraphicsObjectType
+StateGraphicsObject ..> GraphicsObjectType
+PointGraphicsObject ..> GraphicsObjectType
+TrackGraphicsObject ..> GraphicsObjectType
+TreeModel ..> TreeModelItem
+StationsListModel ..> TreeModel
+MainWindow ..> StationsListModel
+MapScene ..> MainWindow
+UserInfo ..> UserRight
+UserInfo ..> UserGroup
+MainWindow ..> UserInfo
+MainWindow ..> MapMode
+MainWindow ..> MapViewType
+
+class QGraphicsScene {
+}
+
+class QObject {
+}
+
+class QAbstractGraphicsShapeItem {
+}
+
+class QAbstractItemModel {
+}
+
+class QMainWindow {
+}
+
+class StateTrackLink {
++ StateGraphicsObject* state
++ TrackGraphicsObject* track
++ StateTrackLink(StateGraphicsObject* n_state, TrackGraphicsObject* n_track)
+}
+
+class TransitionTrackLink {
++ TransitionGraphicsObject* transition
++ TrackGraphicsObject* track
++ TransitionTrackLink(TransitionGraphicsObject* n_transition, TrackGraphicsObject* n_track)
+}
+
+enum MapMode {
+View
+Move
+AddState
+AddLink
+Delete
+}
+enum MapViewType {
+Detailed
+Generalized
+Mixed
+}
+
+class MapScene {
+- MapMode m_mode
+- StateGraphicsObject* m_linkedState
+- std::vector<StateGraphicsObject*> m_selectedStates
+- std::vector<TransitionGraphicsObject*> m_selectedTransitions
+- std::vector<TrackGraphicsObject*> m_selectedTracks
+- std::vector<StateTrackLink> m_stateLinks
+- std::vector<TransitionTrackLink> m_transitionLinks
+----
++ explicit MapScene(QObject *parent)
++ explicit MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent)
+~ void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
+~ void mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent)
+~ void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent)
+~ void keyPressEvent(QKeyEvent *event)
+- void retainSelectedItems(const QList<QGraphicsItem*>& items_list, bool select_enable)
+- void clearSelectedItems()
+- void unselectItems()
+- bool contains<T>(const std::vector<T>& container, T value) const
+- void createLink(StateGraphicsObject* state1, StateGraphicsObject* state2)
+- void updateLinksPosition()
+- void deleteSelectedItems()
+--Slots--
++ void setMode(MapMode mode);
++ void selectItem(PointGraphicsObject* item)
+--Signals--
++ void itemsUpdated()
++ void modeChanged()
++ void itemSelected(QGraphicsItem *item)
+}
+enum GraphicsObjectType {
+PointType
+StateType
+TransitionType
+TrackType
+}
+
+class PointGraphicsObject {
+~ QColor m_borderColor
+~ float m_borderWidth
+~ QColor m_fillColor
+~ QRectF m_boundingRect
+~ float m_selectionExtrude
+----
++ PointGraphicsObject(float center_x, float center_y, QColor fill_color, QColor border_color, float border_width, QGraphicsItem* parent)
++ PointGraphicsObject(float center_x, float center_y, QGraphicsItem* parent)
++ virtual void setCenter(float x, float y)
++ virtual QPointF getCenter() const
++ QColor getFillColor() const
++ void setFillColor(QColor color)
++ QColor getBorderColor() const
++ void setBorderColor(QColor color)
++ float getBorderWidth() const
++ void setBorderWidth(float width)
++ virtual void select()
++ QRectF boundingRect() const
++ int type() const
+~ void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+}
+
+class StateGraphicsObject {
+~ float m_radius
++ StateGraphicsObject(float center_x, float center_y, float radius, QColor fill_color, QGraphicsItem* parent)
++ float getRadius() const
++ void setRadius(float radius)
++ QRectF boundingRect() const
++ QPainterPath shape() const
++ int type() const
++ void select()
+~ void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+}
+
+class TrackGraphicsObject {
+~ TrackDirection m_direction
+~ float m_x1
+~ float m_x2
+~ float m_y1
+~ float m_y2
+~ float m_length
+~ float m_width
+~ bool m_isLinkWithTransition
++ TrackGraphicsObject(StateGraphicsObject* state, TransitionGraphicsObject* transition, TrackDirection direction, QColor fill_color, float width, QGraphicsItem *parent)
++ TrackGraphicsObject(StateGraphicsObject* state1, StateGraphicsObject* state2, TrackDirection direction, QColor fill_color, float width, QGraphicsItem *parent)
++ TrackDirection getDirection() const
++ void setDirection(TrackDirection direction)
++ float getX1() const
++ float getY1() const
++ float getX2() const
++ float getY2() const
++ float getLength() const
++ void setCenter(float x, float y)
++ QPointF getCenter() const
++ void setFillColor(QColor color)
++ float getWidth() const
++ void setWidth(float width)
++ void setLine(StateGraphicsObject* state, TransitionGraphicsObject* transition)
++ void setLine(StateGraphicsObject* state1, StateGraphicsObject* state2);
++ void setLineLinkedStates(float st_x1, float st_y1, float st_r1, float st_x2, float st_y2, float st_r2)
++ void setLineLinkedTransitionWithState(float st_x, float st_y, float st_radius, float tr_x, float tr_y, float tr_width, float tr_height)
++ QRectF boundingRect() const
++ int type() const
++ void select()
+~ void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+- QLineF expandLine(float width)
+- QPointF getPointByEquation(float x_p, float y_p, float x_n, float k, float b, float length)
+- QPolygonF getBoundingPolygon(float width)
+}
+
+class TransitionGraphicsObject {
+~ float m_width
+~ float m_height
++ TransitionGraphicsObject(float center_x, float center_y, float width, float height, QColor fill_color, QGraphicsItem* parent)
++ float getWidth()
++ void setWidth(float width)
++ float getHeight()
++ void setHeight(float height)
++ QRectF boundingRect() const
++ QPainterPath shape() const
++ int type() const
++ void select()
+~ void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
+}
+
+class StationsListModel {
+- TreeModel* m_model
+- QString m_stationPrefix
+- QString m_stationPostfix
+- QString m_trainPrefix
+- QString m_trainPostfix
++ StationsListModel()
++ StationsListModel(const QString& station_prefix, const QString& station_postfix, const QString& train_prefix, const QString& train_postfix)
++ ~StationsListModel()
++ TreeModel* model() const
++ void appendStation(const QString& name)
++ void insertStation(int index, const QString& name)
++ void deleteStation(int index)
++ void deleteStation(const QString& name)
++ void appendTrain(int station_index, int train_number)
++ void insertTrain(int station_index, int train_index, int train_number)
++ void deleteTrain(int station_index, int train_index)
++ void deleteTrain(int number)
++ void moveTrain(int station_index, int train_index, int new_station_index, int new_train_index)
++ void moveTrain(int train_number, int new_station_index)
++ int stationsCount() const
++ int trainsCount() const
++ int trainsCount(int station_index) const
+}
+
+class TreeModel {
+- TreeModelItem *m_rootItem
++ explicit TreeModel(QObject *parent)
++ ~TreeModel()
++ QVariant data(const QModelIndex &index, int role) const
++ Qt::ItemFlags flags(const QModelIndex &index) const
++ QVariant headerData(int section, Qt::Orientation orientation, int role) const
++ QModelIndex index(int row, int column, const QModelIndex &parent) const
++ QModelIndex parent(const QModelIndex &index) const
++ int rowCount(const QModelIndex &parent) const
++ int columnCount(const QModelIndex &parent) const
++ TreeModelItem* root() const
++ void appendChild(TreeModelItem* item)
++ void insertChild(int row, TreeModelItem* item)
++ void deleteChild(int row)
++ TreeModelItem* getChild(int row) const
++ int childCount() const
+}
+
+class TreeModelItem {
+- QList<TreeModelItem*> m_childItems
+- QList<QVariant> m_itemData
+- TreeModelItem* m_parentItem
++ explicit TreeModelItem(TreeModelItem *parent)
++ explicit TreeModelItem(const QList<QVariant> &data, TreeModelItem *parent)
++ ~TreeModelItem()
++ void appendChild(TreeModelItem *item)
++ void insertChild(int row, TreeModelItem *item)
++ void deleteChild(int row)
++ TreeModelItem *child(int row) const
++ int childCount() const
++ int columnCount() const
++ QVariant data(int column) const
++ int row() const
++ TreeModelItem *parentItem() const
+}
+
+class MainWindow {
+- void resizeEvent(QResizeEvent * event)
+- void defineMainMenu()
+- void defineToolBar()
+- void defineStatusBar()
+- void defineAuthTurnOnForm()
+- void defineAuthTurnOffForm()
+- void defineLoginForm()
+- void defineRegistrationForm()
+- void defineMap()
+- void defineStationsList()
+
+--slots--
++ void loadFromFile()
++ void saveToFile()
++ void saveAs()
++ void btnEnterLoginOkClicked()
++ void btnEnterLoginCloseClicked()
++ void btnRegistrationOkClicked()
++ void btnRegistrationCloseClicked()
++ void btnAuthLoginClicked()
++ void btnAuthLogoutClicked()
++ void btnAuthTurnOnClicked()
++ void btnAuthTurnOffClicked()
++ void changeMode(MapMode mode)
+}
+
+class UserInfo {
+- QString m_login
+- UserGroup m_group
+- std::vector<bool> m_rights
+- int mapUserRightToInt(UserRight right) const
+- void setRights(UserGroup group)
++ UserInfo()
++ UserInfo(QString login, UserGroup group)
++ bool signIn(QString login, QString password)
++ QString getLogin() const
++ UserGroup getGroup() const
++ void setGroup(UserGroup group)
++ bool getRightStatus(UserRight right) const
+}
+
+enum UserRight {
+ViewMap
+EditMap
+Authorization
+AccountManagement
+EditStationInfo
+EditSchedule
+EditTrainsList
+FindRoute
+}
+
+enum UserGroup {
+User
+Admin
+Operator
+}
+
+}
+
+@enduml
