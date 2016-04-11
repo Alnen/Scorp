@@ -1,0 +1,196 @@
+@startuml
+
+scale 200*100
+package Core {
+package Container {
+
+    '########## container links
+
+    TransitionCommonStorage <|-- TransitionWrapper
+    TransitionObjectWrapper <|-- TransitionWrapper
+    IdObjectWrapper <|-- TransitionWrapper
+    PetriNet o-- TransitionWrapper
+
+    ParentStateIdWrapper <|-- MarkerWrapper
+    MarkerObjectWrapper <|-- MarkerWrapper
+    IdObjectWrapper <|-- MarkerWrapper
+    PetriNet o-- MarkerWrapper
+
+    StateCommonStorage <|-- StateWrapper
+    StateObjectWrapper <|-- StateWrapper
+    IdObjectWrapper <|-- StateWrapper
+    PetriNet o-- StateWrapper
+
+    '########## common
+
+    class IdObjectWrapper<IdType> {
+        - IdType m_id;
+        --
+        + IdType getId() const
+    }
+
+    '########## StateWrapper
+
+    class StateWrapper<PetriNetTraits> {
+
+    }
+
+    class StateObjectWrapper<State> {
+        - State m_state
+        --
+        + State& getState()
+    }
+
+    class StateCommonStorage<PetriNetTraits> {
+        - storage for markers
+        - storage for incoming transitions
+        - storage for outcoming transitions
+        --
+        + Storage& getMarkerStorage()
+        + Storage& getInTransitionStorage<Transition>()
+        + Storage& getOutTransitionStorage<Transition>()
+    }
+
+    '########## TransitionWrapper
+
+    class TransitionWrapper<PetriNetTraits> {
+
+    }
+
+    class TransitionObjectWrapper<Transition> {
+        - Transition m_state
+        --
+        + Transition& getTransition()
+    }
+
+    class TransitionCommonStorage<PetriNetTraits> {
+        - storage for incoming states
+        - storage for outcoming states
+        --
+        + Storage& getInStateStorage<State>()
+        + Storage& getOutStateStorage<State>()
+    }
+
+    '########## MarkerWrapper
+
+    class MarkerWrapper<PetriNetTraits> {
+
+    }
+
+    class MarkerObjectWrapper<Marker> {
+        - Marker m_state
+        --
+        + Marker& getMarker()
+    }
+
+    class ParentStateIdWrapper<PetriNetTraits> {
+        - IdType m_parentStateId;
+        --
+        + IdType getParentStateId()
+    }
+
+    '########## PetriNet
+
+    class PetriNet<PetrinNetTraits> {
+        --Marker management--
+        + IdType addMarker<MarkerType>(MarkerType&& marker)
+        + bool removeMarker<MarkerType>(IdType markerId)
+        + MarkerType& getMarker<MarkerType>(IdType markerId)
+        + MarkerIterator beginMarker<MarkerType>()
+        + MarkerIterator endMarker<MarkerType>()
+        + size_t sizeMarker<MarkerType>()
+        + bool emptyMarker<MarkerType>()
+        --State management--
+        + IdType addState<StateType>(StateType&& state)
+        + bool removeState<StateType>(IdType stateId)
+        + StateType& getState<StateType>(IdType stateId)
+        + StateIterator beginState<StateType>()
+        + StateIterator endState<StateType>()
+        + size_t sizeState<StateType>()
+        + bool emptyState<StateType>()
+        --Transition management--
+        + IdType addTransition<TransitionState>(TransitionState&& transition)
+        + bool removeTransition<TransitionState>(IdType transitionId)
+        + TransitionState& getTransition<TransitionState>(IdType transitionId)
+        + TransitionIterator beginTransition<TransitionState>()
+        + TransitionIterator endTransition<TransitionState>()
+        + size_t sizeTransition<TransitionState>()
+        + bool emptyTransition<TransitionState>()
+        --Connection management--
+        + bool addStateToTransitionConnection<StateType, TransitionType>(IdType stateId, IdType transitionId)
+        + bool addTransitionToStateConnection<TransitionType, StateType>(IdType transitionId, IdType stateId)
+        + bool removeStateToTransitionConnection<StateType, TransitionType>(IdType stateId, IdType transitionId)
+        + bool removeTransitionToStateConnection<TransitionType, StateType>(IdType transitionId, IdType stateId)
+        + bool hasStateToTransitionConnection<StateType, TransitionType>(IdType stateId, IdType transitionId)
+        + bool hasTransitionToStateConnection<TransitionType, StateType>(IdType transitionId, IdType stateId)
+        --Markers propagation--
+        + void executeMarkersPropagation<Args...>(Args&&... args)
+    }
+}
+
+'########## Object links
+
+Train o-- Route
+Route *-- RoutePart
+RoutePart o-- Transition
+Station o-- Transition
+Transition o-- Station
+
+User *-- UserGroupInfo
+
+
+'########## Object
+
+class Train {
+    - IdType m_id
+    - Route& m_route
+    --Get/Set--
+}
+
+class Route {
+    - IdType m_id
+    - std::string m_name
+    - std::vector<RoutePart> m_routeParts
+    --Get/Set--
+}
+
+class RoutePart {
+    - Transition& m_transition
+    - std::chrono::time_point m_timeOffsetFrom
+    - std::chrono::time_point m_timeOffsetTo
+    --Get/Set--
+}
+
+class Transition {
+    - Station& m_startStateId;
+    - Station& m_endStateId;
+    --Get/Set--
+}
+
+class Station {
+    - IdType m_id
+    - std::string m_name
+    - int m_x
+    - int m_y
+    - size_t m_capacity
+    --Get/Set--
+}
+
+class User {
+    - std::string m_name
+    - UserGroupInfo m_privileges
+    --Get/Set--
+}
+
+class UserGroupInfo {
+    - std::string m_name
+    - bool m_canViewMap
+    - bool m_canEditMap
+    - bool m_authorized
+    ...
+    --Get/Set--
+}
+
+}
+
+@enduml
