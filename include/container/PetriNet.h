@@ -1,8 +1,8 @@
 #ifndef PETRINET_H
 #define PETRINET_H
 
-#include "PetriNetStorage.h"
-#include "PetriNetHelpers.h"
+#include "container/internal/PetriNetStorage.h"
+#include "container/internal/PetriNetHelpers.h"
 
 template <class _PetriNetTraits>
 class PetriNet

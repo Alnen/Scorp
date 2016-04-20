@@ -1,7 +1,7 @@
 #ifndef STATEWRAPPER_H
 #define STATEWRAPPER_H
 
-#include "TypeListStorage.h"
+#include "container/internal/TypeListStorage.h"
 #include "PetriNetTraits.h"
 #include "IdObjectWrapper.h"
 

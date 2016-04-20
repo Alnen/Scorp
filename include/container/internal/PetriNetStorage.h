@@ -2,9 +2,9 @@
 #define PETRINETIMPL_H
 
 #include "TypeStorage.h"
-#include "MarkerWrapper.h"
-#include "StateWrapper.h"
-#include "TransitionWrapper.h"
+#include "container/MarkerWrapper.h"
+#include "container/StateWrapper.h"
+#include "container/TransitionWrapper.h"
 
 
 #include <algorithm>
