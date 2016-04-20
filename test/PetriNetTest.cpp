@@ -26,7 +26,6 @@ public:
 
 class PetriNetStateOperationsTest: public BasePetriNetTest
 {
-
 };
 
 TEST_F(PetriNetStateOperationsTest, ifPassedIntStateShouldSuccessfullyInsertStateAndReturnZeroId)

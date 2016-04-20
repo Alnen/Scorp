@@ -3,7 +3,7 @@
 
 #include "StateWrapper.h"
 #include "IdObjectWrapper.h"
-#include "PetriNetStorage.h"
+#include "container/internal/PetriNetStorage.h"
 
 template <class _Marker>
 class MarkerObjectWrapper
