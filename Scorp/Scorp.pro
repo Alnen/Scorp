@@ -21,7 +21,10 @@ SOURCES += main.cpp\
     Map/TransitionGraphicsObject.cpp \
     Map/StateGraphicsObject.cpp \
     Map/TrackGraphicsObject.cpp \
-    Map/PointGraphicsObject.cpp
+    Map/PointGraphicsObject.cpp \
+    UserInfo.cpp \
+    Map/LinkGraphicsObject.cpp \
+    Map/GraphicsObjectsGroup.cpp
 
 HEADERS  += mainwindow.h \
     StationsList/StationsListModel.h \
@@ -31,6 +34,9 @@ HEADERS  += mainwindow.h \
     Map/TransitionGraphicsObject.h \
     Map/StateGraphicsObject.h \
     Map/TrackGraphicsObject.h \
-    Map/PointGraphicsObject.h
+    Map/PointGraphicsObject.h \
+    UserInfo.h \
+    Map/LinkGraphicsObject.h \
+    Map/GraphicsObjectsGroup.h
 
 RC_FILE += icon.rc

@@ -3,12 +3,16 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
-#include "Map/StateGraphicsObject.h"
-#include "Map/TransitionGraphicsObject.h"
-#include "Map/TrackGraphicsObject.h"
 #include <vector>
 
-enum class MapMode { View, Move, AddState, AddTransition, AddTrack, Delete };
+
+#include "LinkGraphicsObject.h"
+class StateGraphicsObject;
+//class LinkGraphicsObject;
+class PointGraphicsObject;
+
+enum class MapMode { View, Move, AddState, AddLink, Delete };
+enum class MapViewType { Detailed, Generalized, Mixed };
 
 class MapScene : public QGraphicsScene
 {
@@ -16,6 +20,7 @@ class MapScene : public QGraphicsScene
 public:
     explicit MapScene(QObject *parent = 0);
     explicit MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent = 0);
+    bool contains(PointGraphicsObject* item) const;
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
@@ -26,6 +31,7 @@ protected:
 public slots:
     void setMode(MapMode mode);
     void selectItem(PointGraphicsObject* item);
+    void updateSelectionItems();
 
 signals:
     void itemsUpdated();
@@ -33,31 +39,28 @@ signals:
     void itemSelected(QGraphicsItem *item);
 
 private:
-    void retainSelectedItems(const QList<QGraphicsItem*>& items_list, bool select_enable = true);
+    void addLinkToScene(int index);
+    void removeLinkFromScene(int index);
+    StateGraphicsObject* getSecondLinkedState(int link_id, StateGraphicsObject* first_state);
+    void unlinkStates(int link_id);
+    int findLinkIndex(int id);
+    void retainSelectedItems();
     void clearSelectedItems();
     void unselectItems();
     template <class T>
-    bool contains(const std::vector<T>& container, T value);
-    StateGraphicsObject* findStateByLinkedTrack(TrackGraphicsObject* track);
-    TransitionGraphicsObject* findTransitionByLinkedTrack(TrackGraphicsObject* track);
-    void updateTracksPosition();
+    bool contains(const std::vector<T>& container, T value) const;
     void deleteSelectedItems();
+    void updateLinksPosition(const std::vector<StateGraphicsObject*>& moved_states);
+    void updateStatesPosition();
+    void updateObjectsPosition();
 
 private:
-    struct StateTrackLink {
+    struct StateLink {
         StateGraphicsObject* state;
-        TrackGraphicsObject* track;
-        StateTrackLink(StateGraphicsObject* n_state, TrackGraphicsObject* n_track)
-            : state(n_state), track(n_track)
-        {
-        }
-    };
-    struct TransitionTrackLink
-    {
-        TransitionGraphicsObject* transition;
-        TrackGraphicsObject* track;
-        TransitionTrackLink(TransitionGraphicsObject* n_transition, TrackGraphicsObject* n_track)
-            : transition(n_transition), track(n_track)
+        int link;
+        bool is_first;
+        StateLink(StateGraphicsObject* state_ptr, int link_id, bool is_first_state)
+            : state(state_ptr), link(link_id), is_first(is_first_state)
         {
         }
     };
@@ -65,14 +68,13 @@ private:
 private:
     MapMode m_mode;
     StateGraphicsObject* m_linkedState;
-    TransitionGraphicsObject* m_linkedTransition;
     std::vector<StateGraphicsObject*> m_selectedStates;
-    std::vector<TransitionGraphicsObject*> m_selectedTransitions;
-    std::vector<TrackGraphicsObject*> m_selectedTracks;
-
-    std::vector<StateTrackLink> m_stateLinks;
-    std::vector<TransitionTrackLink> m_transitionLinks;
-
+    std::vector<int> m_selectedLinks;
+    //std::vector<LinkGraphicsObject*> m_selectedLinks;
+    std::vector<StateLink> m_stateLinks;
+    std::vector<LinkGraphicsObject> m_links;
+    int new_state_id;
+    int new_link_id;
 };
 
 #endif // MAP_SCENE_H

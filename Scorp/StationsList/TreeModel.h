@@ -22,12 +22,12 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
-    TreeModelItem* root();
+    TreeModelItem* root() const;
     void appendChild(TreeModelItem* item);
     void insertChild(int row, TreeModelItem* item);
     void deleteChild(int row);
-    TreeModelItem* getChild(int row);
-    int childCount();
+    TreeModelItem* getChild(int row) const;
+    int childCount() const;
 
 private:
     TreeModelItem *m_rootItem;

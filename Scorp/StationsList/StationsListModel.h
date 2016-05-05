@@ -10,7 +10,7 @@ public:
     StationsListModel(const QString& station_prefix, const QString& station_postfix,
                       const QString& train_prefix, const QString& train_postfix);
     ~StationsListModel();
-    TreeModel* model();
+    TreeModel* model() const;
     void appendStation(const QString& name);
     void insertStation(int index, const QString& name);
     void deleteStation(int index);
@@ -21,9 +21,9 @@ public:
     void deleteTrain(int number);
     void moveTrain(int station_index, int train_index, int new_station_index, int new_train_index);
     void moveTrain(int train_number, int new_station_index);
-    int stationsCount();
-    int trainsCount();
-    int trainsCount(int station_index);
+    int stationsCount() const;
+    int trainsCount() const;
+    int trainsCount(int station_index) const;
 
 private:
     TreeModel* m_model;

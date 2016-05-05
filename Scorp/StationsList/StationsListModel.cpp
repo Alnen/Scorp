@@ -23,7 +23,7 @@ StationsListModel::~StationsListModel()
     }
 }
 
-TreeModel* StationsListModel::model()
+TreeModel* StationsListModel::model() const
 {
     return m_model;
 }
@@ -195,12 +195,12 @@ void StationsListModel::moveTrain(int train_number, int new_station_index)
     }
 }
 
-int StationsListModel::stationsCount()
+int StationsListModel::stationsCount() const
 {
     return m_model->childCount();
 }
 
-int StationsListModel::trainsCount()
+int StationsListModel::trainsCount() const
 {
     int sum_count = 0;
     for (int i = 0; i < m_model->childCount(); ++i)
@@ -210,7 +210,7 @@ int StationsListModel::trainsCount()
     return sum_count;
 }
 
-int StationsListModel::trainsCount(int station_index)
+int StationsListModel::trainsCount(int station_index) const
 {
     if ((station_index >= 0) && (station_index < m_model->childCount()))
     {

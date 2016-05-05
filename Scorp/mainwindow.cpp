@@ -4,6 +4,8 @@
 #include "Map/PointGraphicsObject.h"
 #include "Map/StateGraphicsObject.h"
 #include "Map/TransitionGraphicsObject.h"
+#include <QHeaderView>
+#include <QTableWidgetItem>
 #include <QGraphicsView>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsItemGroup>
@@ -11,9 +13,14 @@
 #include <QGraphicsLineItem>
 #include <QDesktopWidget>
 #include <QApplication>
+#include <QIcon>
+#include <QPixmap>
+#include <QActionGroup>
 
 #include <QResizeEvent>
 #include <QDebug>
+
+#include "Map/GraphicsObjectsGroup.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -33,6 +40,35 @@ MainWindow::MainWindow(QWidget *parent)
     dlgRegistration = new QDialog(this, Qt::Dialog);
     dlgRegistration->setFixedSize(205, 140);
     dlgRegistration->setWindowTitle(tr("Registration"));
+
+    dlgShowNameList = new QDialog(this, Qt::Dialog);
+    dlgShowNameList->setFixedSize(300, 500);
+    dlgShowNameList->setWindowTitle(tr(""));
+    tableShowNameList = new QTableWidget(dlgShowNameList);
+    QHeaderView* hv = new QHeaderView(Qt::Horizontal);
+    tableShowNameList->setHorizontalHeader(hv);
+    hv->hide();
+    tableShowNameList->setColumnCount(1);
+    hv->setSectionResizeMode(0, QHeaderView::Stretch);
+    tableShowNameList->setGeometry(10, 10, dlgShowNameList->width()-20, dlgShowNameList->height()-20);
+    //tableShowAllUsers->insertRow(tableShowAllUsers->rowCount());
+    //tableShowAllUsers->setItem(tableShowAllUsers->rowCount()-1, 0, new QTableWidgetItem(tr("User1")));
+    /*
+    int count = 30;
+    tableShowAllUsers->setRowCount(count);
+    for (int i = 0; i < count; ++i)
+    {
+        tableShowAllUsers->setItem(i, 0, new QTableWidgetItem(tr("User%1").arg(i+1)));
+    }
+    */
+    defineUsersListForm();
+    defineStationsListForm();
+    defineTrainsListForm();
+    defineToursListForm();
+    defineTrainScheduleForm();
+    defineStationScheduleForm();
+    defineFindTourDialog();
+    defineAboutProgramForm();
 
     defineMainMenu();
     defineToolBar();
@@ -89,14 +125,68 @@ void MainWindow::defineMainMenu()
     mnFile->addAction(actSaveAs);
     mnFile->addAction(actExit);
 
+    mnAccounts = new QMenu(tr("Accounts"));
+    actUsersList = new QAction(tr("Users List"), mnAccounts);
+    actEditProfile = new QAction(tr("Edit Profile"), mnAccounts);
+    mnAccounts->addAction(actUsersList);
+    mnAccounts->addAction(actEditProfile);
+
+    mnMap = new QMenu(tr("Map"));
+    mnSetMode = new QMenu(tr("Set Mode"));
+    actSetViewMapMode = new QAction(tr("View"), mnSetMode);
+    actSetMoveMapMode = new QAction(tr("Move"), mnSetMode);
+    actSetAddStateMapMode = new QAction(tr("Add State"), mnSetMode);
+    actSetAddLinkMapMode = new QAction(tr("Add Link"), mnSetMode);
+    actSetDeleteMapMode = new QAction(tr("Delete"), mnSetMode);
+    actStationsList = new QAction(tr("Stations List"), mnMap);
+    actTrainsList = new QAction(tr("Trains List"), mnMap);
+    actToursList = new QAction(tr("Tours List"), mnMap);
+    actSetViewMapMode->setCheckable(true);
+    actSetMoveMapMode->setCheckable(true);
+    actSetAddStateMapMode->setCheckable(true);
+    actSetAddLinkMapMode->setCheckable(true);
+    actSetDeleteMapMode->setCheckable(true);
+    QActionGroup* map_modes = new QActionGroup(mnSetMode);
+    map_modes->addAction(actSetViewMapMode);
+    map_modes->addAction(actSetMoveMapMode);
+    map_modes->addAction(actSetAddStateMapMode);
+    map_modes->addAction(actSetAddLinkMapMode);
+    map_modes->addAction(actSetDeleteMapMode);
+    mnSetMode->addActions(map_modes->actions());
+    actSetViewMapMode->setChecked(true);
+    mnMap->addMenu(mnSetMode);
+    mnMap->addAction(actStationsList);
+    mnMap->addAction(actTrainsList);
+    mnMap->addAction(actToursList);
+
+    mnSchedule = new QMenu(tr("Schedule"));
+    actTrainSchedule = new QAction(tr("Train Schedule"), mnSchedule);
+    actStationSchedule = new QAction(tr("Station Schedule"), mnSchedule);
+    actFindTour = new QAction(tr("Find Tour"), mnSchedule);
+    mnSchedule->addAction(actTrainSchedule);
+    mnSchedule->addAction(actStationSchedule);
+    mnSchedule->addAction(actFindTour);
+
+    actAbout = new QAction(tr("About"), mnAccounts);
+    QList<QAction*> actions;
+    actions << actAbout;
+
     m_mainMenu = new QMenuBar(this);
     m_mainMenu->addMenu(mnFile);
+    m_mainMenu->addMenu(mnAccounts);
+    m_mainMenu->addMenu(mnMap);
+    m_mainMenu->addMenu(mnSchedule);
+    m_mainMenu->addActions(actions);
     this->setMenuBar(m_mainMenu);
 
     connect(actOpen, &QAction::triggered, this, &MainWindow::loadFromFile);
     connect(actSave, &QAction::triggered, this, &MainWindow::saveToFile);
     connect(actSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
     connect(actExit, &QAction::triggered, this, &MainWindow::close);
+    connect(actUsersList, &QAction::triggered, dlgUsersList, &QDialog::open);
+    connect(actEditProfile, &QAction::triggered, this, &MainWindow::openEditProfileDialog);
+    connect(actFindTour, &QAction::triggered, dlgFindTour, &QDialog::open);
+    connect(actAbout, &QAction::triggered, this, &MainWindow::showAboutProgramInfo);
 }
 
 void MainWindow::defineToolBar()
@@ -104,19 +194,17 @@ void MainWindow::defineToolBar()
     m_toolBar = addToolBar(tr("ToolBar"));
     m_toolBar->setGeometry(0, m_mainMenu->y() + m_mainMenu->height(), this->width(), 20);
     m_toolBar->setMovable(false);
-    actSetViewMode = new QAction(tr("View"), m_toolBar);
-    actSetMoveMode = new QAction(tr("Move"), m_toolBar);
-    actSetAddStateMode = new QAction(tr("Add State"), m_toolBar);
-    actSetAddTransitionMode = new QAction(tr("Add Transition"), m_toolBar);
-    actSetAddTraceMode = new QAction(tr("Add Track"), m_toolBar);
-    actSetDeleteMode = new QAction(tr("Delete"), m_toolBar);
+    actSetViewMode = new QAction(QIcon(QPixmap("../Scorp/images/view.png")), tr("View"), m_toolBar);
+    actSetMoveMode = new QAction(QIcon(QPixmap("../Scorp/images/move.png")), tr("Move"), m_toolBar);
+    actSetAddStateMode = new QAction(QIcon(QPixmap("../Scorp/images/state.png")), tr("Add State"), m_toolBar);
+    actSetAddLinkMode = new QAction(QIcon(QPixmap("../Scorp/images/link.png")), tr("Add Link"), m_toolBar);
+    actSetDeleteMode = new QAction(QIcon(QPixmap("../Scorp/images/delete.png")), tr("Delete"), m_toolBar);
 
     QList<QAction*> actions_list;
     actions_list << actSetViewMode
                  << actSetMoveMode
                  << actSetAddStateMode
-                 << actSetAddTransitionMode
-                 << actSetAddTraceMode
+                 << actSetAddLinkMode
                  << actSetDeleteMode;
     m_toolBar->addActions(actions_list);
     //m_toolbar->addSeparator();
@@ -233,17 +321,63 @@ void MainWindow::defineMap()
     int offset_y = m_toolBar->y() + m_toolBar->height() - 7;
     m_mapView->setGeometry(0, offset_y, this->width(), this->height() - offset_y - m_statusBar->height());
     m_mapScene = new MapScene(0, 0, m_mapView->width(), m_mapView->height(), this);
+
+    /*
+    StateGraphicsObject* state = new StateGraphicsObject(0, 100, 100, 10);
+    m_mapScene->addItem(state);
+
+    StateGraphicsObject* state2 = new StateGraphicsObject(1, 300, 300, 10);
+    m_mapScene->addItem(state2);
+    LinkGraphicsObject link(2, state, state2);
+    std::vector<PointGraphicsObject*> link_items(link.getLinkParts());
+    for (size_t i = 0; i < link_items.size(); ++i)
+    {
+        m_mapScene->addItem(link_items[i]);
+    }
+    */
+
+    /*
+
+    GraphicsObjectsGroup group;
+    group.addItem(state);
+    //group.addItemsToScene();
+    m_mapScene->addItem(group.getItems()[0]);
+    */
+    //ObjectItem* obj_item = new ObjectItem(state, state2, m_mapScene);
+    //obj_item.item1 = state;
+    //obj_item.item2 = state2;
+    //m_mapScene->addItem(obj_item.m_item1);
+    //m_mapScene->addItem(obj_item.item2);
+    //obj_item->addToScene();
+
+    /*
+    TrackGraphicsObject* track = new TrackGraphicsObject(state, state2);
+    m_mapScene->addItem(track);
+    */
+    /*
+    TransitionGraphicsObject* transition = new TransitionGraphicsObject(200, 200,
+                                                                        6, 18, QColor::fromRgb(0, 200, 200));
+    transition->setRotation(225);
+    m_mapScene->addItem(transition);
+    TrackGraphicsObject* track = new TrackGraphicsObject(state, transition);
+    m_mapScene->addItem(track);
+    */
+
     m_mapView->setScene(m_mapScene);
     m_mapView->setDragMode(QGraphicsView::RubberBandDrag);
 
-    connect(m_mapScene, &MapScene::itemsUpdated, [this](){m_mapView->repaint();});
-    //connect(m_mapScene, &MapScene::itemsUpdated, [this](){m_mapView->update();});
+    //connect(m_mapScene, &MapScene::itemsUpdated, [this](){m_mapView->repaint();});
     connect(actSetViewMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
     connect(actSetMoveMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
     connect(actSetAddStateMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
-    connect(actSetAddTransitionMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTransition);});
-    connect(actSetAddTraceMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrack);});
+    connect(actSetAddLinkMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddLink);});
     connect(actSetDeleteMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
+
+    connect(actSetViewMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
+    connect(actSetMoveMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
+    connect(actSetAddStateMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
+    connect(actSetAddLinkMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddLink);});
+    connect(actSetDeleteMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
 }
 
 void MainWindow::defineStationsList()
@@ -273,6 +407,104 @@ void MainWindow::defineStationsList()
     m_stationsListView->setHeaderHidden(true);
     m_stationsListView->setIndentation(20);
 }
+
+void MainWindow::defineUsersListForm()
+{
+    dlgUsersList = new QDialog(this, Qt::Dialog);
+    dlgUsersList->setFixedSize(400, 400);
+    dlgUsersList->setWindowTitle(tr("Users List"));
+
+    int button_width = 74;
+    QPushButton* btnBack = new QPushButton(tr("Back"), dlgUsersList);
+    btnBack->setGeometry(dlgUsersList->width() - button_width - 11, dlgUsersList->height() - 30, button_width, 20);
+    QPushButton* btnAddUser = new QPushButton(tr("Add"), dlgUsersList);
+    btnAddUser->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnEditUser = new QPushButton(tr("Edit"), dlgUsersList);
+    btnEditUser->setGeometry(btnAddUser->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnRemoveUser = new QPushButton(tr("Remove"), dlgUsersList);
+    btnRemoveUser->setGeometry(btnEditUser->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnClearUser = new QPushButton(tr("Clear"), dlgUsersList);
+    btnClearUser->setGeometry(btnRemoveUser->x() - button_width - 2, btnBack->y(), button_width, 20);
+
+    tableUsers = new QTableWidget(dlgUsersList);
+    tableUsers->setColumnCount(2);
+    tableUsers->setHorizontalHeaderLabels(QStringList() << tr("User") << tr("Group"));
+    tableUsers->setColumnWidth(0, 100);
+    tableUsers->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    tableUsers->horizontalHeader()->setStretchLastSection(true);
+    tableUsers->setGeometry(10, 10, dlgUsersList->width()-20, btnBack->y() - 15);
+}
+
+void MainWindow::defineStationsListForm()
+{
+    dlgStationsList = new QDialog(this, Qt::Dialog);
+    dlgStationsList->setFixedSize(300, 400);
+    dlgStationsList->setWindowTitle(tr("Stations List"));
+}
+
+void MainWindow::defineTrainsListForm()
+{
+    dlgTrainsList = new QDialog(this, Qt::Dialog);
+    dlgTrainsList->setFixedSize(300, 400);
+    dlgTrainsList->setWindowTitle(tr("Trains List"));
+}
+
+void MainWindow::defineToursListForm()
+{
+    dlgToursList = new QDialog(this, Qt::Dialog);
+    dlgToursList->setFixedSize(300, 400);
+    dlgToursList->setWindowTitle(tr("Tours List"));
+}
+
+void MainWindow::defineTrainScheduleForm()
+{
+    dlgTrainSchedule = new QDialog(this, Qt::Dialog);
+    dlgTrainSchedule->setFixedSize(300, 400);
+    dlgTrainSchedule->setWindowTitle(tr("Train Schedule"));
+}
+
+void MainWindow::defineStationScheduleForm()
+{
+    dlgStationSchedule = new QDialog(this, Qt::Dialog);
+    dlgStationSchedule->setFixedSize(300, 400);
+    dlgStationSchedule->setWindowTitle(tr("Station Schedule"));
+}
+
+void MainWindow::defineFindTourDialog()
+{
+    dlgFindTour = new QDialog(this, Qt::Dialog);
+    dlgFindTour->setFixedSize(300, 400);
+    dlgFindTour->setWindowTitle(tr("Find Tour"));
+    //
+    QLineEdit* txtDeparturePlace = new QLineEdit(dlgFindTour);
+    txtDeparturePlace->setPlaceholderText(tr("Departure Place"));
+    txtDeparturePlace->setGeometry(10, 10, 200, 20);
+    QLineEdit* txtDepartureTime = new QLineEdit(dlgFindTour);
+    txtDepartureTime->setPlaceholderText(tr("Departure Time"));
+    txtDepartureTime->setGeometry(txtDeparturePlace->x(),
+                                  txtDeparturePlace->y() + txtDeparturePlace->height() + 5, 200, 20);
+    QLineEdit* txtArrivalPlace = new QLineEdit(dlgFindTour);
+    txtArrivalPlace->setPlaceholderText(tr("Arrival Place"));
+    txtArrivalPlace->setGeometry(txtDepartureTime->x(),
+                                 txtDepartureTime->y() + txtDepartureTime->height() + 5, 200, 20);
+    QLineEdit* txtArrivalTime = new QLineEdit(dlgFindTour);
+    txtArrivalTime->setPlaceholderText(tr("Arrival Time"));
+    txtArrivalTime->setGeometry(txtArrivalPlace->x(), txtArrivalPlace->y() + txtArrivalPlace->height() + 5,
+                                200, 20);
+
+    QPushButton* btnBack = new QPushButton(tr("Cancel"), dlgFindTour);
+    btnBack->setGeometry(dlgFindTour->width() - 90, dlgFindTour->height() - 30, 80, 20);
+    QPushButton* btnFind = new QPushButton(tr("Find"), dlgFindTour);
+    btnFind->setGeometry(btnBack->x() - 90, btnBack->y(), 80, 20);
+}
+
+void MainWindow::defineAboutProgramForm()
+{
+    dlgAboutProgram = new QDialog(this, Qt::Dialog);
+    dlgAboutProgram->setFixedSize(300, 400);
+    dlgAboutProgram->setWindowTitle(tr("About Program"));
+}
+
 
 void MainWindow::loadFromFile()
 {
@@ -344,14 +576,70 @@ void MainWindow::changeMode(MapMode mode)
     case MapMode::AddState:
         lbCurrentOperation->setText(tr("Current Operation: Add State"));
         break;
-    case MapMode::AddTransition:
-        lbCurrentOperation->setText(tr("Current Operation: Add Transition"));
-        break;
-    case MapMode::AddTrack:
-        lbCurrentOperation->setText(tr("Current Operation: Add Track"));
+    case MapMode::AddLink:
+        lbCurrentOperation->setText(tr("Current Operation: Add Link"));
         break;
     case MapMode::Delete:
         lbCurrentOperation->setText(tr("Current Operation: Delete"));
         break;
     }
+}
+
+/*
+void MainWindow::showAllOperators()
+{
+    dlgShowNameList->setWindowTitle(tr("All Operators"));
+    if (tableShowNameList->rowCount() > 0)
+    {
+        tableShowNameList->clearContents();
+    }
+    // Make Request to DB
+    dlgShowNameList->open();
+}
+*/
+
+
+void MainWindow::openUsersListForm()
+{
+    dlgUsersList->open();
+}
+
+void MainWindow::openEditProfileDialog()
+{
+    //
+}
+
+void MainWindow::openStationsListForm()
+{
+    //
+}
+
+void MainWindow::openTrainsListForm()
+{
+    //
+}
+
+void MainWindow::openToursListForm()
+{
+    //
+}
+
+void MainWindow::openTrainScheduleForm()
+{
+    //
+}
+
+void MainWindow::openStationScheduleForm()
+{
+    //
+}
+
+void MainWindow::openFindTourDialog()
+{
+    //
+}
+
+void MainWindow::showAboutProgramInfo()
+{
+    //
 }

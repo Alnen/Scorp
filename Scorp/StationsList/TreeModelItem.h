@@ -15,12 +15,12 @@ public:
     void insertChild(int row, TreeModelItem *item);
     void deleteChild(int row);
 
-    TreeModelItem *child(int row);
+    TreeModelItem *child(int row) const;
     int childCount() const;
     int columnCount() const;
     QVariant data(int column) const;
     int row() const;
-    TreeModelItem *parentItem();
+    TreeModelItem *parentItem() const;
 
 private:
     QList<TreeModelItem*> m_childItems;

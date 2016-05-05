@@ -46,7 +46,7 @@ void TreeModelItem::deleteChild(int row)
     m_childItems.removeAt(row);
 }
 
-TreeModelItem* TreeModelItem::child(int row)
+TreeModelItem* TreeModelItem::child(int row) const
 {
     if ((row >= 0) && (row < m_childItems.count()))
     {
@@ -73,7 +73,7 @@ QVariant TreeModelItem::data(int column) const
     return m_itemData.value(column);
 }
 
-TreeModelItem *TreeModelItem::parentItem()
+TreeModelItem *TreeModelItem::parentItem() const
 {
     return m_parentItem;
 }

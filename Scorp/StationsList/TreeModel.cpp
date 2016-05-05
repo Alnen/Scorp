@@ -100,7 +100,7 @@ int TreeModel::rowCount(const QModelIndex &parent) const
     return parentItem->childCount();
 }
 
-TreeModelItem* TreeModel::root()
+TreeModelItem* TreeModel::root() const
 {
     return m_rootItem;
 }
@@ -123,7 +123,7 @@ void TreeModel::deleteChild(int row)
     }
 }
 
-TreeModelItem* TreeModel::getChild(int row)
+TreeModelItem* TreeModel::getChild(int row) const
 {
     if ((row >= 0) && (row < m_rootItem->childCount()))
     {
@@ -135,7 +135,7 @@ TreeModelItem* TreeModel::getChild(int row)
     }
 }
 
-int TreeModel::childCount()
+int TreeModel::childCount() const
 {
     return m_rootItem->childCount();
 }
