@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TABLES_h
+#define TABLES_h
 #include<iostream>
 class User
 {
@@ -229,3 +230,5 @@ public:
 		return Name;
 	}
 };
+
+#endif
