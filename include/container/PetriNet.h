@@ -1,6 +1,7 @@
 #ifndef PETRINET_H
 #define PETRINET_H
 
+#include <meta/ForEachLooper.h>
 #include "container/internal/PetriNetStorage.h"
 #include "container/internal/PetriNetHelpers.h"
 
@@ -33,6 +34,22 @@ public:
     {
     }
 
+    /*PetriNet(MarkerPropagator&& propagator):
+            m_propagator(std::forward<MarkerPropagator>(propagator))
+    {
+    }*/
+
+    PetriNet(IdGenerator&& idGenerator):
+            m_idGenerator(std::forward<IdGenerator>(idGenerator))
+    {
+    }
+
+    /*PetriNet(MarkerPropagator&& propagator, IdGenerator&& idGenerator):
+            m_propagator(std::forward<MarkerPropagator>(propagator)),
+            m_idGenerator(std::forward<IdGenerator >(idGenerator))
+    {
+    }*/
+
     template <class Marker>
     IdType addMarker(IdType parentId, Marker&& marker)
     {
@@ -51,7 +68,7 @@ public:
         //
         using Functor = MarkerAdder<Marker, decltype(m_petriNetStorage), IdType>;
         Functor functor(m_petriNetStorage, markerId, parentId);
-        ForEachLooper<StateList, Functor> eraser(functor);
+        meta::ForEachLooper<StateList, Functor> eraser(functor);
         if (!eraser())
         {
             throw std::runtime_error("Couldn't find father");
@@ -68,7 +85,6 @@ public:
         return markerWrapper.getMarker();
     }
 
-public:
     template <class Marker>
     bool removeMarker(IdType id)
     {
@@ -86,7 +102,7 @@ public:
 
         using Functor = MarkerEraser<Marker, decltype(m_petriNetStorage), IdType>;
         Functor functor(m_petriNetStorage, markerId, stateId);
-        ForEachLooper<StateList, Functor> eraser(functor);
+        meta::ForEachLooper<StateList, Functor> eraser(functor);
         if (!eraser())
         {
             throw std::runtime_error("Couldn't find father");
@@ -144,12 +160,12 @@ public:
         // Remove markers
         using MarkersEraser = UnnecessaryMarkersEraser<decltype(m_petriNetStorage), StateWrapperType<State>>;
         MarkersEraser markersEraserFunctor(m_petriNetStorage, iterator->second);
-        ForEachLooper<MarkerList , MarkersEraser> markersEraser(markersEraserFunctor);
+        meta::ForEachLooper<MarkerList , MarkersEraser> markersEraser(markersEraserFunctor);
         markersEraser();
         //
         using TransitionLinksEraser = UnnecessaryTransitionLinksEraser<decltype(m_petriNetStorage), StateWrapperType<State>>;
         TransitionLinksEraser transitionLinksEraserFunctor(m_petriNetStorage, iterator->second);
-        ForEachLooper<TransitionList , TransitionLinksEraser> transitionLinksEraser(transitionLinksEraserFunctor);
+        meta::ForEachLooper<TransitionList , TransitionLinksEraser> transitionLinksEraser(transitionLinksEraserFunctor);
         transitionLinksEraser();
         //
         stateStorage.erase(iterator);
@@ -168,7 +184,7 @@ public:
         //
         using StateLinksEraser = UnnecessaryStateLinksEraser<decltype(m_petriNetStorage), TransitionWrapperType<Transition>>;
         StateLinksEraser transitionLinksEraserFunctor(m_petriNetStorage, iterator->second);
-        ForEachLooper<TransitionList , StateLinksEraser> transitionLinksEraser(transitionLinksEraserFunctor);
+        meta::ForEachLooper<TransitionList , StateLinksEraser> transitionLinksEraser(transitionLinksEraserFunctor);
         transitionLinksEraser();
         //
         transitionStorage.erase(iterator);
@@ -259,8 +275,161 @@ public:
         return m_petriNetStorage.template getTransitionStorage<Transition>().empty();
     }
 
+    template <class State, class Transition>
+    bool addStateToTransitionConnection(IdType stateId, IdType transitionId)
+    {
+        // TODO: error handling
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        auto& stateWrapper = stateStorage[stateId];
+
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        auto& transitionWrapper = transitionStorage[transitionId];
+
+        stateWrapper.template getOutTransitionStorage<Transition>().push_back(transitionId);
+        transitionWrapper.template getInStateStorage<State>().push_back(stateId);
+
+        return true;
+    };
+
+    template <class Transition, class State>
+    bool addTransitionToStateConnection(IdType transitionId, IdType stateId)
+    {
+        // TODO: error handling
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        auto& stateWrapper = stateStorage[stateId];
+
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        auto& transitionWrapper = transitionStorage[transitionId];
+
+        stateWrapper.template getInTransitionStorage<Transition>().push_back(transitionId);
+        transitionWrapper.template getOutStateStorage<State>().push_back(stateId);
+
+        return true;
+    };
+
+    template <class State, class Transition>
+    bool removeStateToTransitionConnection(IdType stateId, IdType transitionId)
+    {
+        // TODO: error handling
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        auto& stateWrapper = stateStorage[stateId];
+        auto& stateTransitionStorage = stateWrapper.template getOutTransitionStorage<Transition>();
+        auto& transitionIdIterator = std::find(stateTransitionStorage.begin(), stateTransitionStorage.end(), transitionId);
+        if (transitionIdIterator == stateTransitionStorage.end())
+        {
+            return false;
+        }
+
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        auto& transitionWrapper = transitionStorage[transitionId];
+        auto& transitionStateStorage = transitionWrapper.template getInStateStorage<Transition>();
+        auto& stateIdIterator = std::find(transitionStateStorage.begin(), transitionStateStorage.end(), stateId);
+        if (stateIdIterator == transitionStateStorage.end())
+        {
+            return false;
+        }
+
+        stateTransitionStorage.erase(transitionIdIterator);
+        transitionStateStorage.erase(stateIdIterator);
+
+        return true;
+    };
+
+    template <class Transition, class State>
+    bool removeTransitionToStateConnection(IdType transitionId, IdType stateId)
+    {
+        // TODO: error handling
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        auto& stateWrapper = stateStorage[stateId];
+        auto& stateTransitionStorage = stateWrapper.template getInTransitionStorage<Transition>();
+        auto& transitionIdIterator = std::find(stateTransitionStorage.begin(), stateTransitionStorage.end(), transitionId);
+        if (transitionIdIterator == stateTransitionStorage.end())
+        {
+            return false;
+        }
+
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        auto& transitionWrapper = transitionStorage[transitionId];
+        auto& transitionStateStorage = transitionWrapper.template getOutStateStorage<Transition>();
+        auto& stateIdIterator = std::find(transitionStateStorage.begin(), transitionStateStorage.end(), stateId);
+        if (stateIdIterator == transitionStateStorage.end())
+        {
+            return false;
+        }
+
+        stateTransitionStorage.erase(transitionIdIterator);
+        transitionStateStorage.erase(stateIdIterator);
+
+        return true;
+    };
+
+    template <class State, class Transition>
+    bool isStateToTransitionConnectionExist(IdType stateId, IdType transitionId)
+    {
+        // TODO: error handling
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        auto& stateWrapper = stateStorage[stateId];
+        auto& stateTransitionStorage = stateWrapper.template getOutTransitionStorage<Transition>();
+        auto& transitionIdIterator = std::find(stateTransitionStorage.begin(), stateTransitionStorage.end(), transitionId);
+        if (transitionIdIterator == stateTransitionStorage.end())
+        {
+            return false;
+        }
+
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        auto& transitionWrapper = transitionStorage[transitionId];
+        auto& transitionStateStorage = transitionWrapper.template getInStateStorage<Transition>();
+        auto& stateIdIterator = std::find(transitionStateStorage.begin(), transitionStateStorage.end(), stateId);
+        if (stateIdIterator == transitionStateStorage.end())
+        {
+            return false;
+        }
+
+        return true;
+    };
+
+    template <class Transition, class State>
+    bool isTransitionToStateExistConnection(IdType transitionId, IdType stateId)
+    {
+        // TODO: error handling
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        auto& stateWrapper = stateStorage[stateId];
+        auto& stateTransitionStorage = stateWrapper.template getInTransitionStorage<Transition>();
+        auto& transitionIdIterator = std::find(stateTransitionStorage.begin(), stateTransitionStorage.end(), transitionId);
+        if (transitionIdIterator == stateTransitionStorage.end())
+        {
+            return false;
+        }
+
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        auto& transitionWrapper = transitionStorage[transitionId];
+        auto& transitionStateStorage = transitionWrapper.template getOutStateStorage<Transition>();
+        auto& stateIdIterator = std::find(transitionStateStorage.begin(), transitionStateStorage.end(), stateId);
+        if (stateIdIterator == transitionStateStorage.end())
+        {
+            return false;
+        }
+
+        return true;
+    };
+
+    template <class... Args>
+    void executeMarkersPropagation(Args&&... args)
+    {
+        for (auto& transition : m_petriNetStorage.template getTransitionStorage<>())
+        {
+
+        }
+        // For every transition
+        // Ask if can perform transition
+        // If yes than delete from before and save future transitions
+        // If no go to next transition
+        // After all transitions are done then apply all saved transformations at once.
+    };
+
 private:
     PetriNetStorage<PetriNetTraits> m_petriNetStorage;
+    // MarkerPropagator m_propagator;
     IdGenerator m_idGenerator;
 };
 

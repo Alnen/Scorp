@@ -4,8 +4,8 @@
 #include <vector>
 #include <boost/container/flat_map.hpp>
 #include "TypeStorage.h"
-#include "meta_utility.h"
-#include "TypeList.h"
+#include "meta/TypeList.h"
+#include "meta/TypeHolder.h"
 
 template <template <class T> class _Functor, template <class T> class _Storage, class _TypeList>
 class TypeListStorage;
@@ -38,7 +38,7 @@ private:
 };
 
 template <template <class T> class _Functor, template <class T>  class _Storage>
-class TypeListStorage<_Functor, _Storage, TypeList<>>
+class TypeListStorage<_Functor, _Storage, meta::TypeList<>>
 {};
 
 template <class T>
@@ -52,6 +52,6 @@ struct MapStorageFactory
 };
 
 template <class _TypeList, template <class T> class _Container = VectorStorage>
-using IdentityTypeListStorage = TypeListStorage<identity, _Container, _TypeList>;
+using IdentityTypeListStorage = TypeListStorage<meta::TypeHolder, _Container, _TypeList>;
 
 #endif //SIMPLETYPELISTSTORAGE_H

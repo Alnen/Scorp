@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 #include "container/PetriNet.h"
 
-using TestMarkerList = TypeList<int>;
-using TestStateList = TypeList<int>;
-using TestTransitionList = TypeList<int>;
+using TestMarkerList = meta::TypeList<int>;
+using TestStateList = meta::TypeList<int>;
+using TestTransitionList = meta::TypeList<int>;
 using TestPetriNetTrait = PetriNetTraits<TestMarkerList, TestStateList, TestTransitionList>;
 using TestPetriNet = PetriNet<TestPetriNetTrait>;
 

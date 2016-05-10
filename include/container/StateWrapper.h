@@ -64,7 +64,7 @@ public:
 
 private:
     template <class V>
-    using IdTypeFactory = return_same_type<IdType>;
+    using IdTypeFactory = meta::TypeHolder<IdType>;
 
     TypeListStorage<IdTypeFactory, StorageTypeFactory, MarkerList> m_markerStorage;
     TypeListStorage<IdTypeFactory, StorageTypeFactory, TransitionList> m_inTransitionStorage;
