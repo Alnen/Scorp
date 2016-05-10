@@ -25,11 +25,11 @@ public:
     template <class T>
     using Storage = typename MapStorageFactory<IdType, std::less<IdType>>::template MapStorage<T>;
     template <class T>
-    using SpecializedMarkerWrapper = identity<MarkerWrapper<T, PetriNetTraits>>;
+    using SpecializedMarkerWrapper = meta::TypeHolder<MarkerWrapper<T, PetriNetTraits>>;
     template <class T>
-    using SpecializedStateWrapper = identity<StateWrapper<T, PetriNetTraits>>;
+    using SpecializedStateWrapper = meta::TypeHolder<StateWrapper<T, PetriNetTraits>>;
     template <class T>
-    using SpecializedTransitionWrapper = identity<TransitionWrapper<T, PetriNetTraits>>;
+    using SpecializedTransitionWrapper = meta::TypeHolder<TransitionWrapper<T, PetriNetTraits>>;
 
     template <class T>
     Storage<typename SpecializedMarkerWrapper<T>::type>& getMarkerStorage()

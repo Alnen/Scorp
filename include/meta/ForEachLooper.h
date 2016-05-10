@@ -1,51 +1,11 @@
-#ifndef META_UTILITY_H
-#define META_UTILITY_H
+#ifndef SCORPCORE_FOREACHLOOP_H
+#define SCORPCORE_FOREACHLOOP_H
 
+#include <meta/TypeList.h>
 #include <utility>
-#include "TypeList.h"
 
-template <class _Type>
-struct identity
+namespace meta
 {
-    using type = _Type;
-};
-
-template <class _Type>
-struct pointer_wrapper
-{
-    using type = _Type*;
-};
-
-template <class _TypeList, template <class T> class _Functor>
-struct all :
-        std::conditional<
-            _Functor<typename _TypeList::Head>::value,
-            std::true_type,
-            all<typename _TypeList::Tail, _Functor>
-        >::type
-{
-};
-
-template <template <class... Items> class _TypeList, template <class T> class _Functor>
-struct all<_TypeList<>, _Functor> : std::false_type
-{
-};
-
-template <class _Type>
-struct is_equeal_to_type
-{
-    template <class _CheckedType>
-    using type = std::is_same<_CheckedType, _Type>;
-};
-
-template <class _Type>
-struct return_same_type
-{
-    using type = _Type;
-};
-
-template <class T>
-class TypeWriter;
 
 template <class Head, class Tail>
 struct IterateOnce
@@ -97,4 +57,6 @@ struct ForEachLooper
     Functor m_functor;
 };
 
-#endif //META_UTILITY_H
+}
+
+#endif //SCORPCORE_FOREACHLOOP_H

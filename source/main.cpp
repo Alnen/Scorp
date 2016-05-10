@@ -3,7 +3,7 @@
 #include "container/PetriNet.h"
 #include <iostream>
 #include "container/PetriNetTraits.h"
-#include "container/internal/TypeList.h"
+#include "meta/TypeList.h"
 #include "container/internal/IntegralIdGenerator.h"
 #include "container/internal/PetriNetStorage.h"
 
@@ -48,20 +48,20 @@ private:
     double m_y = 0.0;
 };
 
-using TestTypeList = TypeList<int, char, float>;
+using TestTypeList = meta::TypeList<int, char, float>;
 using TestTypeListStorage = IdentityTypeListStorage<TestTypeList>;
 
 template <>
-struct PetriNetTraits<TypeList<SpecialMarker, int>, TestTypeList, TestTypeList>
+struct PetriNetTraits<meta::TypeList<SpecialMarker, int>, TestTypeList, TestTypeList>
 {
-    using MarkerList = TypeList<SpecialMarker, int>;
+    using MarkerList = meta::TypeList<SpecialMarker, int>;
     using TransitionList = TestTypeList;
     using StateList = TestTypeList;
     using IdType = int;
     using IdGenerator = IntegralIdGenerator<IdType>;
 };
 
-using TestPetriNetTraits = PetriNetTraits<TypeList<SpecialMarker, int>, TestTypeList, TestTypeList>;
+using TestPetriNetTraits = PetriNetTraits<meta::TypeList<SpecialMarker, int>, TestTypeList, TestTypeList>;
 using TestPetriNet = PetriNet<TestPetriNetTraits>;
 using TestPetriNetStorage = PetriNetStorage<TestPetriNetTraits>;
 
