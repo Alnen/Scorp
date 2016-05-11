@@ -2,6 +2,8 @@
 #define SCORPCORE_TYPEENUM_H
 
 #include "meta/TypeList.h"
+#include "meta/TypeHolder.h"
+
 namespace {
 
 template <class _Type>
@@ -32,21 +34,36 @@ struct TypeEnumImpl
         return TypeEnumImpl<typename Tail::Head, typename Tail::Tail, IntegralType>::template getValue<ListMember>() + 1;
     }
 
-    template <IntegralType TypeIndex>
-    constexpr static typename std::enable_if<TypeIndex == 0, TypeHandler<Head>>::type
-    getTypeHandler()
-    {
-        return TypeHandler<Head>();
-    }
+};
 
-    template <IntegralType TypeIndex>
-    constexpr static typename std::enable_if<(TypeIndex > 0),
-            decltype(TypeEnumImpl<typename Tail::Head, typename Tail::Tail, IntegralType>::template getTypeHandler<TypeIndex - 1>())>::type
-    getTypeHandler()
+template <class _Head, class _Tail, int TypeIndex>
+struct TypeHandlerExtractor
+{
+    static_assert(TypeIndex > 0 ,"");
+
+    using Head = _Head;
+    using Tail = _Tail;
+
+    constexpr decltype(TypeHandlerExtractor<typename Tail::Head, typename Tail::Tail, TypeIndex - 1>()())
+    operator ()()
     {
-        return TypeEnumImpl<typename Tail::Head, typename Tail::Tail, IntegralType>::template getTypeHandler<TypeIndex - 1>();
+        return TypeHandlerExtractor<typename Tail::Head, typename Tail::Tail, TypeIndex - 1>()();
     }
 };
+
+template <class _Head, class _Tail>
+struct TypeHandlerExtractor<_Head, _Tail, 0>
+{
+    using Head = _Head;
+    using Tail = _Tail;
+
+    meta::TypeHolder<Head>
+    operator ()()
+    {
+        return meta::TypeHolder<Head>();
+    }
+};
+
 
 }
 
@@ -65,10 +82,10 @@ struct TypeEnum
     }
 
     template <IntegralType TypeIndex>
-    constexpr static decltype(TypeEnumImpl<typename TypeList::Head, typename TypeList::Tail, IntegralType>::template getTypeHandler<TypeIndex>())
+    constexpr static decltype(TypeHandlerExtractor<typename TypeList::Head, typename TypeList::Tail, TypeIndex>()())
     getTypeHandler()
     {
-        return TypeEnumImpl<typename TypeList::Head, typename TypeList::Tail, IntegralType>::template getTypeHandler<TypeIndex>();
+        return TypeHandlerExtractor<typename TypeList::Head, typename TypeList::Tail, TypeIndex>()();
     }
 };
 
