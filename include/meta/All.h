@@ -6,7 +6,6 @@
 namespace meta
 {
 
-
 template <class _TypeList, template <class T> class _Functor>
 struct all :
         std::conditional<

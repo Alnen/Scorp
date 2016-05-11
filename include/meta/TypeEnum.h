@@ -45,7 +45,7 @@ struct TypeHandlerExtractor
     using Tail = _Tail;
 
     constexpr decltype(TypeHandlerExtractor<typename Tail::Head, typename Tail::Tail, TypeIndex - 1>()())
-    operator ()()
+    operator ()() const
     {
         return TypeHandlerExtractor<typename Tail::Head, typename Tail::Tail, TypeIndex - 1>()();
     }
@@ -63,7 +63,6 @@ struct TypeHandlerExtractor<_Head, _Tail, 0>
         return meta::TypeHolder<Head>();
     }
 };
-
 
 }
 
