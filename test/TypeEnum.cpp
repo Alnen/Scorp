@@ -17,7 +17,7 @@ TEST_F(TypeEnumTest, ifGetValueSpecializedWithProperTypeShouldReturnItsIntValue)
 
 TEST_F(TypeEnumTest, ifGetTypeHandlerShouldReturnCorespondType)
 {
-    EXPECT_TRUE((std::is_same<int, typename decltype(TestTypeEnum::getTypeHandler<0>())::Type>::value));
-    EXPECT_TRUE((std::is_same<float, typename decltype(TestTypeEnum::getTypeHandler<1>())::Type>::value));
-    EXPECT_TRUE((std::is_same<double, typename decltype(TestTypeEnum::getTypeHandler<2>())::Type>::value));
+    EXPECT_TRUE((std::is_same<int, typename decltype(TestTypeEnum::getTypeHandler<0>())::type>::value));
+    EXPECT_TRUE((std::is_same<float, typename decltype(TestTypeEnum::getTypeHandler<1>())::type>::value));
+    EXPECT_TRUE((std::is_same<double, typename decltype(TestTypeEnum::getTypeHandler<2>())::type>::value));
 }
