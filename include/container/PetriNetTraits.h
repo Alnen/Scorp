@@ -1,7 +1,6 @@
 #ifndef PETRINETTRAITS_H
 #define PETRINETTRAITS_H
 
-#include "container/internal/RandomMarkerPropagator.h"
 #include "container/internal/IntegralIdGenerator.h"
 
 template <class _MarkerList, class _TransitionList, class _StateList>
