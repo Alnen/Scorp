@@ -1,9 +1,18 @@
 #include "mainwindow.h"
-
-#include "Map/TrackGraphicsObject.h"
-#include "Map/PointGraphicsObject.h"
-#include "Map/StateGraphicsObject.h"
-#include "Map/TransitionGraphicsObject.h"
+#include <QTreeView>
+#include <QGraphicsScene>
+#include <QToolBar>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QComboBox>
+#include <QLabel>
+#include <QFrame>
+#include <QWidget>
+#include <QStatusBar>
+#include <QTableWidget>
 #include <QHeaderView>
 #include <QTableWidgetItem>
 #include <QGraphicsView>
@@ -16,11 +25,22 @@
 #include <QIcon>
 #include <QPixmap>
 #include <QActionGroup>
+#include <QDialog>
+#include <QSpinBox>
+#include <QDateTimeEdit>
+#include <QCalendarWidget>
 
 #include <QResizeEvent>
 #include <QDebug>
 
+#include "Map/MapScene.h"
+#include "Map/TrackGraphicsObject.h"
+#include "Map/PointGraphicsObject.h"
+#include "Map/StateGraphicsObject.h"
+#include "Map/TransitionGraphicsObject.h"
 #include "Map/GraphicsObjectsGroup.h"
+#include "StationsList/TreeModel.h"
+#include "StationsList/StationsListModel.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -41,16 +61,6 @@ MainWindow::MainWindow(QWidget *parent)
     dlgRegistration->setFixedSize(205, 140);
     dlgRegistration->setWindowTitle(tr("Registration"));
 
-    dlgShowNameList = new QDialog(this, Qt::Dialog);
-    dlgShowNameList->setFixedSize(300, 500);
-    dlgShowNameList->setWindowTitle(tr(""));
-    tableShowNameList = new QTableWidget(dlgShowNameList);
-    QHeaderView* hv = new QHeaderView(Qt::Horizontal);
-    tableShowNameList->setHorizontalHeader(hv);
-    hv->hide();
-    tableShowNameList->setColumnCount(1);
-    hv->setSectionResizeMode(0, QHeaderView::Stretch);
-    tableShowNameList->setGeometry(10, 10, dlgShowNameList->width()-20, dlgShowNameList->height()-20);
     //tableShowAllUsers->insertRow(tableShowAllUsers->rowCount());
     //tableShowAllUsers->setItem(tableShowAllUsers->rowCount()-1, 0, new QTableWidgetItem(tr("User1")));
     /*
@@ -61,6 +71,13 @@ MainWindow::MainWindow(QWidget *parent)
         tableShowAllUsers->setItem(i, 0, new QTableWidgetItem(tr("User%1").arg(i+1)));
     }
     */
+    defineEditUserForm();
+    defineEditStationForm();
+    defineEditTrainForm();
+    defineEditTourForm();
+    defineTrainScheduleForm();
+    defineStationScheduleForm();
+
     defineUsersListForm();
     defineStationsListForm();
     defineTrainsListForm();
@@ -68,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
     defineTrainScheduleForm();
     defineStationScheduleForm();
     defineFindTourDialog();
+    defineEditDateTimeForm();
     defineAboutProgramForm();
 
     defineMainMenu();
@@ -159,23 +177,16 @@ void MainWindow::defineMainMenu()
     mnMap->addAction(actTrainsList);
     mnMap->addAction(actToursList);
 
-    mnSchedule = new QMenu(tr("Schedule"));
-    actTrainSchedule = new QAction(tr("Train Schedule"), mnSchedule);
-    actStationSchedule = new QAction(tr("Station Schedule"), mnSchedule);
-    actFindTour = new QAction(tr("Find Tour"), mnSchedule);
-    mnSchedule->addAction(actTrainSchedule);
-    mnSchedule->addAction(actStationSchedule);
-    mnSchedule->addAction(actFindTour);
-
-    actAbout = new QAction(tr("About"), mnAccounts);
+    actFindTour = new QAction(tr("Find Tour"), mnMap);
+    actAbout = new QAction(tr("About"), mnFile);
     QList<QAction*> actions;
+    actions << actFindTour;
     actions << actAbout;
 
     m_mainMenu = new QMenuBar(this);
     m_mainMenu->addMenu(mnFile);
     m_mainMenu->addMenu(mnAccounts);
     m_mainMenu->addMenu(mnMap);
-    m_mainMenu->addMenu(mnSchedule);
     m_mainMenu->addActions(actions);
     this->setMenuBar(m_mainMenu);
 
@@ -184,9 +195,12 @@ void MainWindow::defineMainMenu()
     connect(actSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
     connect(actExit, &QAction::triggered, this, &MainWindow::close);
     connect(actUsersList, &QAction::triggered, dlgUsersList, &QDialog::open);
+    connect(actStationsList, &QAction::triggered, dlgStationsList, &QDialog::open);
+    connect(actTrainsList, &QAction::triggered, dlgTrainsList, &QDialog::open);
+    connect(actToursList, &QAction::triggered, dlgToursList, &QDialog::open);
     connect(actEditProfile, &QAction::triggered, this, &MainWindow::openEditProfileDialog);
     connect(actFindTour, &QAction::triggered, dlgFindTour, &QDialog::open);
-    connect(actAbout, &QAction::triggered, this, &MainWindow::showAboutProgramInfo);
+    connect(actAbout, &QAction::triggered, dlgAboutProgram, &QDialog::open);
 }
 
 void MainWindow::defineToolBar()
@@ -343,12 +357,6 @@ void MainWindow::defineMap()
     //group.addItemsToScene();
     m_mapScene->addItem(group.getItems()[0]);
     */
-    //ObjectItem* obj_item = new ObjectItem(state, state2, m_mapScene);
-    //obj_item.item1 = state;
-    //obj_item.item2 = state2;
-    //m_mapScene->addItem(obj_item.m_item1);
-    //m_mapScene->addItem(obj_item.item2);
-    //obj_item->addToScene();
 
     /*
     TrackGraphicsObject* track = new TrackGraphicsObject(state, state2);
@@ -417,14 +425,14 @@ void MainWindow::defineUsersListForm()
     int button_width = 74;
     QPushButton* btnBack = new QPushButton(tr("Back"), dlgUsersList);
     btnBack->setGeometry(dlgUsersList->width() - button_width - 11, dlgUsersList->height() - 30, button_width, 20);
-    QPushButton* btnAddUser = new QPushButton(tr("Add"), dlgUsersList);
-    btnAddUser->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnEditUser = new QPushButton(tr("Edit"), dlgUsersList);
-    btnEditUser->setGeometry(btnAddUser->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnRemoveUser = new QPushButton(tr("Remove"), dlgUsersList);
-    btnRemoveUser->setGeometry(btnEditUser->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnClearUser = new QPushButton(tr("Clear"), dlgUsersList);
-    btnClearUser->setGeometry(btnRemoveUser->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnAdd = new QPushButton(tr("Add"), dlgUsersList);
+    btnAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnEdit = new QPushButton(tr("Edit"), dlgUsersList);
+    btnEdit->setGeometry(btnAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnRemove = new QPushButton(tr("Remove"), dlgUsersList);
+    btnRemove->setGeometry(btnEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnClear = new QPushButton(tr("Clear"), dlgUsersList);
+    btnClear->setGeometry(btnRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
 
     tableUsers = new QTableWidget(dlgUsersList);
     tableUsers->setColumnCount(2);
@@ -432,79 +440,446 @@ void MainWindow::defineUsersListForm()
     tableUsers->setColumnWidth(0, 100);
     tableUsers->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
     tableUsers->horizontalHeader()->setStretchLastSection(true);
-    tableUsers->setGeometry(10, 10, dlgUsersList->width()-20, btnBack->y() - 15);
+    tableUsers->setGeometry(10, 10, dlgUsersList->width()-20, btnBack->y() - 45);
+
+    QLabel* lbShowMode = new QLabel(tr("Show:"), dlgUsersList);
+    lbShowMode->setGeometry(tableUsers->x(), tableUsers->y() + tableUsers->height() + 5, 40, 20);
+    QComboBox* cmbShowMode = new QComboBox(dlgUsersList);
+    cmbShowMode->addItem(tr("All"));
+    cmbShowMode->addItem(tr("Only Operators"));
+    cmbShowMode->addItem(tr("Only Admins"));
+    cmbShowMode->setGeometry(lbShowMode->x() + lbShowMode->width() + 5, lbShowMode->y(), 100, 20);
+
+    connect(btnBack, &QPushButton::clicked, dlgUsersList, &QDialog::close);
+    connect(btnAdd, &QPushButton::clicked, [this](){this->openEditUserForm(true);});
+    connect(btnEdit, &QPushButton::clicked, [this](){this->openEditUserForm(false);});
+    connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeUserFromList);
+    connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearUsersList);
+    connect(cmbShowMode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeUserGroupShowMode(int)));
+    //connect(cmbShowMode, &QComboBox::currentIndexChanged, this, &MainWindow::changeUserGroupShowMode);
 }
 
 void MainWindow::defineStationsListForm()
 {
     dlgStationsList = new QDialog(this, Qt::Dialog);
-    dlgStationsList->setFixedSize(300, 400);
+    dlgStationsList->setFixedSize(400, 400);
     dlgStationsList->setWindowTitle(tr("Stations List"));
+
+    int button_width = 74;
+    QPushButton* btnBack = new QPushButton(tr("Back"), dlgStationsList);
+    btnBack->setGeometry(dlgStationsList->width() - button_width - 11, dlgStationsList->height() - 30, button_width, 20);
+    QPushButton* btnAdd = new QPushButton(tr("Add"), dlgStationsList);
+    btnAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnEdit = new QPushButton(tr("Edit"), dlgStationsList);
+    btnEdit->setGeometry(btnAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnRemove = new QPushButton(tr("Remove"), dlgStationsList);
+    btnRemove->setGeometry(btnEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnClear = new QPushButton(tr("Clear"), dlgStationsList);
+    btnClear->setGeometry(btnRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
+
+    QPushButton* btnShowSchedule = new QPushButton(tr("Schedule"), dlgStationsList);
+    btnShowSchedule->setGeometry(10, btnClear->y() - 25, dlgStationsList->width()-20, 20);
+
+    tableStations = new QTableWidget(dlgStationsList);
+    tableStations->setColumnCount(1);
+    tableStations->setHorizontalHeaderLabels(QStringList() << tr("Station"));
+    tableStations->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    tableStations->setGeometry(10, 10, dlgStationsList->width()-20, btnShowSchedule->y() - 15);
+    tableStations->setEditTriggers(QTableWidget::NoEditTriggers);
+
+    connect(btnBack, &QPushButton::clicked, dlgStationsList, &QDialog::close);
+    connect(btnAdd, &QPushButton::clicked, [this](){this->openEditStationForm(true);});
+    connect(btnEdit, &QPushButton::clicked, [this](){this->openEditStationForm(false);});
+    connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeStationFromList);
+    connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearStationsList);
+    connect(btnShowSchedule, &QPushButton::clicked, this, &MainWindow::openStationScheduleForm);
 }
 
 void MainWindow::defineTrainsListForm()
 {
     dlgTrainsList = new QDialog(this, Qt::Dialog);
-    dlgTrainsList->setFixedSize(300, 400);
+    dlgTrainsList->setFixedSize(400, 400);
     dlgTrainsList->setWindowTitle(tr("Trains List"));
+
+    int button_width = 74;
+    QPushButton* btnBack = new QPushButton(tr("Back"), dlgTrainsList);
+    btnBack->setGeometry(dlgTrainsList->width() - button_width - 11, dlgTrainsList->height() - 30, button_width, 20);
+    QPushButton* btnAdd = new QPushButton(tr("Add"), dlgTrainsList);
+    btnAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnEdit = new QPushButton(tr("Edit"), dlgTrainsList);
+    btnEdit->setGeometry(btnAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnRemove = new QPushButton(tr("Remove"), dlgTrainsList);
+    btnRemove->setGeometry(btnEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnClear = new QPushButton(tr("Clear"), dlgTrainsList);
+    btnClear->setGeometry(btnRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
+
+    QPushButton* btnShowSchedule = new QPushButton(tr("Schedule"), dlgTrainsList);
+    btnShowSchedule->setGeometry(10, btnClear->y() - 25, dlgTrainsList->width()-20, 20);
+
+    tableTrains = new QTableWidget(dlgTrainsList);
+    tableTrains->setColumnCount(2);
+    tableTrains->setHorizontalHeaderLabels(QStringList() << tr("Train") << tr("Route"));
+    tableTrains->setColumnWidth(0, 100);
+    tableTrains->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    tableTrains->horizontalHeader()->setStretchLastSection(true);
+    tableTrains->setGeometry(10, 10, dlgTrainsList->width()-20, btnShowSchedule->y() - 15);
+    tableTrains->setEditTriggers(QTableWidget::NoEditTriggers);
+
+    connect(btnBack, &QPushButton::clicked, dlgTrainsList, &QDialog::close);
+    connect(btnAdd, &QPushButton::clicked, [this](){this->openEditTrainForm(true);});
+    connect(btnEdit, &QPushButton::clicked, [this](){this->openEditTrainForm(false);});
+    connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeTrainFromList);
+    connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearTrainsList);
+    connect(btnShowSchedule, &QPushButton::clicked, this, &MainWindow::openTrainScheduleForm);
 }
 
 void MainWindow::defineToursListForm()
 {
     dlgToursList = new QDialog(this, Qt::Dialog);
-    dlgToursList->setFixedSize(300, 400);
+    dlgToursList->setFixedSize(400, 400);
     dlgToursList->setWindowTitle(tr("Tours List"));
-}
 
-void MainWindow::defineTrainScheduleForm()
-{
-    dlgTrainSchedule = new QDialog(this, Qt::Dialog);
-    dlgTrainSchedule->setFixedSize(300, 400);
-    dlgTrainSchedule->setWindowTitle(tr("Train Schedule"));
-}
+    int button_width = 74;
+    QPushButton* btnBack = new QPushButton(tr("Back"), dlgToursList);
+    btnBack->setGeometry(dlgToursList->width() - button_width - 11, dlgToursList->height() - 30, button_width, 20);
+    QPushButton* btnAdd = new QPushButton(tr("Add"), dlgToursList);
+    btnAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnEdit = new QPushButton(tr("Edit"), dlgToursList);
+    btnEdit->setGeometry(btnAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnRemove = new QPushButton(tr("Remove"), dlgToursList);
+    btnRemove->setGeometry(btnEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
+    QPushButton* btnClear = new QPushButton(tr("Clear"), dlgToursList);
+    btnClear->setGeometry(btnRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
 
-void MainWindow::defineStationScheduleForm()
-{
-    dlgStationSchedule = new QDialog(this, Qt::Dialog);
-    dlgStationSchedule->setFixedSize(300, 400);
-    dlgStationSchedule->setWindowTitle(tr("Station Schedule"));
+    tableTours = new QTableWidget(dlgToursList);
+    tableTours->setColumnCount(1);
+    tableTours->setHorizontalHeaderLabels(QStringList() << tr("Tour"));
+    tableTours->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    tableTours->setGeometry(10, 10, dlgToursList->width()-20, btnBack->y() - 15);
+    tableTours->setEditTriggers(QTableWidget::NoEditTriggers);
+
+    connect(btnBack, &QPushButton::clicked, dlgToursList, &QDialog::close);
+    connect(btnAdd, &QPushButton::clicked, [this](){this->openEditTourForm(true);});
+    connect(btnEdit, &QPushButton::clicked, [this](){this->openEditTourForm(false);});
+    connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeTourFromList);
+    connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearToursList);
 }
 
 void MainWindow::defineFindTourDialog()
 {
     dlgFindTour = new QDialog(this, Qt::Dialog);
-    dlgFindTour->setFixedSize(300, 400);
+    dlgFindTour->setFixedSize(532, 400);
     dlgFindTour->setWindowTitle(tr("Find Tour"));
-    //
-    QLineEdit* txtDeparturePlace = new QLineEdit(dlgFindTour);
-    txtDeparturePlace->setPlaceholderText(tr("Departure Place"));
-    txtDeparturePlace->setGeometry(10, 10, 200, 20);
-    QLineEdit* txtDepartureTime = new QLineEdit(dlgFindTour);
-    txtDepartureTime->setPlaceholderText(tr("Departure Time"));
-    txtDepartureTime->setGeometry(txtDeparturePlace->x(),
-                                  txtDeparturePlace->y() + txtDeparturePlace->height() + 5, 200, 20);
-    QLineEdit* txtArrivalPlace = new QLineEdit(dlgFindTour);
-    txtArrivalPlace->setPlaceholderText(tr("Arrival Place"));
-    txtArrivalPlace->setGeometry(txtDepartureTime->x(),
-                                 txtDepartureTime->y() + txtDepartureTime->height() + 5, 200, 20);
-    QLineEdit* txtArrivalTime = new QLineEdit(dlgFindTour);
-    txtArrivalTime->setPlaceholderText(tr("Arrival Time"));
-    txtArrivalTime->setGeometry(txtArrivalPlace->x(), txtArrivalPlace->y() + txtArrivalPlace->height() + 5,
-                                200, 20);
+    QLabel* lbDeparturePlace = new QLabel(tr("Departure Place:"), dlgFindTour);
+    lbDeparturePlace->setGeometry(10, 10, 80, 20);
+    int offset_x = lbDeparturePlace->x() + lbDeparturePlace->width() + 10;
+    cmbDeparturePlace = new QComboBox(dlgFindTour);
+    cmbDeparturePlace->setGeometry(offset_x, lbDeparturePlace->y(), 300, 20);
+    QLabel* lbDepartureTime = new QLabel(tr("Departure Time:"), dlgFindTour);
+    lbDepartureTime->setGeometry(lbDeparturePlace->x(), lbDeparturePlace->y() + lbDeparturePlace->height() + 5,
+                                  lbDeparturePlace->width(), 20);
+    dateDeparture = new QDateTimeEdit(dlgFindTour);
+    dateDeparture->setGeometry(cmbDeparturePlace->x(), lbDepartureTime->y(), cmbDeparturePlace->width(), 20);
+    QPushButton* btnDepartureTime = new QPushButton(tr("..."), dlgFindTour);
+    btnDepartureTime->setGeometry(dateDeparture->x() + dateDeparture->width() - 20, dateDeparture->y(), 20, 20);
+    QLabel* lbArrivalPlace = new QLabel(tr("Arrival Place:"), dlgFindTour);
+    lbArrivalPlace->setGeometry(lbDepartureTime->x(), lbDepartureTime->y() + lbDepartureTime->height() + 5,
+                                  lbDepartureTime->width(), 20);
+    cmbArrivalPlace = new QComboBox(dlgFindTour);
+    cmbArrivalPlace->setGeometry(cmbDeparturePlace->x(), lbArrivalPlace->y(), cmbDeparturePlace->width(), 20);
+    QLabel* lbArrivalTime = new QLabel(tr("Arrival Time:"), dlgFindTour);
+    lbArrivalTime->setGeometry(lbArrivalPlace->x(), lbArrivalPlace->y() + lbArrivalPlace->height() + 5,
+                                  lbArrivalPlace->width(), 20);
+    dateArrival = new QDateTimeEdit(dlgFindTour);
+    dateArrival->setGeometry(cmbDeparturePlace->x(), lbArrivalTime->y(), cmbDeparturePlace->width(), 20);
+    QPushButton* btnArrivalTime = new QPushButton(tr("..."), dlgFindTour);
+    btnArrivalTime->setGeometry(dateArrival->x() + dateArrival->width() - 20, dateArrival->y(), 20, 20);
 
     QPushButton* btnBack = new QPushButton(tr("Cancel"), dlgFindTour);
     btnBack->setGeometry(dlgFindTour->width() - 90, dlgFindTour->height() - 30, 80, 20);
     QPushButton* btnFind = new QPushButton(tr("Find"), dlgFindTour);
     btnFind->setGeometry(btnBack->x() - 90, btnBack->y(), 80, 20);
+
+    tableFoundTours = new QTableWidget(dlgFindTour);
+    tableFoundTours->setColumnCount(6);
+    tableFoundTours->setHorizontalHeaderLabels(QStringList() << tr("Tour") << tr("Train")
+                                               << tr("Departure\nstation") << tr("Departure\ntime")
+                                               << tr("Arrival\nstation") << tr("Arrival\ntime"));
+    tableFoundTours->setColumnWidth(0, 100);
+    tableFoundTours->setColumnWidth(1, 50);
+    tableFoundTours->setColumnWidth(2, 100);
+    tableFoundTours->setColumnWidth(3, 80);
+    tableFoundTours->setColumnWidth(4, 100);
+    tableFoundTours->setColumnWidth(5, 80);
+
+    for (int i = 0; i < 6; ++i)
+    {
+        tableFoundTours->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Fixed);
+    }
+    int offset_y = lbArrivalTime->y() + lbArrivalTime->height() + 5;
+    tableFoundTours->setGeometry(10, offset_y, dlgFindTour->width()-20, btnFind->y() - offset_y - 10);
+    tableFoundTours->setEditTriggers(QTableWidget::NoEditTriggers);
+
+    connect(btnDepartureTime, &QPushButton::clicked, [this](){this->openEditDateTimeForm(false);});
+    connect(btnArrivalTime, &QPushButton::clicked, [this](){this->openEditDateTimeForm(true);});
+    connect(btnBack, &QPushButton::clicked, dlgFindTour, &QDialog::close);
 }
 
 void MainWindow::defineAboutProgramForm()
 {
     dlgAboutProgram = new QDialog(this, Qt::Dialog);
-    dlgAboutProgram->setFixedSize(300, 400);
-    dlgAboutProgram->setWindowTitle(tr("About Program"));
+    dlgAboutProgram->setFixedSize(250, 200);
+    dlgAboutProgram->setWindowTitle(tr("About SCORP"));
+    QLabel* lbInfo = new QLabel(tr("<center><h2>SCORP</h2><center>"), dlgAboutProgram);
+    lbInfo->setGeometry(0, 5, dlgAboutProgram->width(), 20);
+    QLabel* lbInfo2 = new QLabel(tr("<center>Created with Qt 5.5<center>"), dlgAboutProgram);
+    lbInfo2->setGeometry(0, lbInfo->y() + lbInfo->height() + 5, dlgAboutProgram->width(), 20);
+    QPushButton* btnOk = new QPushButton(tr("Ok"), dlgAboutProgram);
+    int button_width = 70;
+    btnOk->setGeometry(dlgAboutProgram->width() - button_width - 10, dlgAboutProgram->height() - 30,
+                       button_width, 20);
+
+    connect(btnOk, &QPushButton::clicked, dlgAboutProgram, &QDialog::close);
 }
 
+void MainWindow::defineEditUserForm()
+{
+    dlgEditUser = new QDialog(this, Qt::Dialog);
+    dlgEditUser->setFixedSize(200, 150);
+    QLabel* lbLogin = new QLabel(tr("Login:"), dlgEditUser);
+    lbLogin->setGeometry(10, 10, 55, 20);
+    int offset_x = lbLogin->x() + lbLogin->width() + 5;
+    txtUserLogin = new QLineEdit(dlgEditUser);    
+    txtUserLogin->setGeometry(offset_x, lbLogin->y(), dlgEditUser->width() - 10 - offset_x, 20);
+    QLabel* lbPassword = new QLabel(tr("Password:"), dlgEditUser);
+    lbPassword->setGeometry(lbLogin->x(), lbLogin->y() + lbLogin->height() + 5, lbLogin->width(), 20);
+    txtUserPassword = new QLineEdit(dlgEditUser);
+    txtUserPassword->setGeometry(offset_x, lbPassword->y(), txtUserLogin->width(), 20);
+    QLabel* lbGroup = new QLabel(tr("Group:"), dlgEditUser);
+    lbGroup->setGeometry(lbPassword->x(), lbPassword->y() + lbPassword->height() + 5, lbLogin->width(), 20);
+    cmbUserGroup = new QComboBox(dlgEditUser);
+    cmbUserGroup->addItem(tr("User"));
+    cmbUserGroup->addItem(tr("Operator"));
+    cmbUserGroup->addItem(tr("Admin"));
+    cmbUserGroup->setGeometry(offset_x, lbGroup->y(), txtUserLogin->width(), 20);
+
+    QPushButton* btnCancel = new QPushButton(tr("Cancel"), dlgEditUser);
+    btnCancel->setGeometry(dlgEditUser->width() - 90, dlgEditUser->height() - 30, 80, 20);
+    btnAcceptUserChanges = new QPushButton(tr("Accept"), dlgEditUser);
+    btnAcceptUserChanges->setGeometry(btnCancel->x() - 85, btnCancel->y(), 80, 20);
+    btnAddUser = new QPushButton(tr("Add"), dlgEditUser);
+    btnAddUser->setGeometry(btnAcceptUserChanges->geometry());
+
+    connect(btnCancel, &QPushButton::clicked, dlgEditUser, &QDialog::close);
+    connect(btnAcceptUserChanges, &QPushButton::clicked, this, &MainWindow::acceptUserChanges);
+    connect(btnAddUser, &QPushButton::clicked, this, &MainWindow::addUser);
+}
+
+void MainWindow::defineEditStationForm()
+{
+    dlgEditStation = new QDialog(this, Qt::Dialog);
+    dlgEditStation->setFixedSize(200, 150);
+    QLabel* lbStationName = new QLabel(tr("Name:"), dlgEditStation);
+    lbStationName->setGeometry(10, 10, 40, 20);
+    int offset_x = lbStationName->x() + lbStationName->width() + 5;
+    txtEditedStationName = new QLineEdit(dlgEditStation);
+    txtEditedStationName->setGeometry(offset_x, lbStationName->y(), dlgEditStation->width() - 10 - offset_x, 20);
+    QLabel* lbStationCoords = new QLabel(tr("Coords:"), dlgEditStation);
+    lbStationCoords->setGeometry(lbStationName->x(), lbStationName->y() + lbStationName->height() + 5,
+                                 lbStationName->width(), 20);
+    txtEditedStationX = new QLineEdit(dlgEditStation);
+    txtEditedStationX->setPlaceholderText(tr("X"));
+    txtEditedStationX->setGeometry(lbStationCoords->x() + lbStationCoords->width() + 5, lbStationCoords->y(),
+                                   (txtEditedStationName->width() - 5)/2, 20);
+    txtEditedStationY = new QLineEdit(dlgEditStation);
+    txtEditedStationY->setPlaceholderText(tr("Y"));
+    txtEditedStationY->setGeometry(txtEditedStationX->x() + txtEditedStationX->width() + 5, txtEditedStationX->y(),
+                                   txtEditedStationX->width(), 20);
+    /*
+    QLabel* lbTrains = new QLabel(tr("Trains"), dlgEditStation);
+    lbTrains->setGeometry(dlgEditStation->width() * 0.5 - 50, lbStationCoords->y() + lbStationCoords->height() + 5, 100, 20);
+    QTableWidget* tableStationTrains = new QTableWidget(dlgEditStation);
+    tableStationTrains->setGeometry(10, lbTrains->y() + lbTrains->height() + 5, dlgEditStation->width()-20, 100);
+    */
+    QPushButton* btnCancel = new QPushButton(tr("Cancel"), dlgEditStation);
+    btnCancel->setGeometry(dlgEditStation->width() - 90, dlgEditStation->height() - 30, 80, 20);
+    btnAcceptStationChanges = new QPushButton(tr("Accept"), dlgEditStation);
+    btnAcceptStationChanges->setGeometry(btnCancel->x() - 85, btnCancel->y(), 80, 20);
+    btnAddStation = new QPushButton(tr("Add"), dlgEditStation);
+    btnAddStation->setGeometry(btnAcceptStationChanges->geometry());
+
+    connect(btnCancel, &QPushButton::clicked, dlgEditStation, &QDialog::close);
+    connect(btnAcceptStationChanges, &QPushButton::clicked, this, &MainWindow::acceptStationChanges);
+    connect(btnAddStation, &QPushButton::clicked, this, &MainWindow::addStation);
+}
+
+void MainWindow::defineEditTrainForm()
+{
+    dlgEditTrain = new QDialog(this, Qt::Dialog);
+    dlgEditTrain->setFixedSize(250, 150);
+    QLabel* lbTrainNumber = new QLabel(tr("Number:"), dlgEditTrain);
+    lbTrainNumber->setGeometry(10, 10, 80, 20);
+    int offset_x = lbTrainNumber->x() + lbTrainNumber->width() + 5;
+    txtEditedTrainNumber = new QLineEdit(dlgEditTrain);
+    txtEditedTrainNumber->setGeometry(offset_x, lbTrainNumber->y(),
+                                      dlgEditTrain->width() - 10 - offset_x, 20);
+    QLabel* lbTrainStation = new QLabel(tr("Current Station:"), dlgEditTrain);
+    lbTrainStation->setGeometry(lbTrainNumber->x(), lbTrainNumber->y() + lbTrainNumber->height() + 5,
+                                lbTrainNumber->width(), 20);
+    txtEditedTrainStation = new QLineEdit(dlgEditTrain);
+    txtEditedTrainStation->setGeometry(offset_x, lbTrainStation->y(),
+                                       txtEditedTrainNumber->width(), 20);
+    QLabel* lbTrainRoute = new QLabel(tr("Route:"), dlgEditTrain);
+    lbTrainRoute->setGeometry(lbTrainStation->x(), lbTrainStation->y() + lbTrainStation->height() + 5,
+                              lbTrainNumber->width(), 20);
+    txtEditedTrainRoute = new QLineEdit(dlgEditTrain);
+    txtEditedTrainRoute->setGeometry(offset_x, lbTrainRoute->y(), txtEditedTrainNumber->width(), 20);
+    QPushButton* btnCancel = new QPushButton(tr("Cancel"), dlgEditTrain);
+    btnCancel->setGeometry(dlgEditTrain->width() - 90, dlgEditTrain->height() - 30, 80, 20);
+    btnAcceptTrainChanges = new QPushButton(tr("Accept"), dlgEditTrain);
+    btnAcceptTrainChanges->setGeometry(btnCancel->x() - 85, btnCancel->y(), 80, 20);
+    btnAddTrain = new QPushButton(tr("Add"), dlgEditTrain);
+    btnAddTrain->setGeometry(btnAcceptTrainChanges->geometry());
+
+    connect(btnCancel, &QPushButton::clicked, dlgEditTrain, &QDialog::close);
+    connect(btnAcceptTrainChanges, &QPushButton::clicked, this, &MainWindow::acceptTrainChanges);
+    connect(btnAddTrain, &QPushButton::clicked, this, &MainWindow::addTrain);
+}
+
+void MainWindow::defineEditTourForm()
+{
+    dlgEditTour = new QDialog(this, Qt::Dialog);
+    dlgEditTour->setFixedSize(250, 300);
+    QLabel* lbTourName = new QLabel(tr("Name:"), dlgEditTour);
+    lbTourName->setGeometry(10, 10, 35, 20);
+    int offset_x = lbTourName->x() + lbTourName->width() + 5;
+    txtEditedTourName = new QLineEdit(dlgEditTour);
+    txtEditedTourName->setGeometry(offset_x, lbTourName->y(), dlgEditTour->width() -10 - offset_x, 20);
+    QLabel* lbStations = new QLabel(tr("Stations"), dlgEditTour);
+    lbStations->setAlignment(Qt::AlignHCenter);
+    lbStations->setGeometry(10, lbTourName->y() + lbTourName->height() + 10,
+                            dlgEditTour->width() - 20, 20);
+    tableEditedTourStations = new QTableWidget(dlgEditTour);
+    tableEditedTourStations->setGeometry(10, lbStations->y() + lbStations->height(),
+                                         dlgEditTour->width() - 20, 200);
+    tableEditedTourStations->setEditTriggers(QTableWidget::NoEditTriggers);
+    QPushButton* btnCancel = new QPushButton(tr("Cancel"), dlgEditTour);
+    btnCancel->setGeometry(dlgEditTour->width() - 90, dlgEditTour->height() - 30, 80, 20);
+    btnAcceptTourChanges = new QPushButton(tr("Accept"), dlgEditTour);
+    btnAcceptTourChanges->setGeometry(btnCancel->x() - 85, btnCancel->y(), 80, 20);
+    btnAddTour = new QPushButton(tr("Add"), dlgEditTour);
+    btnAddTour->setGeometry(btnAcceptTourChanges->geometry());
+
+    connect(btnCancel, &QPushButton::clicked, dlgEditTour, &QDialog::close);
+    connect(btnAcceptTourChanges, &QPushButton::clicked, this, &MainWindow::acceptTourChanges);
+    connect(btnAddTour, &QPushButton::clicked, this, &MainWindow::addTour);
+}
+
+void MainWindow::defineTrainScheduleForm()
+{
+    dlgTrainSchedule = new QDialog(this, Qt::Dialog);
+    dlgTrainSchedule->setFixedSize(320, 400);
+    dlgTrainSchedule->setWindowTitle(tr("Train Schedule"));
+    QLabel* lbTrainNumber = new QLabel(tr("Number:"), dlgTrainSchedule);
+    lbTrainNumber->setGeometry(10, 10, 45, 20);
+    txtSelectedTrainNumber = new QLineEdit(dlgTrainSchedule);
+    int offset_x = lbTrainNumber->x() + lbTrainNumber->width() + 5;
+    txtSelectedTrainNumber->setGeometry(offset_x, lbTrainNumber->y(),
+                                        dlgTrainSchedule->width() - 10 - offset_x, 20);
+    txtSelectedTrainNumber->setEnabled(false);
+    int button_width = 74;
+    QPushButton* btnOk = new QPushButton(tr("Ok"), dlgTrainSchedule);
+    btnOk->setGeometry(dlgTrainSchedule->width() - button_width - 11, dlgTrainSchedule->height() - 30, button_width, 20);
+
+    tableTrainSchedule = new QTableWidget(dlgTrainSchedule);
+    tableTrainSchedule->setColumnCount(3);
+    tableTrainSchedule->setHorizontalHeaderLabels(QStringList() << tr("Arrival Time") << tr("WaitTime") << tr("Station"));
+    tableTrainSchedule->setColumnWidth(0, 80);
+    tableTrainSchedule->setColumnWidth(1, 80);
+    QHeaderView* header = tableTrainSchedule->horizontalHeader();
+    header->setSectionResizeMode(0, QHeaderView::Fixed);
+    header->setSectionResizeMode(1, QHeaderView::Fixed);
+    header->setStretchLastSection(true);
+    int offset_y = txtSelectedTrainNumber->y() + txtSelectedTrainNumber->height() + 5;
+    tableTrainSchedule->setGeometry(10, offset_y, dlgTrainSchedule->width()-20, btnOk->y() - offset_y - 5);
+    tableTrainSchedule->setEditTriggers(QTableWidget::NoEditTriggers);
+
+    connect(btnOk, &QPushButton::clicked, dlgTrainSchedule, &QDialog::close);
+    /*
+    for (int i = 0; i < 100; ++i)
+    {
+        tableTrainSchedule->insertRow(tableTrainSchedule->rowCount());
+        tableTrainSchedule->setItem(tableTrainSchedule->rowCount() - 1, 0, new QTableWidgetItem(tr("a_%1").arg(i)));
+        tableTrainSchedule->setItem(tableTrainSchedule->rowCount() - 1, 1, new QTableWidgetItem(tr("b_%1").arg(i)));
+        tableTrainSchedule->setItem(tableTrainSchedule->rowCount() - 1, 2, new QTableWidgetItem(tr("station_%1").arg(i)));
+        tableTrainSchedule->resizeColumnToContents(2);
+    }
+    */
+}
+
+void MainWindow::defineStationScheduleForm()
+{
+    dlgStationSchedule = new QDialog(this, Qt::Dialog);
+    dlgStationSchedule->setFixedSize(320, 400);
+    dlgStationSchedule->setWindowTitle(tr("Station Schedule"));
+    QLabel* lbStationName = new QLabel(tr("Name:"), dlgStationSchedule);
+    lbStationName->setGeometry(10, 10, 35, 20);
+    int offset_x = lbStationName->x() + lbStationName->width() + 5;
+    txtSelectedStationName = new QLineEdit(dlgStationSchedule);
+    txtSelectedStationName->setGeometry(offset_x, lbStationName->y(),
+                                        dlgStationSchedule->width() - 10 - offset_x, 20);
+    txtSelectedStationName->setEnabled(false);
+    int button_width = 74;
+    QPushButton* btnOk = new QPushButton(tr("Ok"), dlgStationSchedule);
+    btnOk->setGeometry(dlgStationSchedule->width() - button_width - 11, dlgStationSchedule->height() - 30, button_width, 20);
+
+    tableStationSchedule = new QTableWidget(dlgStationSchedule);
+    tableStationSchedule->setColumnCount(3);
+    tableStationSchedule->setHorizontalHeaderLabels(QStringList() << tr("Arrival Time") << tr("WaitTime") << tr("Train"));
+    tableStationSchedule->setColumnWidth(0, 80);
+    tableStationSchedule->setColumnWidth(1, 80);
+    QHeaderView* header = tableStationSchedule->horizontalHeader();
+    header->setSectionResizeMode(0, QHeaderView::Fixed);
+    header->setSectionResizeMode(1, QHeaderView::Fixed);
+    header->setStretchLastSection(true);
+    int offset_y = txtSelectedStationName->y() + txtSelectedStationName->height() + 5;
+    tableStationSchedule->setGeometry(10, offset_y, dlgStationSchedule->width()-20,
+                                      btnOk->y() - offset_y - 5);
+    tableStationSchedule->setEditTriggers(QTableWidget::NoEditTriggers);
+
+    connect(btnOk, &QPushButton::clicked, dlgStationSchedule, &QDialog::close);
+}
+
+void MainWindow::defineEditDateTimeForm()
+{
+    dlgEditDateTime = new QDialog(this, Qt::Dialog);
+    dlgEditDateTime->setFixedSize(400, 350);
+    dlgEditDateTime->setWindowTitle(tr("Choose Date and Time"));
+    /*
+    QLabel* lbDate = new QLabel(tr("Date"), dlgEditDateTime);
+    lbDate->setAlignment(Qt::AlignHCenter);
+    lbDate->setGeometry(10, 10, dlgEditDateTime->width() - 20, 20);
+    */
+    m_calendar = new QCalendarWidget(dlgEditDateTime);
+    //m_calendar->setGeometry(10, lbDate->y() + lbDate->height(), dlgEditDateTime->width() - 20, 200);
+    m_calendar->setGeometry(10, 10, dlgEditDateTime->width() - 20, 200);
+    QLabel* lbTime = new QLabel(tr("Time:"), dlgEditDateTime);
+    lbTime->setGeometry(m_calendar->x(), m_calendar->y() + m_calendar->height() + 5, 35, 20);
+    int offset_x = lbTime->x() + lbTime->width() + 5;
+    m_timeEdit = new QTimeEdit(dlgEditDateTime);
+    m_timeEdit->setGeometry(offset_x, lbTime->y(), dlgEditDateTime->width() - 10 - offset_x, 20);
+
+    QPushButton* btnCancel = new QPushButton(tr("Cancel"), dlgEditDateTime);
+    btnCancel->setGeometry(dlgEditDateTime->width() - 80, dlgEditDateTime->height() - 30, 70, 20);
+    btnAcceptDepartureTime = new QPushButton(tr("Ok"), dlgEditDateTime);
+    btnAcceptDepartureTime->setGeometry(btnCancel->x() - 55, btnCancel->y(), 50, 20);
+    btnAcceptArrivalTime = new QPushButton(tr("Ok"), dlgEditDateTime);
+    btnAcceptArrivalTime->setGeometry(btnAcceptDepartureTime->geometry());
+
+    connect(btnAcceptDepartureTime, &QPushButton::clicked, this, &MainWindow::acceptDepartureDateTimeChanges);
+    connect(btnAcceptArrivalTime, &QPushButton::clicked, this, &MainWindow::acceptArrivalDateTimeChanges);
+    connect(btnCancel, &QPushButton::clicked, dlgEditDateTime, &QDialog::close);
+}
 
 void MainWindow::loadFromFile()
 {
@@ -606,7 +981,8 @@ void MainWindow::openUsersListForm()
 
 void MainWindow::openEditProfileDialog()
 {
-    //
+    openEditUserForm(false);
+    dlgEditUser->setWindowTitle(tr("Edit Profile"));
 }
 
 void MainWindow::openStationsListForm()
@@ -626,12 +1002,12 @@ void MainWindow::openToursListForm()
 
 void MainWindow::openTrainScheduleForm()
 {
-    //
+    dlgTrainSchedule->open();
 }
 
 void MainWindow::openStationScheduleForm()
 {
-    //
+    dlgStationSchedule->open();
 }
 
 void MainWindow::openFindTourDialog()
@@ -642,4 +1018,203 @@ void MainWindow::openFindTourDialog()
 void MainWindow::showAboutProgramInfo()
 {
     //
+}
+
+void MainWindow::changeUserGroupShowMode(int mode)
+{
+    if (mode == 0)
+    {
+        //
+    }
+    else if (mode == 1)
+    {
+        //
+    }
+    else
+    {
+        //
+    }
+}
+
+void MainWindow::openEditUserForm(bool is_add_mode)
+{
+    if (is_add_mode)
+    {
+        dlgEditUser->setWindowTitle(tr("Add User"));
+        txtUserLogin->setEnabled(true);
+        btnAddUser->show();
+        btnAcceptUserChanges->hide();
+    }
+    else
+    {
+        dlgEditUser->setWindowTitle(tr("Edit User"));
+        txtUserLogin->setEnabled(false);
+        btnAddUser->hide();
+        btnAcceptUserChanges->show();
+    }
+    dlgEditUser->open();
+}
+
+void MainWindow::addUser()
+{
+    //
+}
+
+void MainWindow::acceptUserChanges()
+{
+    //
+}
+
+void MainWindow::clearUsersList()
+{
+    //
+}
+
+void MainWindow::removeUserFromList()
+{
+    //
+}
+
+void MainWindow::openEditStationForm(bool is_add_mode)
+{
+    if (is_add_mode)
+    {
+        dlgEditStation->setWindowTitle(tr("Add Station"));
+        btnAddStation->show();
+        btnAcceptStationChanges->hide();
+    }
+    else
+    {
+        dlgEditStation->setWindowTitle(tr("Edit Station"));
+        btnAddStation->hide();
+        btnAcceptStationChanges->show();
+    }
+    dlgEditStation->open();
+}
+
+void MainWindow::addStation()
+{
+    dlgEditStation->close();
+}
+
+void MainWindow::acceptStationChanges()
+{
+    dlgEditStation->close();
+}
+
+void MainWindow::clearStationsList()
+{
+    //
+}
+
+void MainWindow::removeStationFromList()
+{
+    //
+}
+
+void MainWindow::openEditTrainForm(bool is_add_mode)
+{
+    if (is_add_mode)
+    {
+        dlgEditTrain->setWindowTitle(tr("Add Train"));
+        btnAddTrain->show();
+        btnAcceptTrainChanges->hide();
+    }
+    else
+    {
+        dlgEditTrain->setWindowTitle(tr("Edit Train"));
+        btnAddTrain->hide();
+        btnAcceptTrainChanges->show();
+    }
+    dlgEditTrain->open();
+}
+
+void MainWindow::addTrain()
+{
+    dlgEditTrain->close();
+}
+
+void MainWindow::acceptTrainChanges()
+{
+    dlgEditTrain->close();
+}
+
+void MainWindow::clearTrainsList()
+{
+    //
+}
+
+void MainWindow::removeTrainFromList()
+{
+    //
+}
+
+void MainWindow::openEditTourForm(bool is_add_mode)
+{
+    if (is_add_mode)
+    {
+        dlgEditTour->setWindowTitle(tr("Add Tour"));
+        btnAddTour->show();
+        btnAcceptTourChanges->hide();
+    }
+    else
+    {
+        dlgEditTour->setWindowTitle(tr("Edit Tour"));
+        btnAddTour->hide();
+        btnAcceptTourChanges->show();
+    }
+    dlgEditTour->open();
+}
+
+void MainWindow::addTour()
+{
+    dlgEditTour->close();
+}
+
+void MainWindow::acceptTourChanges()
+{
+    dlgEditTour->close();
+}
+
+void MainWindow::clearToursList()
+{
+    //
+}
+
+void MainWindow::removeTourFromList()
+{
+    //
+}
+
+void MainWindow::openEditDateTimeForm(bool is_arrival)
+{
+    if (is_arrival)
+    {
+        m_calendar->setSelectedDate(dateArrival->date());
+        m_timeEdit->setTime(dateArrival->time());
+        btnAcceptDepartureTime->hide();
+        btnAcceptArrivalTime->show();
+    }
+    else
+    {
+        m_calendar->setSelectedDate(dateDeparture->date());
+        m_timeEdit->setTime(dateDeparture->time());
+        btnAcceptDepartureTime->show();
+        btnAcceptArrivalTime->hide();
+    }
+    dlgEditDateTime->open();
+}
+
+void MainWindow::acceptDepartureDateTimeChanges()
+{
+    dateDeparture->setDate(m_calendar->selectedDate());
+    dateDeparture->setTime(m_timeEdit->time());
+    dlgEditDateTime->close();
+}
+
+void MainWindow::acceptArrivalDateTimeChanges()
+{
+    dateArrival->setDate(m_calendar->selectedDate());
+    dateArrival->setTime(m_timeEdit->time());
+    dlgEditDateTime->close();
 }

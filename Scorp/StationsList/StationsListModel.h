@@ -1,7 +1,8 @@
 #ifndef STATIONSLISTMODEL_H
 #define STATIONSLISTMODEL_H
 
-#include "TreeModel.h"
+#include <QString>
+class TreeModel;
 
 class StationsListModel
 {

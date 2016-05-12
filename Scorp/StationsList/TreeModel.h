@@ -30,7 +30,7 @@ public:
     int childCount() const;
 
 private:
-    TreeModelItem *m_rootItem;
+    TreeModelItem* m_rootItem;
 };
 
 #endif // TREE_MODEL_H

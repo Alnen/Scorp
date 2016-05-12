@@ -43,7 +43,10 @@ void MapScene::addLinkToScene(int index)
     auto link_parts = m_links[index].getLinkParts(true);
     for (size_t i = 0; i < link_parts.size(); ++i)
     {
-        addItem(link_parts[i]);
+        if (i != 2)
+        {
+            addItem(link_parts[i]);
+        }
     }
 }
 
@@ -151,6 +154,7 @@ void MapScene::clearSelectedItems()
 
 void MapScene::unselectItems()
 {
+    disconnect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
     StateGraphicsObject* selected_state = nullptr;
     int selected_link = -1;
     for (auto elem : this->items())
@@ -178,6 +182,8 @@ void MapScene::unselectItems()
             }
         }
     }
+    connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
+    this->update(this->sceneRect());
 }
 
 template <class T>
@@ -269,9 +275,9 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         state->setBorderWidth(3.f);
         state->setBorderColor(QColor::fromRgb(0, 0, 200));
         addItem(state);
-        unselectItems();
-        clearSelectedItems();
-        state->select();
+        //unselectItems();
+        //clearSelectedItems();
+        //state->select();
     }
     else if (m_mode == MapMode::AddLink)
     {
@@ -286,10 +292,13 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
                 m_stateLinks.push_back(StateLink(m_linkedState, m_links[m_links.size()-1].getID(), true));
                 m_stateLinks.push_back(StateLink(m_selectedStates[0], m_links[m_links.size()-1].getID(), false));
                 addLinkToScene(m_links.size()-1);
+                //disconnect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
                 unselectItems();
-                clearSelectedItems();
+                //clearSelectedItems();
+                //connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
                 m_links[m_links.size()-1].select();
                 m_linkedState = nullptr;
+                //this->update(this->sceneRect());
             }
             else
             {
@@ -365,6 +374,7 @@ void MapScene::keyPressEvent(QKeyEvent *event)
 
 void MapScene::updateSelectionItems()
 {
+    qDebug() << "selectedItems: " << selectedItems().count();
     disconnect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
     unselectItems();
     clearSelectedItems();

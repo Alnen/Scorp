@@ -2,47 +2,31 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QTreeView>
-#include <QGraphicsScene>
-#include <QToolBar>
-#include <QMenuBar>
-#include <QMenu>
-#include <QAction>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QComboBox>
-#include <QDialog>
-#include <QLabel>
-#include <QFrame>
-#include <QWidget>
-#include <QStatusBar>
-#include <QTableWidget>
 #include <memory>
-#include "StationsList/StationsListModel.h"
-#include "Map/MapScene.h"
 
-class ObjectItem
-{
-public:
-    ObjectItem(PointGraphicsObject* item1, PointGraphicsObject* item2, MapScene* scene)
-        : m_item1(item1), m_item2(item2), m_scene(scene)
-    {
-        //
-    }
-
-    void addToScene()
-    {
-        if (m_item1 && m_scene)
-        {
-            m_scene->addItem((QGraphicsItem*)m_item1);
-        }
-    }
-
-public:
-    PointGraphicsObject* m_item1;
-    PointGraphicsObject* m_item2;
-    MapScene* m_scene;
-};
+class QTreeView;
+class QGraphicsView;
+class QGraphicsScene;
+class QToolBar;
+class QMenuBar;
+class QMenu;
+class QAction;
+class QLineEdit;
+class QPushButton;
+class QComboBox;
+class QDialog;
+class QLabel;
+class QFrame;
+class QWidget;
+class QStatusBar;
+class QTableWidget;
+class QDateTime;
+class QDateTimeEdit;
+class QTimeEdit;
+class QCalendarWidget;
+class MapScene;
+class StationsListModel;
+enum class MapMode;
 
 class MainWindow : public QMainWindow
 {
@@ -69,10 +53,17 @@ private:
     void defineStationsListForm();
     void defineTrainsListForm();
     void defineToursListForm();
-    void defineTrainScheduleForm();
-    void defineStationScheduleForm();
     void defineFindTourDialog();
     void defineAboutProgramForm();
+
+    void defineEditUserForm();
+    void defineEditStationForm();
+    void defineEditTrainForm();
+    void defineEditTourForm();
+    void defineTrainScheduleForm();
+    void defineStationScheduleForm();
+
+    void defineEditDateTimeForm();
 
 private slots:
     void loadFromFile();
@@ -100,20 +91,53 @@ private slots:
     void openFindTourDialog();
     void showAboutProgramInfo();
 
+    void changeUserGroupShowMode(int mode);
+    void openEditUserForm(bool is_add_mode);
+    void addUser();
+    void acceptUserChanges();
+    void clearUsersList();
+    void removeUserFromList();
+
+    void openEditStationForm(bool is_add_mode);
+    void addStation();
+    void acceptStationChanges();
+    void clearStationsList();
+    void removeStationFromList();
+
+    void openEditTrainForm(bool is_add_mode);
+    void addTrain();
+    void acceptTrainChanges();
+    void clearTrainsList();
+    void removeTrainFromList();
+
+    void openEditTourForm(bool is_add_mode);
+    void addTour();
+    void acceptTourChanges();
+    void clearToursList();
+    void removeTourFromList();
+
+    void openEditDateTimeForm(bool is_arrival);
+    void acceptDepartureDateTimeChanges();
+    void acceptArrivalDateTimeChanges();
 
 private:
     QDialog* dlgEnterLogin;
     QDialog* dlgRegistration;
-    QDialog* dlgShowNameList;
 
     QDialog* dlgUsersList;
     QDialog* dlgStationsList;
     QDialog* dlgTrainsList;
     QDialog* dlgToursList;
-    QDialog* dlgTrainSchedule;
-    QDialog* dlgStationSchedule;
     QDialog* dlgFindTour;
     QDialog* dlgAboutProgram;
+
+    QDialog* dlgTrainSchedule;
+    QDialog* dlgStationSchedule;
+    QDialog* dlgEditUser;
+    QDialog* dlgEditStation;
+    QDialog* dlgEditTrain;
+    QDialog* dlgEditTour;
+    QDialog* dlgEditDateTime;
 
     QTableWidget* tableUsers;
     QTableWidget* tableStations;
@@ -121,11 +145,44 @@ private:
     QTableWidget* tableTours;
     QTableWidget* tableTrainSchedule;
     QTableWidget* tableStationSchedule;
+    QTableWidget* tableFoundTours;
 
+    QLineEdit* txtUserLogin;
+    QLineEdit* txtUserPassword;
+    QComboBox* cmbUserGroup;
+    QPushButton* btnAcceptUserChanges;
+    QPushButton* btnAddUser;
+
+    QLineEdit* txtEditedStationName;
+    QLineEdit* txtEditedStationX;
+    QLineEdit* txtEditedStationY;
+    QPushButton* btnAcceptStationChanges;
+    QPushButton* btnAddStation;
+
+    QLineEdit* txtEditedTrainNumber;
+    QLineEdit* txtEditedTrainStation;
+    QLineEdit* txtEditedTrainRoute;
+    QPushButton* btnAddTrain;
+    QPushButton* btnAcceptTrainChanges;
+
+    QLineEdit* txtEditedTourName;
+    QTableWidget* tableEditedTourStations;
+    QPushButton* btnAddTour;
+    QPushButton* btnAcceptTourChanges;
+
+    QComboBox* cmbDeparturePlace;
+    QComboBox* cmbArrivalPlace;
+    QDateTimeEdit* dateDeparture;
+    QDateTimeEdit* dateArrival;
+
+    QPushButton* btnAcceptDepartureTime;
+    QPushButton* btnAcceptArrivalTime;
+    QTimeEdit* m_timeEdit;
+    QCalendarWidget* m_calendar;
+
+    QLineEdit* txtSelectedStationName;
+    QLineEdit* txtSelectedTrainNumber;
     QWidget* m_authForm;
-    QTableWidget* tableShowNameList;
-
-    //QGraphicsScene* m_mapScene;
     MapScene* m_mapScene;
     QGraphicsView* m_mapView;
     std::unique_ptr<StationsListModel> m_stationsListModel;
@@ -153,11 +210,7 @@ private:
     QAction* actTrainsList;
     QAction* actToursList;
 
-    QMenu* mnSchedule;
-    QAction* actTrainSchedule;
-    QAction* actStationSchedule;
     QAction* actFindTour;
-
     QAction* actAbout;
 
     // ToolBar

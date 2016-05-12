@@ -10,7 +10,7 @@
 
 namespace GraphicsObjectType
 {
-    enum { PointType = 10000, StateType, TransitionType, TrackType };
+    enum { PointType = QAbstractGraphicsShapeItem::UserType + 1, StateType, TransitionType, TrackType };
 }
 
 class PointGraphicsObject : public QObject, public QAbstractGraphicsShapeItem
