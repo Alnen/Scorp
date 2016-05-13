@@ -2,6 +2,9 @@
 #define PETRINETTRAITS_H
 
 #include "container/internal/IntegralIdGenerator.h"
+#include "container/internal/RandomMarkerPropagator.h"
+#include "TransitionWrapper.h"
+#include "PetriNet.h"
 
 template <class _MarkerList, class _TransitionList, class _StateList>
 struct PetriNetTraits
@@ -11,6 +14,12 @@ struct PetriNetTraits
     using StateList = _StateList;
     using IdType = int;
     using IdGenerator = IntegralIdGenerator<IdType>;
+
+    template <class Transition, class State>
+    using MarkerExtractor = MarkerExtractor<
+            PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
+            Transition,
+            State>;
 };
 
 #endif //PETRINETTRAITS_H

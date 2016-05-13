@@ -2,6 +2,7 @@
 #define TRANSITIONWRAPPER_H
 
 #include "IdObjectWrapper.h"
+#include "meta/TypeListStorage.h"
 
 template <class _State, class _PetriNetTraits>
 class StateWrapper;
@@ -21,7 +22,7 @@ public:
     {
     }
 
-    Transition& getState()
+    Transition& getTransition()
     {
         return m_transition;
     }
@@ -38,11 +39,17 @@ public:
     using StateList = typename PetriNetTraits::StateList;
     using IdType = typename PetriNetTraits::IdType;
     template <class T>
-    using StorageTypeFactory = VectorStorage<T>;
+    using StorageTypeFactory = meta::VectorStorage<T>;
     using Storage = StorageTypeFactory<IdType>;
 
     template <class T>
     Storage& getInStateStorage()
+    {
+        return m_inStateStorage.template getStorage<T>();
+    }
+
+    template <class T>
+    const Storage& getInStateStorage() const
     {
         return m_inStateStorage.template getStorage<T>();
     }
@@ -53,12 +60,18 @@ public:
         return m_outStateStorage.template getStorage<T>();
     }
 
+    template <class T>
+    const Storage& getOutStateStorage() const
+    {
+        return m_outStateStorage.template getStorage<T>();
+    }
+
 private:
     template <class V>
     using IdTypeFactory = meta::TypeHolder<IdType>;
 
-    TypeListStorage<IdTypeFactory, StorageTypeFactory, StateList> m_inStateStorage;
-    TypeListStorage<IdTypeFactory, StorageTypeFactory, StateList> m_outStateStorage;
+    meta::TypeListStorage<IdTypeFactory, StorageTypeFactory, StateList> m_inStateStorage;
+    meta::TypeListStorage<IdTypeFactory, StorageTypeFactory, StateList> m_outStateStorage;
 };
 
 

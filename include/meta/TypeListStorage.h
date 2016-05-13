@@ -3,9 +3,12 @@
 
 #include <vector>
 #include <boost/container/flat_map.hpp>
-#include "TypeStorage.h"
+#include "container/internal/TypeStorage.h"
 #include "meta/TypeList.h"
 #include "meta/TypeHolder.h"
+
+namespace meta
+{
 
 template <template <class T> class _Functor, template <class T> class _Storage, class _TypeList>
 class TypeListStorage;
@@ -27,8 +30,22 @@ public:
     }
 
     template <class T>
+    typename std::enable_if<std::is_same<T, Type>::value, const Storage&>::type
+    getStorage() const
+    {
+        return m_storage;
+    }
+
+    template <class T>
     typename std::enable_if<!std::is_same<T, Type>::value, _Storage<typename _Functor<T>::type>&>::type
     getStorage()
+    {
+        return RestStorage::template getStorage<T>();
+    }
+
+    template <class T>
+    typename std::enable_if<!std::is_same<T, Type>::value, const _Storage<typename _Functor<T>::type>&>::type
+    getStorage() const
     {
         return RestStorage::template getStorage<T>();
     }
@@ -54,4 +71,5 @@ struct MapStorageFactory
 template <class _TypeList, template <class T> class _Container = VectorStorage>
 using IdentityTypeListStorage = TypeListStorage<meta::TypeHolder, _Container, _TypeList>;
 
+}
 #endif //SIMPLETYPELISTSTORAGE_H

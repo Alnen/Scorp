@@ -1,5 +1,5 @@
-#ifndef PETRINETIMPL_H
-#define PETRINETIMPL_H
+#ifndef PETRINETSTORAGE_H
+#define PETRINETSTORAGE_H
 
 #include "TypeStorage.h"
 #include "container/MarkerWrapper.h"
@@ -23,7 +23,7 @@ public:
     using StateList = typename PetriNetTraits::StateList;
 
     template <class T>
-    using Storage = typename MapStorageFactory<IdType, std::less<IdType>>::template MapStorage<T>;
+    using Storage = typename meta::MapStorageFactory<IdType, std::less<IdType>>::template MapStorage<T>;
     template <class T>
     using SpecializedMarkerWrapper = meta::TypeHolder<MarkerWrapper<T, PetriNetTraits>>;
     template <class T>
@@ -38,7 +38,19 @@ public:
     }
 
     template <class T>
+    const Storage<typename SpecializedMarkerWrapper<T>::type>& getMarkerStorage() const
+    {
+        return m_markerStorage.template getStorage<T>();
+    }
+
+    template <class T>
     Storage<typename SpecializedStateWrapper<T>::type>& getStateStorage()
+    {
+        return m_stateStorage.template getStorage<T>();
+    }
+
+    template <class T>
+    const Storage<typename SpecializedStateWrapper<T>::type>& getStateStorage() const
     {
         return m_stateStorage.template getStorage<T>();
     }
@@ -49,11 +61,17 @@ public:
         return m_transitionStorage.template getStorage<T>();
     }
 
+    template <class T>
+    const Storage<typename SpecializedTransitionWrapper<T>::type>& getTransitionStorage() const
+    {
+        return m_transitionStorage.template getStorage<T>();
+    }
+
 private:
-    TypeListStorage<SpecializedMarkerWrapper, Storage, MarkerList> m_markerStorage;
-    TypeListStorage<SpecializedStateWrapper, Storage, StateList> m_stateStorage;
-    TypeListStorage<SpecializedTransitionWrapper, Storage, TransitionList> m_transitionStorage;
+    meta::TypeListStorage<SpecializedMarkerWrapper, Storage, MarkerList> m_markerStorage;
+    meta::TypeListStorage<SpecializedStateWrapper, Storage, StateList> m_stateStorage;
+    meta::TypeListStorage<SpecializedTransitionWrapper, Storage, TransitionList> m_transitionStorage;
 };
 
 
-#endif //PETRINETIMPL_H
+#endif //PETRINETSTORAGE_H
