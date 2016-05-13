@@ -5,7 +5,7 @@ class TypeEnumTest : public testing::Test
 {
 public:
     using TestTypeList = meta::TypeList<int, float, double>;
-    using TestTypeEnum = IntTypeEnum<TestTypeList>;
+    using TestTypeEnum = meta::IntTypeEnum<TestTypeList>;
 };
 
 TEST_F(TypeEnumTest, ifGetValueSpecializedWithProperTypeShouldReturnItsIntValue)

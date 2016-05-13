@@ -66,6 +66,9 @@ struct TypeHandlerExtractor<_Head, _Tail, 0>
 
 }
 
+namespace meta
+{
+
 template <class _TypeList, class _IntegralType>
 struct TypeEnum
 {
@@ -90,5 +93,7 @@ struct TypeEnum
 
 template <class _TypeList>
 using IntTypeEnum = TypeEnum<_TypeList, int>;
+
+}
 
 #endif //SCORPCORE_TYPEENUM_H

@@ -54,7 +54,7 @@ struct ForEachLooper
         return IterateOnce<typename TypeList::Head, typename TypeList::Tail>()(m_functor);
     }
 
-    Functor m_functor;
+    Functor& m_functor;
 };
 
 }

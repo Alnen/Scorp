@@ -1,7 +1,7 @@
 #ifndef STATEWRAPPER_H
 #define STATEWRAPPER_H
 
-#include "container/internal/TypeListStorage.h"
+#include "meta/TypeListStorage.h"
 #include "PetriNetTraits.h"
 #include "IdObjectWrapper.h"
 
@@ -28,6 +28,11 @@ public:
         return m_state;
     }
 
+    const State& getState() const
+    {
+        return m_state;
+    }
+
 private:
     State m_state;
 };
@@ -41,11 +46,17 @@ public:
     using MarkerList = typename PetriNetTraits::MarkerList;
     using TransitionList = typename PetriNetTraits::TransitionList;
     template <class T>
-    using StorageTypeFactory = VectorStorage<T>;
+    using StorageTypeFactory = meta::VectorStorage<T>;
     using Storage = StorageTypeFactory<IdType>;
 
     template <class T>
     Storage& getMarkerStorage()
+    {
+        return m_markerStorage.template getStorage<T>();
+    }
+
+    template <class T>
+    const Storage& getMarkerStorage() const
     {
         return m_markerStorage.template getStorage<T>();
     }
@@ -57,7 +68,19 @@ public:
     }
 
     template <class T>
+    const Storage& getInTransitionStorage() const
+    {
+        return m_inTransitionStorage.template getStorage<T>();
+    }
+
+    template <class T>
     Storage& getOutTransitionStorage()
+    {
+        return m_outTransitionStorage.template getStorage<T>();
+    }
+
+    template <class T>
+    const Storage& getOutTransitionStorage() const
     {
         return m_outTransitionStorage.template getStorage<T>();
     }
@@ -66,9 +89,9 @@ private:
     template <class V>
     using IdTypeFactory = meta::TypeHolder<IdType>;
 
-    TypeListStorage<IdTypeFactory, StorageTypeFactory, MarkerList> m_markerStorage;
-    TypeListStorage<IdTypeFactory, StorageTypeFactory, TransitionList> m_inTransitionStorage;
-    TypeListStorage<IdTypeFactory, StorageTypeFactory, TransitionList> m_outTransitionStorage;
+    meta::TypeListStorage<IdTypeFactory, StorageTypeFactory, MarkerList> m_markerStorage;
+    meta::TypeListStorage<IdTypeFactory, StorageTypeFactory, TransitionList> m_inTransitionStorage;
+    meta::TypeListStorage<IdTypeFactory, StorageTypeFactory, TransitionList> m_outTransitionStorage;
 };
 
 template <class _State, class _PetriNetTraits>
