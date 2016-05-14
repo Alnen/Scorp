@@ -27,6 +27,7 @@ class QCalendarWidget;
 class MapScene;
 class StationsListModel;
 enum class MapMode;
+class ScorpDBInterface;
 
 class MainWindow : public QMainWindow
 {
@@ -35,6 +36,9 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+signals:
+    void userChanged();
 
 private:
     void resizeEvent(QResizeEvent * event);
@@ -121,6 +125,8 @@ private slots:
     void acceptArrivalDateTimeChanges();
 
 private:
+    ScorpDBInterface* m_db;
+
     QDialog* dlgEnterLogin;
     QDialog* dlgRegistration;
 

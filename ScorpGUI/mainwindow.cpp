@@ -29,10 +29,12 @@
 #include <QSpinBox>
 #include <QDateTimeEdit>
 #include <QCalendarWidget>
+#include <QMessageBox>
 
 #include <QResizeEvent>
 #include <QDebug>
 
+#include "DB/ScorpDBSell.h"
 #include "Map/MapScene.h"
 #include "Map/TrackGraphicsObject.h"
 #include "Map/PointGraphicsObject.h"
@@ -45,6 +47,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    m_db = new ScorpDBSell("../Scorp/DB/ScorpDB.db", false);
     //this->setFixedSize(QSize(600, 500));
     QRect desktop_screen = QApplication::desktop()->screen()->rect();
     QPoint center_pos = desktop_screen.center();
@@ -897,7 +900,24 @@ void MainWindow::saveAs()
 
 void MainWindow::btnEnterLoginOkClicked()
 {
-    dlgEnterLogin->close();
+    //std::string s1 = txtEnterLogin->text().toStdString();
+    //std::string s2 = txtEnterPassword->text().toStdString();
+    //bool is_auth = m_db->authenticate("admin", "adminpasss");
+    //"SELECT * FROM User WHERE Login=:login AND Password=:pass""
+    bool is_auth = m_db->authenticate(txtEnterLogin->text().toStdString(),
+                                     txtEnterPassword->text().toStdString());
+    if (is_auth)
+    {
+        lbAuthTurnOnLogin->setText(txtEnterLogin->text());
+        std::string user_group = m_db->getUserGroup(txtEnterLogin->text().toStdString());
+        lbAuthTurnOnGroup->setText(QString::fromStdString(user_group));
+        emit userChanged();
+        dlgEnterLogin->close();
+    }
+    else
+    {
+        QMessageBox::warning(this, tr("Authenticate"), tr("Wrong login or password!"));
+    }
 }
 
 void MainWindow::btnEnterLoginCloseClicked()
