@@ -46,8 +46,10 @@ public:
             lists.push_back(new ListOfMemoryNodes<pow(2, max_power_of_two + 1)>());
             size++;
         }*/
-
-        return l->allocate(alloc_size);
+std::cout << "before allocation" << std::endl;
+        void* answer = l->allocate(alloc_size);
+        std::cout << "after allocation" << std::endl;
+        return answer;
     }
     void deallocate(void* elem, std::size_t alloc_size) {
 

@@ -38,8 +38,11 @@ public :
     inline pointer allocate(size_type n, const void * = 0) {
         std::cout << "use my allocator to allocate sizeof(T)=" << sizeof(T) << std::endl;
         if (n == 1) {
+std::cout << "my allocator" << std::endl;
                     return static_cast<T*>(SeglistAllocator::instance().allocate(sizeof(T)));
+
                 } else {
+            std::cout << "std allocator" << std::endl;
                     return std::allocator<T>().allocate(n);
                 }
     }
