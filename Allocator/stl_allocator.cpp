@@ -36,7 +36,7 @@ public :
 
     //    memory allocation
     inline pointer allocate(size_type n, const void * = 0) {
-        std::cout << "use my allocator to allocate"<< std::endl;
+        std::cout << "use my allocator to allocate sizeof(T)=" << sizeof(T) << std::endl;
         if (n == 1) {
                     return static_cast<T*>(SeglistAllocator::instance().allocate(sizeof(T)));
                 } else {
@@ -45,7 +45,7 @@ public :
     }
     inline void deallocate(pointer p, size_type n) {
         if (n == 1) {
-                    SeglistAllocator::instance().deallocate(static_cast<void*>(p, sizeof(T)));
+                    SeglistAllocator::instance().deallocate(static_cast<void*>(p), sizeof(T));
                 } else {
                     return std::allocator<T>().deallocate(p, n);
                 }
