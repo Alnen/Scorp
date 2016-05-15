@@ -2,32 +2,36 @@
 #define USERINFO_H
 
 #include <vector>
+#include <array>
 #include <QString>
 
 enum class UserRight { ViewMap, EditMap, Authorization, AccountManagement, EditStationInfo,
        EditSchedule, EditTrainsList, FindTrips };
 
-enum class UserGroup { User, Admin, Operator };
+//enum class UserGroup { User, Admin, Operator };
+
+enum class UserGroupName;
 
 class UserInfo
 {
 public:
     UserInfo();
-    UserInfo(QString login, UserGroup group);
+    UserInfo(QString login, UserGroupName group);
     bool signIn(QString login, QString password);
     QString getLogin() const;
-    UserGroup getGroup() const;
-    void setGroup(UserGroup group);
+    UserGroupName getGroup() const;
+    void setGroup(UserGroupName group);
+    void setUserRights(std::array<bool, 8> rights);
     bool getRightStatus(UserRight right) const;
 
 private:
-    int mapUserRightToInt(UserRight right) const;
-    void setRights(UserGroup group);
+    size_t mapUserRightToInt(UserRight right) const;
+    //void setRights(UserGroupName group);
 
 private:
     QString m_login;
-    UserGroup m_group;
-    std::vector<bool> m_rights;
+    UserGroupName m_group;
+    std::array<bool, 8> m_rights;
 };
 
 #endif // USERINFO_H

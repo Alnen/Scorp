@@ -221,3 +221,25 @@ int StationsListModel::trainsCount(int station_index) const
         return 0;
     }
 }
+
+QStringList StationsListModel::getStationNameList()
+{
+    QStringList stations_list;
+    TreeModelItem* station = nullptr;
+    QString station_name;
+    QStringList str_list;
+    for (int i = 0; i < m_model->childCount(); ++i)
+    {
+        station = m_model->getChild(i);
+        station_name = station->data(0).toString();
+        str_list = station_name.split(m_stationPrefix);
+        str_list.pop_front();
+        station_name = QString(str_list.join(""));
+        str_list = station_name.split(m_stationPostfix);
+        str_list.pop_back();
+        station_name = QString(str_list.join(""));
+        stations_list << station_name;
+    }
+    station = nullptr;
+    return stations_list;
+}

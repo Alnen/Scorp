@@ -29,7 +29,7 @@ public:
     virtual bool isUserExist(std::string login)=0;
     virtual bool authenticate(std::string login, std::string password)=0;
     virtual std::array<bool, 8> getUserRights(UserGroupName group)=0;
-    virtual std::string getUserGroup(std::string login)=0;
+    virtual UserGroupName getUserGroup(std::string login)=0;
 };
 
 #endif // SCORP_DB_INTERFACE_H

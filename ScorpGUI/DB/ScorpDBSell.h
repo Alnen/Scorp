@@ -54,7 +54,7 @@ public:
     bool isUserExist(std::string login) override;
     bool authenticate(std::string login, std::string password) override;
     std::array<bool, 8> getUserRights(UserGroupName group) override;
-    std::string getUserGroup(std::string login) override;
+    UserGroupName getUserGroup(std::string login) override;
 	~ScorpDBSell(void);
 };
 

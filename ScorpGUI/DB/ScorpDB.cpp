@@ -278,7 +278,7 @@ bool ScorpDBSell::isValidPassword(std::string login, std::string pass)
 
 std::string ScorpDBSell::getGroupUser(std::string login) 
 {
-	try
+    try
 	{
         std::vector<std::string> query_colums;
         SQLite::Statement query(db, "SELECT * FROM User where Login=:login");
@@ -297,6 +297,7 @@ std::string ScorpDBSell::getGroupUser(std::string login)
     {
         throw SCORPDBAtMemoryLocationExeption("User", login);
     }
+    return "";
 }
 
 std::vector<std::vector<std::string>> ScorpDBSell::getInfoAboutTable(std::string table_name)

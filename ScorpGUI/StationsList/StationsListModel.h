@@ -2,6 +2,8 @@
 #define STATIONSLISTMODEL_H
 
 #include <QString>
+#include <QStringList>
+
 class TreeModel;
 
 class StationsListModel
@@ -25,6 +27,7 @@ public:
     int stationsCount() const;
     int trainsCount() const;
     int trainsCount(int station_index) const;
+    QStringList getStationNameList();
 
 private:
     TreeModel* m_model;

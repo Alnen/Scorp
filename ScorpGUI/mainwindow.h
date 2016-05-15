@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <memory>
+#include "UserInfo.h"
 
 class QTreeView;
 class QGraphicsView;
@@ -28,6 +29,8 @@ class MapScene;
 class StationsListModel;
 enum class MapMode;
 class ScorpDBInterface;
+class QCompleter;
+class QAbstractItemModel;
 
 class MainWindow : public QMainWindow
 {
@@ -46,8 +49,10 @@ private:
     void defineMainMenu();
     void defineToolBar();
     void defineStatusBar();
-    void defineAuthTurnOnForm();
-    void defineAuthTurnOffForm();
+
+    void defineAuthorizationForm();
+    //void defineAuthTurnOnForm();
+    //void defineAuthTurnOffForm();
     void defineLoginForm();
     void defineRegistrationForm();
     void defineMap();
@@ -68,11 +73,11 @@ private:
     void defineStationScheduleForm();
 
     void defineEditDateTimeForm();
+    QAbstractItemModel* modelFromStationList();
 
 private slots:
     void loadFromFile();
     void saveToFile();
-    void saveAs();
 
     void btnEnterLoginOkClicked();
     void btnEnterLoginCloseClicked();
@@ -80,8 +85,6 @@ private slots:
     void btnRegistrationCloseClicked();
     void btnAuthLoginClicked();
     void btnAuthLogoutClicked();
-    void btnAuthTurnOnClicked();
-    void btnAuthTurnOffClicked();
 
     void changeMode(MapMode mode);
 
@@ -123,8 +126,11 @@ private slots:
     void openEditDateTimeForm(bool is_arrival);
     void acceptDepartureDateTimeChanges();
     void acceptArrivalDateTimeChanges();
+    void findTour();
+    void changeUserGroup(UserGroupName group);
 
 private:
+    UserInfo m_currentUser;
     ScorpDBInterface* m_db;
 
     QDialog* dlgEnterLogin;
@@ -176,8 +182,9 @@ private:
     QPushButton* btnAddTour;
     QPushButton* btnAcceptTourChanges;
 
-    QComboBox* cmbDeparturePlace;
-    QComboBox* cmbArrivalPlace;
+    QLineEdit* txtDeparturePlace;
+    QLineEdit* txtArrivalPlace;
+    QCompleter* m_completer;
     QDateTimeEdit* dateDeparture;
     QDateTimeEdit* dateArrival;
 
@@ -196,9 +203,8 @@ private:
     // main window menu
     QMenuBar* m_mainMenu;
     QMenu* mnFile;
-    QAction* actOpen;
+    QAction* actLoad;
     QAction* actSave;
-    QAction* actSaveAs;
     QAction* actExit;
 
     QMenu* mnAccounts;
@@ -231,6 +237,12 @@ private:
     QStatusBar* m_statusBar;
     QLabel* lbCurrentOperation;
 
+    QWidget* frameAuthorization;
+    QLabel* lbCurrentUserGroup;
+    QLabel* lbCurrentUserLogin;
+    QPushButton* btnAuthLogin;
+    QPushButton* btnAuthLogout;
+    /*
     // auth form (TurnOn)
     QFrame* frameAuthTurnOn;
     QLabel* lbAuthTurnOnLogin;
@@ -243,6 +255,8 @@ private:
     QWidget* frameAuthTurnOff;
     QLabel* lbAuthTurnOffLogin;
     QPushButton* btnAuthTurnOn;
+    QLabel* lbCurrentLogin;
+    */
 
     // login enter form
     QLineEdit* txtEnterLogin;

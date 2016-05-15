@@ -186,9 +186,21 @@ std::array<bool, 8> ScorpDBSell::getUserRights(UserGroupName group)
     return rights;
 }
 
-std::string ScorpDBSell::getUserGroup(std::string login) 
+UserGroupName ScorpDBSell::getUserGroup(std::string login)
 {
-	return getGroupUser(login);
+    std::string group = getGroupUser(login);
+    if (group.compare("Admin") == 0)
+    {
+        return UserGroupName::ADMIN;
+    }
+    else if (group.compare("Operator") == 0)
+    {
+        return UserGroupName::OPERATOR;
+    }
+    else
+    {
+        return UserGroupName::USER;
+    }
 }
 
 ScorpDBSell::~ScorpDBSell(void)

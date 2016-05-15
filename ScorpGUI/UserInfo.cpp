@@ -1,24 +1,25 @@
 #include "UserInfo.h"
+#include "DB/ScorpDBInterface.h"
 #include <QObject>
 
 UserInfo::UserInfo()
-    : m_login(QObject::tr("Unknown")), m_group(UserGroup::User), m_rights(8, false)
+    : m_login(QObject::tr("Unknown")), m_group(UserGroupName::USER)
 {
-    setRights(UserGroup::User);
+    //setRights(UserGroupName::USER);
 }
 
-UserInfo::UserInfo(QString login, UserGroup group)
-    : m_login(login), m_group(group), m_rights(8, false)
+UserInfo::UserInfo(QString login, UserGroupName group)
+    : m_login(login), m_group(group)
 {
-    setRights(group);
+    //setRights(group);
 }
 
 bool UserInfo::signIn(QString login, QString password)
 {
     // connect to database and check
     // if OK
-    m_login = login;
-    m_group = UserGroup::Operator; // or Admin
+    //m_login = login;
+    //m_group = UserGroup::OP; // or Admin
     return true;
 }
 
@@ -27,17 +28,25 @@ QString UserInfo::getLogin() const
     return m_login;
 }
 
-UserGroup UserInfo::getGroup() const
+UserGroupName UserInfo::getGroup() const
 {
     return m_group;
 }
 
-void UserInfo::setGroup(UserGroup group)
+void UserInfo::setGroup(UserGroupName group)
 {
     if (group != m_group)
     {
         m_group = group;
-        setRights(group);
+        //setRights(group);
+    }
+}
+
+void UserInfo::setUserRights(std::array<bool, 8> rights)
+{
+    for (size_t i = 0; i < 8; ++i)
+    {
+        m_rights[i] = rights[i];
     }
 }
 
@@ -46,7 +55,7 @@ bool UserInfo::getRightStatus(UserRight right) const
     return m_rights[mapUserRightToInt(right)];
 }
 
-int UserInfo::mapUserRightToInt(UserRight right) const
+size_t UserInfo::mapUserRightToInt(UserRight right) const
 {
     if (right == UserRight::ViewMap)
     {
@@ -83,9 +92,10 @@ int UserInfo::mapUserRightToInt(UserRight right) const
     return 0;
 }
 
-void UserInfo::setRights(UserGroup group)
+/*
+void UserInfo::setRights(UserGroupName group)
 {
-    if (group == UserGroup::User)
+    if (group == UserGroupName::USER)
     {
         m_rights[mapUserRightToInt(UserRight::ViewMap)] = true;
         m_rights[mapUserRightToInt(UserRight::EditMap)] = false;
@@ -96,7 +106,7 @@ void UserInfo::setRights(UserGroup group)
         m_rights[mapUserRightToInt(UserRight::EditTrainsList)] = false;
         m_rights[mapUserRightToInt(UserRight::FindTrips)] = true;
     }
-    else if (group == UserGroup::Admin)
+    else if (group == UserGroupName::ADMIN)
     {
         m_rights[mapUserRightToInt(UserRight::ViewMap)] = true;
         m_rights[mapUserRightToInt(UserRight::EditMap)] = false;
@@ -107,7 +117,7 @@ void UserInfo::setRights(UserGroup group)
         m_rights[mapUserRightToInt(UserRight::EditTrainsList)] = false;
         m_rights[mapUserRightToInt(UserRight::FindTrips)] = true;
     }
-    else if (group == UserGroup::Operator)
+    else if (group == UserGroupName::OPERATOR)
     {
         m_rights[mapUserRightToInt(UserRight::ViewMap)] = true;
         m_rights[mapUserRightToInt(UserRight::EditMap)] = true;
@@ -119,3 +129,4 @@ void UserInfo::setRights(UserGroup group)
         m_rights[mapUserRightToInt(UserRight::FindTrips)] = true;
     }
 }
+*/

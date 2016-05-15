@@ -30,6 +30,8 @@
 #include <QDateTimeEdit>
 #include <QCalendarWidget>
 #include <QMessageBox>
+#include <QCompleter>
+#include <QStringListModel>
 
 #include <QResizeEvent>
 #include <QDebug>
@@ -53,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     QPoint center_pos = desktop_screen.center();
     int window_width = 0.992 * desktop_screen.width();
     int window_height = 0.922 * desktop_screen.height();
-    this->setMinimumSize(400, 200);
+    this->setMinimumSize(460, 200);
     this->setGeometry(center_pos.x() - 0.5*window_width, center_pos.y() - 0.5*window_height,
                       window_width, window_height);
     this->setWindowTitle(tr("SCORP"));
@@ -98,8 +100,10 @@ MainWindow::MainWindow(QWidget *parent)
     defineRegistrationForm();
     defineMap();
     defineStationsList();
-    defineAuthTurnOnForm();
-    defineAuthTurnOffForm();
+
+    defineAuthorizationForm();
+    //defineAuthTurnOnForm();
+    //defineAuthTurnOffForm();
 
     //dlgEnterLogin->show();
     //dlgRegistration->show();
@@ -113,10 +117,13 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 {
     QSize new_size = event->size();
     // move login form (passive)
-    int frame_width = 120;
-    frameAuthTurnOff->setGeometry(new_size.width() - frame_width - 2, 0, frame_width, 20);
+    //int frame_width = 170;
+    //frameAuthTurnOff->setGeometry(new_size.width() - frame_width - 2, 0, frame_width, 20);
     // move login form (active)
-    frameAuthTurnOn->setGeometry(new_size.width() - frame_width - 2, 0, frame_width, 85);
+    //frame_width = 120;
+    //frameAuthTurnOn->setGeometry(new_size.width() - frame_width - 2, 0, frame_width, 85);
+    frameAuthorization->setGeometry(new_size.width() - frameAuthorization->width() - 2, 0,
+                                    frameAuthorization->width(), frameAuthorization->height());
     // move status bar
     m_statusBar->setGeometry(0, new_size.height()-24, new_size.width(), 24);
     // resize map
@@ -137,13 +144,11 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 void MainWindow::defineMainMenu()
 {
     mnFile = new QMenu(tr("File"));
-    actOpen = new QAction(tr("Open"), mnFile);
+    actLoad = new QAction(tr("Load"), mnFile);
     actSave = new QAction(tr("Save"), mnFile);
-    actSaveAs = new QAction(tr("Save As"), mnFile);
     actExit = new QAction(tr("Exit"), mnFile);
-    mnFile->addAction(actOpen);
+    mnFile->addAction(actLoad);
     mnFile->addAction(actSave);
-    mnFile->addAction(actSaveAs);
     mnFile->addAction(actExit);
 
     mnAccounts = new QMenu(tr("Accounts"));
@@ -193,9 +198,8 @@ void MainWindow::defineMainMenu()
     m_mainMenu->addActions(actions);
     this->setMenuBar(m_mainMenu);
 
-    connect(actOpen, &QAction::triggered, this, &MainWindow::loadFromFile);
+    connect(actLoad, &QAction::triggered, this, &MainWindow::loadFromFile);
     connect(actSave, &QAction::triggered, this, &MainWindow::saveToFile);
-    connect(actSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
     connect(actExit, &QAction::triggered, this, &MainWindow::close);
     connect(actUsersList, &QAction::triggered, dlgUsersList, &QDialog::open);
     connect(actStationsList, &QAction::triggered, dlgStationsList, &QDialog::open);
@@ -237,51 +241,37 @@ void MainWindow::defineStatusBar()
     this->setStatusBar(m_statusBar);
 }
 
-void MainWindow::defineAuthTurnOnForm()
+void MainWindow::defineAuthorizationForm()
 {
-    int frame_width = 120;
-    frameAuthTurnOn = new QFrame(this);
-    frameAuthTurnOn->setStyleSheet("background-color:#eeeeee;");
-    frameAuthTurnOn->setFrameStyle(QFrame::Box);
-    frameAuthTurnOn->setGeometry(this->width() - frame_width - 2, 0, frame_width, 85);
-    QLabel* lbLogin = new QLabel(tr("Login:"), frameAuthTurnOn);
-    lbLogin->setGeometry(10, 10, 50, 20);
-    lbAuthTurnOnLogin = new QLabel(tr(""), frameAuthTurnOn);
-    lbAuthTurnOnLogin->setGeometry(lbLogin->x() + lbLogin->width() + 5, lbLogin->y(), 80, 20);
-    QLabel* lbGroup = new QLabel(tr("Group:"), frameAuthTurnOn);
-    lbGroup->setGeometry(lbLogin->x(), lbLogin->y() + lbLogin->height() + 5, lbLogin->width(), 20);
-    lbAuthTurnOnGroup = new QLabel(tr(""), frameAuthTurnOn);
-    lbAuthTurnOnGroup->setGeometry(lbGroup->x() + lbGroup->width() + 5, lbGroup->y(),
-                                   lbAuthTurnOnLogin->width(), 20);
-    btnAuthLogin = new QPushButton(tr("Log In"), frameAuthTurnOn);
-    int btn_width = 50;
-    btnAuthLogin->setGeometry(frameAuthTurnOn->width() - btn_width - 1, frameAuthTurnOn->height() - 21,
-                              btn_width, 20);
-    btnAuthLogout = new QPushButton(tr("Log Out"), frameAuthTurnOn);
+    int user_group_width = 70;
+    int user_login_width = 100;
+    int separator_width = 10;
+    int button_width = 60;
+    int frame_width = user_group_width + user_login_width + separator_width + button_width + 2;
+    frameAuthorization = new QWidget(this);
+    frameAuthorization->setGeometry(this->width() - frame_width - 2, 0, frame_width, 20);
+
+    lbCurrentUserGroup = new QLabel(tr("User"), frameAuthorization);
+    lbCurrentUserGroup->setGeometry(0, 0, user_group_width, 20);
+    lbCurrentUserGroup->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    QLabel* lbSeparator = new QLabel(tr(":"), frameAuthorization);
+    lbSeparator->setGeometry(lbCurrentUserGroup->x() + lbCurrentUserGroup->width() + 2, lbCurrentUserGroup->y(),
+                             separator_width, lbCurrentUserGroup->height());
+    lbSeparator->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    lbCurrentUserLogin = new QLabel(tr("guest"), frameAuthorization);
+    lbCurrentUserLogin->setGeometry(lbSeparator->x() + lbSeparator->width(), lbSeparator->y(),
+                                    user_login_width, lbCurrentUserGroup->height());
+
+    btnAuthLogin = new QPushButton(tr("Login"), frameAuthorization);
+    btnAuthLogin->setGeometry(lbCurrentUserLogin->x() + lbCurrentUserLogin->width(), 0, button_width, 20);
+    btnAuthLogout = new QPushButton(tr("Logout"), frameAuthorization);
     btnAuthLogout->setGeometry(btnAuthLogin->geometry());
+
+    btnAuthLogin->show();
     btnAuthLogout->hide();
-    btnAuthTurnOff = new QPushButton(tr("Turn Off"), frameAuthTurnOn);
-    btnAuthTurnOff->setGeometry(frameAuthTurnOn->width() - 21, 1, 20, 20);
-    frameAuthTurnOn->hide();
 
     connect(btnAuthLogin, &QPushButton::clicked, this, &MainWindow::btnAuthLoginClicked);
     connect(btnAuthLogout, &QPushButton::clicked, this, &MainWindow::btnAuthLogoutClicked);
-    connect(btnAuthTurnOff, &QPushButton::clicked, this, &MainWindow::btnAuthTurnOffClicked);
-}
-
-void MainWindow::defineAuthTurnOffForm()
-{
-    int frame_width = 120;
-    frameAuthTurnOff = new QWidget(this);
-    frameAuthTurnOff->setGeometry(this->width() - frame_width - 2, 0, frame_width, 20);
-    lbAuthTurnOffLogin = new QLabel(tr("Login:"), frameAuthTurnOff);
-    lbAuthTurnOffLogin->setGeometry(0, 0, 95, 20);
-    lbAuthTurnOffLogin->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    btnAuthTurnOn = new QPushButton(tr("Turn On"), frameAuthTurnOff);
-    btnAuthTurnOn->setGeometry(lbAuthTurnOffLogin->x() + lbAuthTurnOffLogin->width() + 5, 0, 20, 20);
-    frameAuthTurnOff->show();
-
-    connect(btnAuthTurnOn, &QPushButton::clicked, this, &MainWindow::btnAuthTurnOnClicked);
 }
 
 void MainWindow::defineLoginForm()
@@ -417,6 +407,8 @@ void MainWindow::defineStationsList()
     m_stationsListView->setGeometry(list_x, m_mapView->y() + 2, list_width, list_height);
     m_stationsListView->setHeaderHidden(true);
     m_stationsListView->setIndentation(20);
+
+    m_completer->setModel(modelFromStationList());
 }
 
 void MainWindow::defineUsersListForm()
@@ -573,28 +565,37 @@ void MainWindow::defineFindTourDialog()
     dlgFindTour = new QDialog(this, Qt::Dialog);
     dlgFindTour->setFixedSize(532, 400);
     dlgFindTour->setWindowTitle(tr("Find Tour"));
+
+    m_completer = new QCompleter(this);
+    m_completer->setMaxVisibleItems(10);
+    m_completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    m_completer->setCompletionMode(QCompleter::PopupCompletion);
+    m_completer->setCaseSensitivity(Qt::CaseInsensitive);
+
     QLabel* lbDeparturePlace = new QLabel(tr("Departure Place:"), dlgFindTour);
     lbDeparturePlace->setGeometry(10, 10, 80, 20);
     int offset_x = lbDeparturePlace->x() + lbDeparturePlace->width() + 10;
-    cmbDeparturePlace = new QComboBox(dlgFindTour);
-    cmbDeparturePlace->setGeometry(offset_x, lbDeparturePlace->y(), 300, 20);
+    txtDeparturePlace = new QLineEdit(dlgFindTour);
+    txtDeparturePlace->setGeometry(offset_x, lbDeparturePlace->y(), 300, 20);
+    txtDeparturePlace->setCompleter(m_completer);
     QLabel* lbDepartureTime = new QLabel(tr("Departure Time:"), dlgFindTour);
     lbDepartureTime->setGeometry(lbDeparturePlace->x(), lbDeparturePlace->y() + lbDeparturePlace->height() + 5,
                                   lbDeparturePlace->width(), 20);
-    dateDeparture = new QDateTimeEdit(dlgFindTour);
-    dateDeparture->setGeometry(cmbDeparturePlace->x(), lbDepartureTime->y(), cmbDeparturePlace->width(), 20);
+    dateDeparture = new QDateTimeEdit(QDateTime::currentDateTime(), dlgFindTour);
+    dateDeparture->setGeometry(txtDeparturePlace->x(), lbDepartureTime->y(), txtDeparturePlace->width(), 20);
     QPushButton* btnDepartureTime = new QPushButton(tr("..."), dlgFindTour);
     btnDepartureTime->setGeometry(dateDeparture->x() + dateDeparture->width() - 20, dateDeparture->y(), 20, 20);
     QLabel* lbArrivalPlace = new QLabel(tr("Arrival Place:"), dlgFindTour);
     lbArrivalPlace->setGeometry(lbDepartureTime->x(), lbDepartureTime->y() + lbDepartureTime->height() + 5,
                                   lbDepartureTime->width(), 20);
-    cmbArrivalPlace = new QComboBox(dlgFindTour);
-    cmbArrivalPlace->setGeometry(cmbDeparturePlace->x(), lbArrivalPlace->y(), cmbDeparturePlace->width(), 20);
+    txtArrivalPlace = new QLineEdit(dlgFindTour);
+    txtArrivalPlace->setGeometry(txtDeparturePlace->x(), lbArrivalPlace->y(), txtDeparturePlace->width(), 20);
+    txtArrivalPlace->setCompleter(m_completer);
     QLabel* lbArrivalTime = new QLabel(tr("Arrival Time:"), dlgFindTour);
     lbArrivalTime->setGeometry(lbArrivalPlace->x(), lbArrivalPlace->y() + lbArrivalPlace->height() + 5,
                                   lbArrivalPlace->width(), 20);
-    dateArrival = new QDateTimeEdit(dlgFindTour);
-    dateArrival->setGeometry(cmbDeparturePlace->x(), lbArrivalTime->y(), cmbDeparturePlace->width(), 20);
+    dateArrival = new QDateTimeEdit(QDateTime::currentDateTime(), dlgFindTour);
+    dateArrival->setGeometry(txtDeparturePlace->x(), lbArrivalTime->y(), txtDeparturePlace->width(), 20);
     QPushButton* btnArrivalTime = new QPushButton(tr("..."), dlgFindTour);
     btnArrivalTime->setGeometry(dateArrival->x() + dateArrival->width() - 20, dateArrival->y(), 20, 20);
 
@@ -626,6 +627,7 @@ void MainWindow::defineFindTourDialog()
     connect(btnDepartureTime, &QPushButton::clicked, [this](){this->openEditDateTimeForm(false);});
     connect(btnArrivalTime, &QPushButton::clicked, [this](){this->openEditDateTimeForm(true);});
     connect(btnBack, &QPushButton::clicked, dlgFindTour, &QDialog::close);
+    connect(btnFind, &QPushButton::clicked, this, &MainWindow::findTour);
 }
 
 void MainWindow::defineAboutProgramForm()
@@ -884,16 +886,17 @@ void MainWindow::defineEditDateTimeForm()
     connect(btnCancel, &QPushButton::clicked, dlgEditDateTime, &QDialog::close);
 }
 
+QAbstractItemModel* MainWindow::modelFromStationList()
+{
+    return new QStringListModel(m_stationsListModel->getStationNameList(), m_completer);
+}
+
 void MainWindow::loadFromFile()
 {
     //
 }
 
 void MainWindow::saveToFile()
-{
-    //
-}
-void MainWindow::saveAs()
 {
     //
 }
@@ -908,9 +911,23 @@ void MainWindow::btnEnterLoginOkClicked()
                                      txtEnterPassword->text().toStdString());
     if (is_auth)
     {
-        lbAuthTurnOnLogin->setText(txtEnterLogin->text());
-        std::string user_group = m_db->getUserGroup(txtEnterLogin->text().toStdString());
-        lbAuthTurnOnGroup->setText(QString::fromStdString(user_group));
+        lbCurrentUserLogin->setText(txtEnterLogin->text());
+        UserGroupName user_group = m_db->getUserGroup(txtEnterLogin->text().toStdString());
+        //m_db->getUserRights(user_group);
+        if (user_group == UserGroupName::ADMIN)
+        {
+            lbCurrentUserGroup->setText("Administrator");
+        }
+        else if (user_group == UserGroupName::OPERATOR)
+        {
+            lbCurrentUserGroup->setText("Operator");
+        }
+        else
+        {
+            lbCurrentUserGroup->setText("User");
+        }
+        btnAuthLogin->hide();
+        btnAuthLogout->show();
         emit userChanged();
         dlgEnterLogin->close();
     }
@@ -942,19 +959,11 @@ void MainWindow::btnAuthLoginClicked()
 
 void MainWindow::btnAuthLogoutClicked()
 {
-    //
-}
-
-void MainWindow::btnAuthTurnOnClicked()
-{
-    frameAuthTurnOff->hide();
-    frameAuthTurnOn->show();
-}
-
-void MainWindow::btnAuthTurnOffClicked()
-{
-    frameAuthTurnOn->hide();
-    frameAuthTurnOff->show();
+    btnAuthLogin->show();
+    btnAuthLogout->hide();
+    lbCurrentUserLogin->setText(tr("guest"));
+    lbCurrentUserGroup->setText("User");
+    emit userChanged();
 }
 
 void MainWindow::changeMode(MapMode mode)
@@ -1237,4 +1246,19 @@ void MainWindow::acceptArrivalDateTimeChanges()
     dateArrival->setDate(m_calendar->selectedDate());
     dateArrival->setTime(m_timeEdit->time());
     dlgEditDateTime->close();
+}
+
+void MainWindow::findTour()
+{
+    if (txtDeparturePlace->text().compare(txtArrivalPlace->text()) == 0)
+    {
+        QMessageBox::warning(dlgFindTour, tr("Find Tour"), tr("Departure place and arrival place must be different!"));
+        return;
+    }
+    // request to DB
+}
+
+void MainWindow::changeUserGroup(UserGroupName group)
+{
+    //
 }
