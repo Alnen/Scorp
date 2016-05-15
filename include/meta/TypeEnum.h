@@ -64,6 +64,14 @@ struct TypeHandlerExtractor<_Head, _Tail, 0>
     }
 };
 
+template <class TypeList, class IndexType>
+struct TypeExtractor
+{
+
+
+
+};
+
 }
 
 namespace meta
@@ -85,7 +93,7 @@ struct TypeEnum
 
     template <IntegralType TypeIndex>
     constexpr static decltype(TypeHandlerExtractor<typename TypeList::Head, typename TypeList::Tail, TypeIndex>()())
-    getTypeHandler()
+    getTypeHolder()
     {
         return TypeHandlerExtractor<typename TypeList::Head, typename TypeList::Tail, TypeIndex>()();
     }

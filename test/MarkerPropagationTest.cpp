@@ -119,4 +119,5 @@ public:
 TEST_F(PetriNetMarkerPropagationTest, sunnyCase)
 {
     railwayPetriNet->executeMarkersPropagation();
+    ASSERT_TRUE(true);
 }

@@ -11,4 +11,4 @@ add_subdirectory(test)
 
 message("SOURCE_FILES: ${SOURCE_FILES}")
 
-add_executable(ScorpCore ${SOURCE_FILES} include/meta/TypeHolder.h include/meta/All.h include/meta/TypeWriter.h include/meta/ForEachLooper.h)
+add_executable(ScorpCore ${SOURCE_FILES} include/meta/TypeHolder.h include/meta/All.h include/meta/TypeWriter.h include/meta/ForEachLooper.h include/meta/RuntimeTypeSwitch.h)
