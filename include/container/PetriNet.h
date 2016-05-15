@@ -4,6 +4,8 @@
 #include <meta/ForEachLooper.h>
 #include <meta/TypeEnum.h>
 #include <meta/TypeWriter.h>
+#include <meta/RuntimeTypeSwitch.h>
+#include <iostream>
 #include "container/internal/PetriNetStorage.h"
 #include "container/internal/PetriNetHelpers.h"
 
@@ -45,6 +47,12 @@ public:
         m_idGenerator(std::forward<IdGenerator>(idGenerator))
     {
     }
+
+    PetriNet(const PetriNet&) = delete;
+    PetriNet(PetriNet&&) = delete;
+
+    void operator=(const PetriNet&) = delete;
+    void operator=(PetriNet&&) = delete;
 
     template <class Marker>
     IdType addMarker(IdType parentId, Marker&& marker)
@@ -496,6 +504,7 @@ public:
                 m_objectId(objectId),
                 m_objectSerializedType(objectTypeId) { }
 
+        SerializedObject() = default;
         SerializedObject(const SerializedObject<IndexType> &) = default;
 
         IndexType getObjectId() const {
@@ -507,192 +516,360 @@ public:
         }
 
     private:
-        IndexType m_objectId;
-        IndexType m_objectSerializedType;
+        IndexType m_objectId = IndexType();
+        IndexType m_objectSerializedType = IndexType();
     };
 
 private:
     class MarkerPropagationExecutor;
 
-    class TransitionMarkerPropagator;
+    class PerTransitionMarkerCollector;
 
     template <class _Transition>
-    class TransitionStateMarkerPropagator;
+    class PerStateMarkerCollector;
 
     PetriNetStorage<PetriNetTraits> m_petriNetStorage;
     MarkerPropagationExecutor m_propagator;
     IdGenerator m_idGenerator;
 
-template<class IndexType>
-class SerializedMarkerInState
-{
-public:
-    using SerializedMarker = SerializedObject<IndexType>;
-    using SerializedState = SerializedObject<IndexType>;
-
-    SerializedMarkerInState(IndexType stateId, IndexType stateTypeId, IndexType markerId, IndexType markerTypeId) :
-            m_state(stateId, stateTypeId),
-            m_marker(markerId, markerTypeId)
-    { }
-
-    SerializedMarkerInState(const SerializedState &state, const SerializedMarker &marker) :
-            m_state(state),
-            m_marker(marker)
-    { }
-
-    const SerializedState &getState() const
+    template<class IndexType>
+    class SerializedMarkerInState
     {
-        return m_state;
-    }
+    public:
+        using SerializedMarker = SerializedObject<IndexType>;
+        using SerializedState = SerializedObject<IndexType>;
 
-    const SerializedMarker &getMarker() const
+        SerializedMarkerInState() :
+                m_state(SerializedState()),
+                m_marker(SerializedMarker())
+        { }
+
+        SerializedMarkerInState(IndexType stateId, IndexType stateTypeId, IndexType markerId, IndexType markerTypeId) :
+                m_state(stateId, stateTypeId),
+                m_marker(markerId, markerTypeId)
+        { }
+
+        SerializedMarkerInState(const SerializedState &state, const SerializedMarker &marker) :
+                m_state(state),
+                m_marker(marker)
+        { }
+
+        const SerializedState &getState() const
+        {
+            return m_state;
+        }
+
+        const SerializedMarker &getMarker() const
+        {
+            return m_marker;
+        }
+
+    private:
+        SerializedState m_state;
+        SerializedMarker m_marker;
+    };
+
+    template<class IndexType>
+    class SerializedTransitionMarkerPropagation
     {
-        return m_marker;
-    }
+    public:
+        using SerializedMarker = SerializedObject<IndexType>;
+        using SerializedTransition = SerializedObject<IndexType>;
 
-private:
-    SerializedState m_state;
-    SerializedMarker m_marker;
-};
+        SerializedTransitionMarkerPropagation(const SerializedTransition &serializedTransition,
+                                              std::vector<SerializedMarkerInState<IndexType>> &&serializedMarkers) :
+                m_transiton(serializedTransition),
+                m_serializedMarkers(std::move(serializedMarkers)) { };
 
-template<class IndexType>
-class SerializedTransitionMarkerPropagation {
-public:
-    using SerializedMarker = SerializedObject<IndexType>;
-    using SerializedTransition = SerializedObject<IndexType>;
+        const SerializedTransition &getSerializedTransition() const
+        {
+            return m_transiton;
+        }
 
-    SerializedTransitionMarkerPropagation(const SerializedTransition &serializedTransition,
-                                          std::vector<SerializedMarkerInState<IndexType>> &&serializedMarkers) :
-            m_transiton(serializedTransition),
-            m_serializedMarkers(std::move(serializedMarkers)) { };
+        const std::vector<SerializedMarkerInState<IndexType>> &getSerializedMarkers() const
+        {
+            return m_serializedMarkers;
+        }
 
-    const SerializedTransition &getSerializedTransition() const {
-        return m_transiton;
-    }
+        std::vector<SerializedMarkerInState<IndexType>> &getSerializedMarkers()
+        {
+            return m_serializedMarkers;
+        }
 
-    const std::vector<SerializedMarkerInState<IndexType>> &getSerializedMarkers() const {
-        return m_serializedMarkers;
-    }
+    private:
+        SerializedTransition m_transiton;
+        std::vector<SerializedMarkerInState<IndexType>> m_serializedMarkers;
+    };
 
-private:
-    SerializedTransition m_transiton;
-    std::vector<SerializedMarkerInState<IndexType>> m_serializedMarkers;
-};
+    template<class _Transition>
+    class PerStateMarkerCollector {
+    public:
+        using PetriNetTraits = _PetriNetTraits;
+        using Transition = _Transition;
+        using IndexType = typename PetriNetTraits::IdType;
+        using SerializedMarker = SerializedObject<IndexType>;
+        using StateEnum = meta::TypeEnum<typename PetriNetTraits::StateList, IndexType>;
+        using MarkerEnum = meta::TypeEnum<typename PetriNetTraits::MarkerList, IndexType>;
 
-template<class _Transition>
-class TransitionStateMarkerPropagator {
-public:
-    using PetriNetTraits = _PetriNetTraits;
-    using Transition = _Transition;
-    using IndexType = typename PetriNetTraits::IdType;
-    using SerializedMarker = SerializedObject<IndexType>;
-    using StateEnum = meta::TypeEnum<typename PetriNetTraits::StateList, IndexType>;
-    using MarkerEnum = meta::TypeEnum<typename PetriNetTraits::MarkerList, IndexType>;
+        PerStateMarkerCollector(PetriNet<PetriNetTraits> &petriNet,
+                                        TransitionWrapper<Transition, PetriNetTraits> &transition) :
+                m_transition(transition),
+                m_petriNet(petriNet) { }
 
-    TransitionStateMarkerPropagator(PetriNet<PetriNetTraits> &petriNet,
-                                    TransitionWrapper<Transition, PetriNetTraits> &transition) :
-            m_transition(transition),
-            m_petriNet(petriNet) { }
+        template<class State>
+        bool operator()() {
+            bool result = false;
 
-    template<class State>
-    bool operator()() {
-        bool result = false;
+            MarkerExtractor<Transition, State> markerExtractor;
+            for (auto stateId : m_transition.template getInStateStorage<State>())
+            {
+                const auto &state = m_petriNet.template getStateWrapperById<State>(stateId);
+                if (boost::optional<std::pair<IdType, IdType>> marker = markerExtractor(m_petriNet, m_transition, state))
+                {
+                    m_serializedMarkers.emplace_back(
+                            state.getId(),
+                            StateEnum::template getValue<State>(),
+                            marker.get().first,
+                            marker.get().second);
+                }
+                else
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
 
-        MarkerExtractor<Transition, State> markerExtractor;
-        for (auto stateId : m_transition.template getInStateStorage<State>()) {
-            const auto &state = m_petriNet.template getStateWrapperById<State>(stateId);
-            if (boost::optional<std::pair<IdType, IdType>> marker = markerExtractor(m_petriNet, m_transition, state)) {
-                m_serializedMarkers.emplace_back(
-                        state.getId(),
-                        StateEnum::template getValue<State>(),
-                        marker.get().first,
-                        marker.get().second);
+        std::vector<SerializedMarkerInState<IndexType>> &&moveOutSerializedMarkers() {
+            return std::move(m_serializedMarkers);
+        }
+
+    private:
+        std::vector<SerializedMarkerInState<IndexType>> m_serializedMarkers;
+        const PetriNet<PetriNetTraits> &m_petriNet;
+        const TransitionWrapper<Transition, PetriNetTraits> &m_transition;
+    };
+
+    class PerTransitionMarkerCollector {
+    public:
+        using PetriNetTraits = _PetriNetTraits;
+        using StateList = typename PetriNetTraits::StateList;
+        using IndexType = typename PetriNetTraits::IdType;
+        using TransitionEnum = meta::TypeEnum<typename PetriNetTraits::TransitionList, IndexType>;
+        using SerializedTransition = SerializedObject<IndexType>;
+
+        PerTransitionMarkerCollector(PetriNet<PetriNetTraits> &petriNet) :
+                m_petriNet(petriNet) {
+        }
+
+        template<class Transition>
+        bool operator()() {
+            for (auto transitionIterator = m_petriNet.template beginTransition<Transition>();
+                 transitionIterator != m_petriNet.template endTransition<Transition>();
+                 ++transitionIterator) {
+                TransitionWrapper<Transition, PetriNetTraits> &transition = transitionIterator->second;
+                PerStateMarkerCollector<Transition> propagator(m_petriNet, transition);
+                meta::ForEachLooper<StateList, decltype(propagator)> looper(propagator);
+                if (!looper()) {
+                    m_serializedTransitionPropagation.emplace_back(
+                            SerializedTransition(
+                                    transition.getId(),
+                                    TransitionEnum::template getValue<Transition>()),
+                                    propagator.moveOutSerializedMarkers());
+                    MarkerPropagationDisicion desicionMaker;
+                    desicionMaker.template operator()<Transition>(
+                            m_petriNet,
+                            m_serializedTransitionPropagation.back().getSerializedMarkers(),
+                            transition);
+                }
+            }
+
+            return false;
+        }
+
+        std::vector<SerializedTransitionMarkerPropagation<IndexType>> getOutSerializedTransitionMarkers() {
+            return std::move(m_serializedTransitionPropagation);
+        }
+
+    private:
+        std::vector<SerializedTransitionMarkerPropagation<IndexType>> m_serializedTransitionPropagation;
+        PetriNet<PetriNetTraits> &m_petriNet;
+    };
+
+    // Marker Decision
+    template <class Resource, class Deleter>
+    class ResourceHolder
+    {
+    public:
+        ResourceHolder(const Resource& resource):
+                m_resource(resource)
+        {
+        }
+
+        ResourceHolder(const Resource& resource, Deleter& deleter):
+                m_resource(resource),
+                m_deleter(deleter)
+        {
+        }
+
+        ResourceHolder(const ResourceHolder<Resource, Deleter>&) = delete;
+        void operator=(const ResourceHolder<Resource, Deleter>&) = delete;
+
+        ResourceHolder(ResourceHolder<Resource, Deleter>&& other) :
+                m_deleter(std::move(other.m_deleter))
+        {
+            if (other.m_needClanup)
+            {
+                m_resource = other.m_resource;
+                m_needClanup = true;
+                other.m_needClanup = false;
             } else {
-                result = true;
-                break;
-            }
-        }
-        return result;
-    }
-
-    std::vector<SerializedMarkerInState<IndexType>> &&moveOutSerializedMarkers() {
-        return std::move(m_serializedMarkers);
-    }
-
-private:
-    std::vector<SerializedMarkerInState<IndexType>> m_serializedMarkers;
-    const PetriNet<PetriNetTraits> &m_petriNet;
-    const TransitionWrapper<Transition, PetriNetTraits> &m_transition;
-};
-
-class TransitionMarkerPropagator {
-public:
-    using PetriNetTraits = _PetriNetTraits;
-    using StateList = typename PetriNetTraits::StateList;
-    using IndexType = typename PetriNetTraits::IdType;
-    using TransitionEnum = meta::TypeEnum<typename PetriNetTraits::TransitionList, IndexType>;
-    using SerializedTransition = SerializedObject<IndexType>;
-
-    TransitionMarkerPropagator(PetriNet<PetriNetTraits> &petriNet) :
-            m_petriNet(petriNet) {
-    }
-
-    template<class Transition>
-    bool operator()() {
-        for (auto transitionIterator = m_petriNet.template beginTransition<Transition>();
-             transitionIterator != m_petriNet.template endTransition<Transition>();
-             ++transitionIterator) {
-            TransitionWrapper<Transition, PetriNetTraits> &transition = transitionIterator->second;
-            TransitionStateMarkerPropagator<Transition> propagator(m_petriNet, transition);
-            meta::ForEachLooper<StateList, decltype(propagator)> looper(propagator);
-            if (!looper()) {
-                m_serializedTransitionPropagation.emplace_back(
-                        SerializedTransition(transition.getId(),
-                                             TransitionEnum::template getValue<Transition>()),
-                        propagator.moveOutSerializedMarkers());
+                m_needClanup = false;
             }
         }
 
-        return false;
-    }
-
-    std::vector<SerializedTransitionMarkerPropagation<IndexType>> getOutSerializedTransitionMarkers() {
-        return std::move(m_serializedTransitionPropagation);
-    }
-
-private:
-    std::vector<SerializedTransitionMarkerPropagation<IndexType>> m_serializedTransitionPropagation;
-    PetriNet<PetriNetTraits> &m_petriNet;
-};
-
-class MarkerPropagationExecutor {
-public:
-    using PetriNetTraits = _PetriNetTraits;
-    using TransitionList = typename PetriNetTraits::TransitionList;
-    using IndexType = typename PetriNetTraits::IdType;
-
-    MarkerPropagationExecutor(PetriNet<PetriNetTraits>& m_petriNet) :
-            m_petriNet(m_petriNet) {}
-
-    void operator()() {
-        TransitionMarkerPropagator propagator(m_petriNet);
-        meta::ForEachLooper<TransitionList, decltype(propagator)> looper(propagator);
-        looper();
-        auto serializedTransitions = propagator.getOutSerializedTransitionMarkers();
-        for (SerializedTransitionMarkerPropagation<IndexType> &serializedTransition : serializedTransitions) {
-            std::cout << "Transition id: " << serializedTransition.getSerializedTransition().getObjectId()
-            << " Transition type: " << serializedTransition.getSerializedTransition().getObjectSerializedType()
-            << std::endl;
-            for (auto serializedMarker : serializedTransition.getSerializedMarkers()) {
-                std::cout << "State id: " << serializedMarker.getState().getObjectId()
-                << " State type: " << serializedMarker.getState().getObjectSerializedType()
-                << " Marker id: " << serializedMarker.getMarker().getObjectId()
-                << " Marker type: " << serializedMarker.getMarker().getObjectSerializedType()
-                << std::endl;
+        void operator=(ResourceHolder<Resource, Deleter>&& other)
+        {
+            if (m_needClanup)
+            {
+                m_deleter(m_resource);
             }
-            std::cout << std::endl;
+            if (other.m_needClanup)
+            {
+                m_resource = other.m_resource;
+                m_needClanup = true;
+                other.m_needClanup = false;
+            } else {
+                m_needClanup = false;
+            }
+            m_deleter = std::move(other.m_deleter);
         }
-    }
+
+        Resource& getResource()
+        {
+            return m_resource;
+        }
+
+        const Resource& getResource() const
+        {
+            return m_resource;
+        }
+
+        Resource release()
+        {
+            m_needClanup = false;
+            return m_resource;
+        }
+
+        ~ResourceHolder()
+        {
+            if (m_needClanup)
+            {
+                m_deleter(m_resource);
+            }
+        }
+
+    private:
+        bool m_needClanup = true;
+        Resource m_resource = Resource();
+        Deleter m_deleter;
+    };
+
+    struct MarkerDeleter
+    {
+        MarkerDeleter(IdType markerId, PetriNet<PetriNetTraits>& petriNet):
+                m_markerId(markerId),
+                m_petriNet(petriNet)
+        {
+        }
+
+        template <class Marker>
+        void operator()()
+        {
+            std::cout << "[MarkerDeleter]Called to delete marker " << m_markerId << std::endl;
+            std::cout << "[MarkerDeleter] befor " << m_petriNet.sizeMarker<Marker>() << std::endl;
+            m_petriNet.removeMarker<Marker>(m_markerId);
+            std::cout << "[MarkerDeleter] after " << m_petriNet.sizeMarker<Marker>() << std::endl;
+        }
+
+        IdType m_markerId;
+        PetriNet<PetriNetTraits>& m_petriNet;
+    };
+
+    struct MarkerPropagationDisicion
+    {
+        using IndexType = typename PetriNetTraits::IdType;
+        using MarkerList = typename PetriNetTraits::MarkerList;
+        using MakrerEnum = typename meta::TypeEnum<MarkerList, IndexType>;
+        // template <class Transition>
+        // using DesicionMaker = typename PetriNetTraits::MarkerPropagationDisicionMaker;
+
+        template <class Transition>
+        bool operator()(PetriNet<PetriNetTraits>& petriNet,
+                        std::vector<SerializedMarkerInState<IndexType>>& inputMarkers,
+                        const TransitionWrapper<Transition, PetriNetTraits>& transition) const
+        {
+            //DesicionMaker<Transition> desicionMaker;
+            //bool success = desicionMaker(transition, inputMarkers);
+            auto deleter = [&petriNet](const SerializedMarkerInState<IndexType>& serializedMarkerInState) mutable {
+                std::cout << "Called to delete marker " << serializedMarkerInState.getMarker().getObjectId()
+                        << " of type " << serializedMarkerInState.getMarker().getObjectSerializedType() << std::endl;
+                meta::calculateBasedOnRealtime<MarkerDeleter, MarkerList>(
+                        serializedMarkerInState.getMarker().getObjectSerializedType(),
+                        serializedMarkerInState.getMarker().getObjectId(),
+                        petriNet);
+            };
+            std::vector<ResourceHolder<PetriNet<PetriNetTraits>::SerializedMarkerInState<IndexType>, decltype(deleter)>> handledMarkers;
+            for(const auto& serializedMarker : inputMarkers)
+            {
+                handledMarkers.emplace_back(serializedMarker, deleter);
+            }
+            std::cout << "handledMarkers size " << handledMarkers.size() << std::endl;
+
+            bool success;
+            if (success)
+            {
+
+            }
+
+            return success;
+        }
+    };
+
+    // Marker Propagation
+
+    class MarkerPropagationExecutor {
+    public:
+        using PetriNetTraits = _PetriNetTraits;
+        using TransitionList = typename PetriNetTraits::TransitionList;
+        using IndexType = typename PetriNetTraits::IdType;
+
+        MarkerPropagationExecutor(PetriNet<PetriNetTraits>& m_petriNet) :
+                m_petriNet(m_petriNet) {}
+
+        void operator()() const {
+            using Train = typename decltype(meta::TypeEnum<MarkerList, IdType>::template getTypeHolder<0>())::type;
+            std::cout << "Trains count " << m_petriNet.sizeMarker<Train>() << std::endl;
+            PerTransitionMarkerCollector propagator(m_petriNet);
+            meta::ForEachLooper<TransitionList, decltype(propagator)> looper(propagator);
+            looper();
+            auto serializedTransitions = propagator.getOutSerializedTransitionMarkers();
+            for (SerializedTransitionMarkerPropagation<IndexType> &serializedTransition : serializedTransitions) {
+                std::cout << "Transition id: " << serializedTransition.getSerializedTransition().getObjectId()
+                    << " Transition type: " << serializedTransition.getSerializedTransition().getObjectSerializedType()
+                    << std::endl;
+                for (auto& serializedMarker : serializedTransition.getSerializedMarkers()) {
+                    std::cout << "State id: " << serializedMarker.getState().getObjectId()
+                        << " State type: " << serializedMarker.getState().getObjectSerializedType()
+                        << " Marker id: " << serializedMarker.getMarker().getObjectId()
+                        << " Marker type: " << serializedMarker.getMarker().getObjectSerializedType()
+                        << std::endl;
+                }
+                std::cout << std::endl;
+            }
+            std::cout << "Trains count " << m_petriNet.sizeMarker<Train>() << std::endl;
+        }
 
 private:
     PetriNet<PetriNetTraits> &m_petriNet;
