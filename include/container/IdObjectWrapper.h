@@ -5,6 +5,8 @@ template <class _IdType>
 class IdObjectWrapper
 {
 public:
+    template <class Traits> friend class PetriNet;
+
     using IdType = _IdType;
 
     IdObjectWrapper(IdType id): m_id(id)
@@ -14,6 +16,12 @@ public:
     IdType getId() const
     {
         return m_id;
+    }
+
+protected:
+    void setId(IdType id)
+    {
+        m_id = id;
     }
 
 private:

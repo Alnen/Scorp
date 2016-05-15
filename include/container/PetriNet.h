@@ -81,6 +81,33 @@ public:
         return markerId;
     }
 
+    template <class Marker, class... Args>
+    IdType addMarker(IdType parentId, Args&&... args)
+    {
+        IdType markerId = m_idGenerator();
+        auto& markerStorage = m_petriNetStorage.template getMarkerStorage<Marker>();
+        markerStorage.emplace(
+                std::make_pair(
+                        markerId,
+                        MarkerWrapperType<Marker>(
+                                markerId,
+                                parentId,
+                                std::forward<Args>(args)...
+                        )
+                )
+        );
+        //
+        using Functor = MarkerAdder<Marker, decltype(m_petriNetStorage), IdType>;
+        Functor functor(m_petriNetStorage, markerId, parentId);
+        meta::ForEachLooper<StateList, Functor> eraser(functor);
+        if (!eraser())
+        {
+            throw std::runtime_error("Couldn't find father");
+        }
+        //
+        return markerId;
+    }
+
     template <class Marker>
     Marker& getMarkerById(IdType id)
     {
@@ -532,6 +559,8 @@ private:
     MarkerPropagationExecutor m_propagator;
     IdGenerator m_idGenerator;
 
+
+public:
     template<class IndexType>
     class SerializedMarkerInState
     {
@@ -568,7 +597,7 @@ private:
         SerializedState m_state;
         SerializedMarker m_marker;
     };
-
+private:
     template<class IndexType>
     class SerializedTransitionMarkerPropagation
     {
@@ -698,6 +727,7 @@ private:
     };
 
     // Marker Decision
+public:
     template <class Resource, class Deleter>
     class ResourceHolder
     {
@@ -775,7 +805,7 @@ private:
         Resource m_resource = Resource();
         Deleter m_deleter;
     };
-
+private:
     struct MarkerDeleter
     {
         MarkerDeleter(IdType markerId, PetriNet<PetriNetTraits>& petriNet):
@@ -797,21 +827,220 @@ private:
         PetriNet<PetriNetTraits>& m_petriNet;
     };
 
+    template <class State>
+    class MarkerStorageFinder
+    {
+    public:
+        using IndexType = IdType;
+
+        MarkerStorageFinder(StateWrapper<State, PetriNetTraits>& state):
+                m_state(state)
+        {
+        }
+
+        template <class Marker>
+        void operator()()
+        {
+            m_storage = m_state.template getMarkerStorage<Marker>();
+        }
+
+        std::vector<IndexType>& getStatesMarkerStorage() const
+        {
+            if (m_storage == nullptr)
+            {
+                throw std::runtime_error("Couldn't find state's marker storage");
+            }
+            return *m_storage;
+        }
+
+    private:
+        std::vector<IndexType>* m_storage = nullptr;
+        StateWrapper<State, PetriNetTraits>& m_state;
+    };
+
+    class StatesMarkerStorageFinder
+    {
+    public:
+        using IndexType = IdType;
+        template <class _State>
+        using MarkerStorageFinder = typename PetriNet<PetriNetTraits>::MarkerStorageFinder<_State>;
+
+        StatesMarkerStorageFinder(PetriNet<PetriNetTraits>& petriNet,  IndexType stateId, IndexType markerTypeId):
+            m_petriNet(petriNet),
+            m_stateId(stateId),
+            m_markerTypeId(markerTypeId)
+        {
+        }
+
+        template <class State>
+        void operator()()
+        {
+            auto& stateStorage = m_petriNet.m_petriNetStorage.template getStateStorage<State>();
+            auto& stateWrapper = stateStorage[m_stateId];
+
+            MarkerStorageFinder<State> markerStorageFinder = std::move(meta::calculateBasedOnRealtime<MarkerStorageFinder<State>, MarkerList>(m_markerTypeId, stateWrapper));
+            m_vector = markerStorageFinder.getStatesMarkerStorage();
+        }
+
+        std::vector<IndexType>& getStatesMarkerStorage() const
+        {
+            if (m_petriNet == nullptr)
+            {
+                throw std::runtime_error("Couldn't find state's marker storage");
+            }
+            return *m_petriNet;
+        }
+
+    private:
+        std::vector<IndexType>* m_vector = nullptr;
+        PetriNet<PetriNetTraits>& m_petriNet;
+        IndexType m_stateId;
+        IndexType m_markerTypeId;
+    };
+
+    class MarkerParentChanger
+    {
+    public:
+        MarkerParentChanger(PetriNet<PetriNetTraits>& petriNet, IdType markerId, IdType parentId):
+            m_petriNet(petriNet),
+            m_markerId(markerId),
+            m_parentId(parentId)
+        {
+        }
+
+        template <class Marker>
+        void MarkerType()
+        {
+            auto& markerStorage = m_petriNet.m_petriNetStorage.template getMarkerStorage<Marker>();
+            auto& markerWrapper = markerStorage[m_markerId];
+
+            markerWrapper.setId(m_parentId);
+        }
+
+    private:
+        PetriNet<PetriNetTraits>& m_petriNet;
+        IdType m_markerId;
+        IdType m_parentId;
+    };
+public:
+    class MarkerFiller
+    {
+    public:
+        using IndexType = typename PetriNetTraits::IdType;
+        using SerializedState = SerializedObject<IndexType>;
+        using StatesMarkerStorageFinder = typename PetriNet<PetriNetTraits>::StatesMarkerStorageFinder;
+
+        MarkerFiller(PetriNet<PetriNetTraits>& petriNet, IndexType stateId, IndexType stateTypeId):
+                m_petriNet(petriNet),
+                m_state(stateId, stateTypeId)
+        {
+        }
+
+        MarkerFiller() = delete;
+        MarkerFiller(const MarkerFiller&) = delete;
+        MarkerFiller(MarkerFiller&&) = default;
+        MarkerFiller& operator=(const MarkerFiller&) = delete;
+        MarkerFiller& operator=(MarkerFiller&&) = default;
+
+    private:
+        std::vector<IndexType>& getMarkerStorage(const SerializedState& state, IndexType markerTypeId)
+        {
+            StatesMarkerStorageFinder markerStorageFinder = std::move(meta::calculateBasedOnRealtime<StatesMarkerStorageFinder, StateList>(
+                    state.getObjectSerializedType(),
+                    m_petriNet,
+                    state.getObjectId(),
+                    markerTypeId));
+            return markerStorageFinder.getStatesMarkerStorage();
+        }
+
+    public:
+        template <class Deleter>
+        IndexType moveState(ResourceHolder<SerializedMarkerInState<IndexType>, Deleter>&& serializedMarkerHandler)
+        {
+            // save marker from deletion
+            SerializedMarkerInState<IndexType> serializedMarker = serializedMarkerHandler.release();
+
+            // remove from old parent
+            auto& markerStorage = getMarkerStorage(
+                    serializedMarker.getState(),
+                    serializedMarker.getMarker().getObjectSerializedType());
+            std::remove(markerStorage.begin(), markerStorage.end(), serializedMarker.getMarker().getObjectId());
+            // add to new parent
+            markerStorage = getMarkerStorage(
+                    m_state,
+                    serializedMarker.getMarker().getObjectSerializedType());
+            markerStorage.emplace_back(serializedMarker.getMarker().getObjectId());
+            // Correct marker's parent id
+            meta::calculateBasedOnRealtime<MarkerParentChanger, MarkerList>(
+                    serializedMarker.getState().getObjectSerializedType(),
+                    m_petriNet,
+                    serializedMarker.getMarker().getObjectSerializedType(),
+                    m_state.getObjectId());
+
+            m_filled = true;
+            return serializedMarker.getMarker();
+        }
+
+        template <class Marker, class... Args>
+        IndexType createState(Args&&... args)
+        {
+            m_filled = true;
+            return m_petriNet.template addMarker<Marker>(m_state.getObjectId(), std::forward<Args>(args)...);
+        }
+
+        bool isFilled() const
+        {
+            return m_filled;
+        }
+
+    private:
+        bool m_filled = false;
+        SerializedState m_state;
+        PetriNet<PetriNetTraits>& m_petriNet;
+    };
+
+private:
+
+    template <class Transition>
+    struct StateCollector
+    {
+        using SerializedState = SerializedObject<IdType>;
+        using StateEnum = typename meta::TypeEnum<StateList, IdType>;
+
+        StateCollector(const TransitionWrapper<Transition, PetriNetTraits>& transition, PetriNet<PetriNetTraits>& petriNet):
+            m_transition(transition),
+            m_petriNet(petriNet)
+        {
+        }
+
+        template <class State>
+        bool operator()()
+        {
+            for (IdType stateId : m_transition.template getOutStateStorage<State>())
+            {
+                m_serializedStates.emplace_back(m_petriNet, stateId, StateEnum::template getValue<State>());
+            }
+            return false;
+        }
+
+        std::vector<MarkerFiller> m_serializedStates;
+        PetriNet<PetriNetTraits>& m_petriNet;
+        const TransitionWrapper<Transition, PetriNetTraits>& m_transition;
+    };
+
     struct MarkerPropagationDisicion
     {
         using IndexType = typename PetriNetTraits::IdType;
         using MarkerList = typename PetriNetTraits::MarkerList;
         using MakrerEnum = typename meta::TypeEnum<MarkerList, IndexType>;
-        // template <class Transition>
-        // using DesicionMaker = typename PetriNetTraits::MarkerPropagationDisicionMaker;
+        template <class Transition>
+        using DecisionMaker = typename PetriNetTraits::template MarkerPropagationSolver<Transition>;
 
         template <class Transition>
-        bool operator()(PetriNet<PetriNetTraits>& petriNet,
+        void operator()(PetriNet<PetriNetTraits>& petriNet,
                         std::vector<SerializedMarkerInState<IndexType>>& inputMarkers,
                         const TransitionWrapper<Transition, PetriNetTraits>& transition) const
         {
-            //DesicionMaker<Transition> desicionMaker;
-            //bool success = desicionMaker(transition, inputMarkers);
             auto deleter = [&petriNet](const SerializedMarkerInState<IndexType>& serializedMarkerInState) mutable {
                 std::cout << "Called to delete marker " << serializedMarkerInState.getMarker().getObjectId()
                         << " of type " << serializedMarkerInState.getMarker().getObjectSerializedType() << std::endl;
@@ -827,13 +1056,32 @@ private:
             }
             std::cout << "handledMarkers size " << handledMarkers.size() << std::endl;
 
-            bool success;
-            if (success)
+            StateCollector<Transition> stateCollector(transition, petriNet);
+            meta::ForEachLooper<StateList, decltype(stateCollector)> looper(stateCollector);
+            looper();
+
+            DecisionMaker<Transition> decisionMaker;
+
+            std::vector<std::reference_wrapper<
+                    ResourceHolder<
+                            PetriNet<PetriNetTraits>::SerializedMarkerInState<IndexType>,
+                            decltype(deleter)
+                    >
+            >> handledMarkersRefs(handledMarkers.begin(), handledMarkers.end());
+            std::vector<std::reference_wrapper<MarkerFiller>> outputMarkersRefs;
+            for (auto& out : stateCollector.m_serializedStates)
             {
-
+                outputMarkersRefs.emplace_back(out);
             }
+            decisionMaker(petriNet, transition, handledMarkersRefs, outputMarkersRefs);
 
-            return success;
+            for (auto& out : outputMarkersRefs)
+            {
+                if (!out.get().isFilled())
+                {
+                    throw std::runtime_error("something not filled");
+                }
+            }
         }
     };
 
@@ -850,7 +1098,9 @@ private:
 
         void operator()() const {
             using Train = typename decltype(meta::TypeEnum<MarkerList, IdType>::template getTypeHolder<0>())::type;
+            using AccessToken = typename decltype(meta::TypeEnum<MarkerList, IdType>::template getTypeHolder<1>())::type;
             std::cout << "Trains count " << m_petriNet.sizeMarker<Train>() << std::endl;
+            std::cout << "AccessToken count " << m_petriNet.sizeMarker<AccessToken>() << std::endl;
             PerTransitionMarkerCollector propagator(m_petriNet);
             meta::ForEachLooper<TransitionList, decltype(propagator)> looper(propagator);
             looper();
@@ -869,6 +1119,7 @@ private:
                 std::cout << std::endl;
             }
             std::cout << "Trains count " << m_petriNet.sizeMarker<Train>() << std::endl;
+            std::cout << "AccessToken count " << m_petriNet.sizeMarker<AccessToken>() << std::endl;
         }
 
 private:
