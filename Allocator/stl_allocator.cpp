@@ -1,8 +1,8 @@
-#include <iostream>
+#include "pool_allocator.cpp"
+#include "seglist_allocator.cpp"
 #include <stdio.h>
 #include <sys/types.h>
 #include <limits>
-#include <list>
 
 template<typename T>
 class Allocator {
@@ -35,13 +35,20 @@ public :
     inline const_pointer address(const_reference r) { return &r; }
 
     //    memory allocation
-    inline pointer allocate(size_type cnt,
-       typename std::allocator<void>::const_pointer = 0) {
+    inline pointer allocate(size_type n, const void * = 0) {
         std::cout << "use my allocator to allocate"<< std::endl;
-      return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T)));
+        if (n == 1) {
+                    return static_cast<T*>(SeglistAllocator::instance().allocate(sizeof(T)));
+                } else {
+                    return std::allocator<T>().allocate(n);
+                }
     }
-    inline void deallocate(pointer p, size_type) {
-        ::operator delete(p);
+    inline void deallocate(pointer p, size_type n) {
+        if (n == 1) {
+                    SeglistAllocator::instance().deallocate(static_cast<void*>(p, sizeof(T)));
+                } else {
+                    return std::allocator<T>().deallocate(p, n);
+                }
     }
 
     //    size
@@ -57,13 +64,3 @@ public :
     inline bool operator!=(Allocator const& a) { return !operator==(a); }
 };    //    end of class Allocator
 
-
-int main(){
-    const int numItems = 100;
-    std::list<int, Allocator<int> > l;
-    for (int i = 0; i < numItems; ++i) {
-        l.push_back(i);
-    }
-
-    return 0;
-}
