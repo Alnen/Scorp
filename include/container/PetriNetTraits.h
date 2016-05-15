@@ -20,6 +20,12 @@ struct PetriNetTraits
             PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
             Transition,
             State>;
+
+    template <class Transition>
+    using MarkerPropagationSolver = MarkerPropagationSolver<
+            PetriNetTraits<MarkerList, TransitionList, StateList>,
+            Transition
+    >;
 };
 
 #endif //PETRINETTRAITS_H
