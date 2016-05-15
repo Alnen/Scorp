@@ -8,8 +8,6 @@
 enum class UserRight { ViewMap, EditMap, Authorization, AccountManagement, EditStationInfo,
        EditSchedule, EditTrainsList, FindTrips };
 
-//enum class UserGroup { User, Admin, Operator };
-
 enum class UserGroupName;
 
 class UserInfo
@@ -17,16 +15,15 @@ class UserInfo
 public:
     UserInfo();
     UserInfo(QString login, UserGroupName group);
-    bool signIn(QString login, QString password);
     QString getLogin() const;
     UserGroupName getGroup() const;
     void setGroup(UserGroupName group);
     void setUserRights(std::array<bool, 8> rights);
     bool getRightStatus(UserRight right) const;
+    void setNewUser(QString login, UserGroupName group, std::array<bool, 8> rights);
 
 private:
     size_t mapUserRightToInt(UserRight right) const;
-    //void setRights(UserGroupName group);
 
 private:
     QString m_login;

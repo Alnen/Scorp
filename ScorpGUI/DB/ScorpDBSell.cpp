@@ -180,9 +180,19 @@ std::array<bool, 8> ScorpDBSell::getUserRights(UserGroupName group)
     else if (group == UserGroupName::OPERATOR)
     {
         group_name = "Operator";
-        //getRowFromTable("UserGroups", group_name);
     }
-    getRowFromTable(TableName::USER_GROUPS, group_name);
+    std::vector<std::string> str_rights = getRowFromTable(TableName::USER_GROUPS, group_name);
+    for (size_t i = 0; i < 8; ++i)
+    {
+        if (str_rights[i+1].compare("true") == 0)
+        {
+            rights[i] = true;
+        }
+        else
+        {
+            rights[i] = false;
+        }
+    }
     return rights;
 }
 

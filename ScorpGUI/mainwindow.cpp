@@ -36,6 +36,7 @@
 #include <QResizeEvent>
 #include <QDebug>
 
+#include "DB/ScorpExceptions.h"
 #include "DB/ScorpDBSell.h"
 #include "Map/MapScene.h"
 #include "Map/TrackGraphicsObject.h"
@@ -62,20 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     dlgEnterLogin = new QDialog(this, Qt::Dialog);
     dlgEnterLogin->setFixedSize(205, 120);
     dlgEnterLogin->setWindowTitle(tr("Enter Login"));
-    dlgRegistration = new QDialog(this, Qt::Dialog);
-    dlgRegistration->setFixedSize(205, 140);
-    dlgRegistration->setWindowTitle(tr("Registration"));
 
-    //tableShowAllUsers->insertRow(tableShowAllUsers->rowCount());
-    //tableShowAllUsers->setItem(tableShowAllUsers->rowCount()-1, 0, new QTableWidgetItem(tr("User1")));
-    /*
-    int count = 30;
-    tableShowAllUsers->setRowCount(count);
-    for (int i = 0; i < count; ++i)
-    {
-        tableShowAllUsers->setItem(i, 0, new QTableWidgetItem(tr("User%1").arg(i+1)));
-    }
-    */
     defineEditUserForm();
     defineEditStationForm();
     defineEditTrainForm();
@@ -97,16 +85,12 @@ MainWindow::MainWindow(QWidget *parent)
     defineToolBar();
     defineStatusBar();
     defineLoginForm();
-    defineRegistrationForm();
     defineMap();
     defineStationsList();
 
     defineAuthorizationForm();
-    //defineAuthTurnOnForm();
-    //defineAuthTurnOffForm();
-
-    //dlgEnterLogin->show();
-    //dlgRegistration->show();
+    m_currentUser.setUserRights(m_db->getUserRights(UserGroupName::USER));
+    updateUIbyUserGroup();
 }
 
 MainWindow::~MainWindow()
@@ -116,12 +100,7 @@ MainWindow::~MainWindow()
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
     QSize new_size = event->size();
-    // move login form (passive)
-    //int frame_width = 170;
-    //frameAuthTurnOff->setGeometry(new_size.width() - frame_width - 2, 0, frame_width, 20);
-    // move login form (active)
-    //frame_width = 120;
-    //frameAuthTurnOn->setGeometry(new_size.width() - frame_width - 2, 0, frame_width, 85);
+    // move authorizationform
     frameAuthorization->setGeometry(new_size.width() - frameAuthorization->width() - 2, 0,
                                     frameAuthorization->width(), frameAuthorization->height());
     // move status bar
@@ -290,36 +269,8 @@ void MainWindow::defineLoginForm()
     btnEnterLoginOk = new QPushButton(tr("Ok"), dlgEnterLogin);
     btnEnterLoginOk->setGeometry(btnEnterLoginClose->x() - 55, btnEnterLoginClose->y(), 50, 20);
 
-    connect(btnEnterLoginClose, &QPushButton::clicked, this, &MainWindow::btnEnterLoginCloseClicked);
+    connect(btnEnterLoginClose, &QPushButton::clicked, dlgEnterLogin, &QDialog::close);
     connect(btnEnterLoginOk, &QPushButton::clicked, this, &MainWindow::btnEnterLoginOkClicked);
-}
-
-void MainWindow::defineRegistrationForm()
-{
-    QLabel* lbLogin = new QLabel(tr("Login"), dlgRegistration);
-    lbLogin->setGeometry(12, 15, 50, 20);
-    txtRegistrationLogin = new QLineEdit(dlgRegistration);
-    txtRegistrationLogin->setGeometry(lbLogin->x() + lbLogin->width() + 5, lbLogin->y(), 125, 20);
-    QLabel* lbPassword = new QLabel(tr("Password"), dlgRegistration);
-    lbPassword->setGeometry(lbLogin->x(), lbLogin->y() + lbLogin->height() + 7, lbLogin->width(), 20);
-    txtRegistrationPassword = new QLineEdit(dlgRegistration);
-    txtRegistrationPassword->setGeometry(lbPassword->x() + lbPassword->width() + 5, lbPassword->y(),
-                                  txtRegistrationLogin->width(), 20);
-
-    QLabel* lbGroup = new QLabel(tr("Group"), dlgRegistration);
-    lbGroup->setGeometry(lbPassword->x(), lbPassword->y() + lbPassword->height() + 7, lbPassword->width(), 20);
-    cmbRegistrationGroup = new QComboBox(dlgRegistration);
-    cmbRegistrationGroup->setGeometry(lbGroup->x() + lbGroup->width() + 5, lbGroup->y(),
-                                      txtRegistrationPassword->width(), 20);
-    cmbRegistrationGroup->addItem(tr("Operator"));
-    cmbRegistrationGroup->addItem(tr("Admin"));
-    btnRegistrationClose = new QPushButton(tr("Cancel"), dlgRegistration);
-    btnRegistrationClose->setGeometry(dlgRegistration->width() - 70, dlgRegistration->height() - 30, 60, 20);
-    btnRegistrationOk = new QPushButton(tr("Ok"), dlgRegistration);
-    btnRegistrationOk->setGeometry(btnRegistrationClose->x() - 55, btnRegistrationClose->y(), 50, 20);
-
-    connect(btnRegistrationClose, &QPushButton::clicked, this, &MainWindow::btnRegistrationOkClicked);
-    connect(btnRegistrationOk, &QPushButton::clicked, this, &MainWindow::btnRegistrationCloseClicked);
 }
 
 void MainWindow::defineMap()
@@ -463,17 +414,17 @@ void MainWindow::defineStationsListForm()
     int button_width = 74;
     QPushButton* btnBack = new QPushButton(tr("Back"), dlgStationsList);
     btnBack->setGeometry(dlgStationsList->width() - button_width - 11, dlgStationsList->height() - 30, button_width, 20);
-    QPushButton* btnAdd = new QPushButton(tr("Add"), dlgStationsList);
-    btnAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnEdit = new QPushButton(tr("Edit"), dlgStationsList);
-    btnEdit->setGeometry(btnAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnRemove = new QPushButton(tr("Remove"), dlgStationsList);
-    btnRemove->setGeometry(btnEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnClear = new QPushButton(tr("Clear"), dlgStationsList);
-    btnClear->setGeometry(btnRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnStationsListAdd = new QPushButton(tr("Add"), dlgStationsList);
+    btnStationsListAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnStationsListEdit = new QPushButton(tr("Edit"), dlgStationsList);
+    btnStationsListEdit->setGeometry(btnStationsListAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnStationsListRemove = new QPushButton(tr("Remove"), dlgStationsList);
+    btnStationsListRemove->setGeometry(btnStationsListEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnStationsListClear = new QPushButton(tr("Clear"), dlgStationsList);
+    btnStationsListClear->setGeometry(btnStationsListRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
 
     QPushButton* btnShowSchedule = new QPushButton(tr("Schedule"), dlgStationsList);
-    btnShowSchedule->setGeometry(10, btnClear->y() - 25, dlgStationsList->width()-20, 20);
+    btnShowSchedule->setGeometry(10, btnStationsListClear->y() - 25, dlgStationsList->width()-20, 20);
 
     tableStations = new QTableWidget(dlgStationsList);
     tableStations->setColumnCount(1);
@@ -483,10 +434,10 @@ void MainWindow::defineStationsListForm()
     tableStations->setEditTriggers(QTableWidget::NoEditTriggers);
 
     connect(btnBack, &QPushButton::clicked, dlgStationsList, &QDialog::close);
-    connect(btnAdd, &QPushButton::clicked, [this](){this->openEditStationForm(true);});
-    connect(btnEdit, &QPushButton::clicked, [this](){this->openEditStationForm(false);});
-    connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeStationFromList);
-    connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearStationsList);
+    connect(btnStationsListAdd, &QPushButton::clicked, [this](){this->openEditStationForm(true);});
+    connect(btnStationsListEdit, &QPushButton::clicked, [this](){this->openEditStationForm(false);});
+    connect(btnStationsListRemove, &QPushButton::clicked, this, &MainWindow::removeStationFromList);
+    connect(btnStationsListClear, &QPushButton::clicked, this, &MainWindow::clearStationsList);
     connect(btnShowSchedule, &QPushButton::clicked, this, &MainWindow::openStationScheduleForm);
 }
 
@@ -498,18 +449,18 @@ void MainWindow::defineTrainsListForm()
 
     int button_width = 74;
     QPushButton* btnBack = new QPushButton(tr("Back"), dlgTrainsList);
-    btnBack->setGeometry(dlgTrainsList->width() - button_width - 11, dlgTrainsList->height() - 30, button_width, 20);
-    QPushButton* btnAdd = new QPushButton(tr("Add"), dlgTrainsList);
-    btnAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnEdit = new QPushButton(tr("Edit"), dlgTrainsList);
-    btnEdit->setGeometry(btnAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnRemove = new QPushButton(tr("Remove"), dlgTrainsList);
-    btnRemove->setGeometry(btnEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnClear = new QPushButton(tr("Clear"), dlgTrainsList);
-    btnClear->setGeometry(btnRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnBack->setGeometry(dlgTrainsList->width() - button_width - 11, dlgTrainsList->height() - 30, button_width, 20);    
+    btnTrainsListAdd = new QPushButton(tr("Add"), dlgTrainsList);
+    btnTrainsListAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnTrainsListEdit = new QPushButton(tr("Edit"), dlgTrainsList);
+    btnTrainsListEdit->setGeometry(btnTrainsListAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnTrainsListRemove = new QPushButton(tr("Remove"), dlgTrainsList);
+    btnTrainsListRemove->setGeometry(btnTrainsListEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnTrainsListClear = new QPushButton(tr("Clear"), dlgTrainsList);
+    btnTrainsListClear->setGeometry(btnTrainsListRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
 
     QPushButton* btnShowSchedule = new QPushButton(tr("Schedule"), dlgTrainsList);
-    btnShowSchedule->setGeometry(10, btnClear->y() - 25, dlgTrainsList->width()-20, 20);
+    btnShowSchedule->setGeometry(10, btnTrainsListClear->y() - 25, dlgTrainsList->width()-20, 20);
 
     tableTrains = new QTableWidget(dlgTrainsList);
     tableTrains->setColumnCount(2);
@@ -521,10 +472,10 @@ void MainWindow::defineTrainsListForm()
     tableTrains->setEditTriggers(QTableWidget::NoEditTriggers);
 
     connect(btnBack, &QPushButton::clicked, dlgTrainsList, &QDialog::close);
-    connect(btnAdd, &QPushButton::clicked, [this](){this->openEditTrainForm(true);});
-    connect(btnEdit, &QPushButton::clicked, [this](){this->openEditTrainForm(false);});
-    connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeTrainFromList);
-    connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearTrainsList);
+    connect(btnTrainsListAdd, &QPushButton::clicked, [this](){this->openEditTrainForm(true);});
+    connect(btnTrainsListEdit, &QPushButton::clicked, [this](){this->openEditTrainForm(false);});
+    connect(btnTrainsListRemove, &QPushButton::clicked, this, &MainWindow::removeTrainFromList);
+    connect(btnTrainsListClear, &QPushButton::clicked, this, &MainWindow::clearTrainsList);
     connect(btnShowSchedule, &QPushButton::clicked, this, &MainWindow::openTrainScheduleForm);
 }
 
@@ -537,14 +488,14 @@ void MainWindow::defineToursListForm()
     int button_width = 74;
     QPushButton* btnBack = new QPushButton(tr("Back"), dlgToursList);
     btnBack->setGeometry(dlgToursList->width() - button_width - 11, dlgToursList->height() - 30, button_width, 20);
-    QPushButton* btnAdd = new QPushButton(tr("Add"), dlgToursList);
-    btnAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnEdit = new QPushButton(tr("Edit"), dlgToursList);
-    btnEdit->setGeometry(btnAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnRemove = new QPushButton(tr("Remove"), dlgToursList);
-    btnRemove->setGeometry(btnEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
-    QPushButton* btnClear = new QPushButton(tr("Clear"), dlgToursList);
-    btnClear->setGeometry(btnRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnToursListAdd = new QPushButton(tr("Add"), dlgToursList);
+    btnToursListAdd->setGeometry(btnBack->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnToursListEdit = new QPushButton(tr("Edit"), dlgToursList);
+    btnToursListEdit->setGeometry(btnToursListAdd->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnToursListRemove = new QPushButton(tr("Remove"), dlgToursList);
+    btnToursListRemove->setGeometry(btnToursListEdit->x() - button_width - 2, btnBack->y(), button_width, 20);
+    btnToursListClear = new QPushButton(tr("Clear"), dlgToursList);
+    btnToursListClear->setGeometry(btnToursListRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
 
     tableTours = new QTableWidget(dlgToursList);
     tableTours->setColumnCount(1);
@@ -554,10 +505,10 @@ void MainWindow::defineToursListForm()
     tableTours->setEditTriggers(QTableWidget::NoEditTriggers);
 
     connect(btnBack, &QPushButton::clicked, dlgToursList, &QDialog::close);
-    connect(btnAdd, &QPushButton::clicked, [this](){this->openEditTourForm(true);});
-    connect(btnEdit, &QPushButton::clicked, [this](){this->openEditTourForm(false);});
-    connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeTourFromList);
-    connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearToursList);
+    connect(btnToursListAdd, &QPushButton::clicked, [this](){this->openEditTourForm(true);});
+    connect(btnToursListEdit, &QPushButton::clicked, [this](){this->openEditTourForm(false);});
+    connect(btnToursListRemove, &QPushButton::clicked, this, &MainWindow::removeTourFromList);
+    connect(btnToursListClear, &QPushButton::clicked, this, &MainWindow::clearToursList);
 }
 
 void MainWindow::defineFindTourDialog()
@@ -663,7 +614,7 @@ void MainWindow::defineEditUserForm()
     QLabel* lbGroup = new QLabel(tr("Group:"), dlgEditUser);
     lbGroup->setGeometry(lbPassword->x(), lbPassword->y() + lbPassword->height() + 5, lbLogin->width(), 20);
     cmbUserGroup = new QComboBox(dlgEditUser);
-    cmbUserGroup->addItem(tr("User"));
+    //cmbUserGroup->addItem(tr("User"));
     cmbUserGroup->addItem(tr("Operator"));
     cmbUserGroup->addItem(tr("Admin"));
     cmbUserGroup->setGeometry(offset_x, lbGroup->y(), txtUserLogin->width(), 20);
@@ -891,6 +842,60 @@ QAbstractItemModel* MainWindow::modelFromStationList()
     return new QStringListModel(m_stationsListModel->getStationNameList(), m_completer);
 }
 
+void MainWindow::updateStationListEditable(bool status)
+{
+    if (status)
+    {
+        btnStationsListAdd->show();
+        btnStationsListEdit->show();
+        btnStationsListRemove->show();
+        btnStationsListClear->show();
+    }
+    else
+    {
+        btnStationsListAdd->hide();
+        btnStationsListEdit->hide();
+        btnStationsListRemove->hide();
+        btnStationsListClear->hide();
+    }
+}
+
+void MainWindow::updateTrainListEditable(bool status)
+{
+    if (status)
+    {
+        btnTrainsListAdd->show();
+        btnTrainsListEdit->show();
+        btnTrainsListRemove->show();
+        btnTrainsListClear->show();
+    }
+    else
+    {
+        btnTrainsListAdd->hide();
+        btnTrainsListEdit->hide();
+        btnTrainsListRemove->hide();
+        btnTrainsListClear->hide();
+    }
+}
+
+void MainWindow::updateTourListEditable(bool status)
+{
+    if (status)
+    {
+        btnToursListAdd->show();
+        btnToursListEdit->show();
+        btnToursListRemove->show();
+        btnToursListClear->show();
+    }
+    else
+    {
+        btnToursListAdd->hide();
+        btnToursListEdit->hide();
+        btnToursListRemove->hide();
+        btnToursListClear->hide();
+    }
+}
+
 void MainWindow::loadFromFile()
 {
     //
@@ -903,17 +908,12 @@ void MainWindow::saveToFile()
 
 void MainWindow::btnEnterLoginOkClicked()
 {
-    //std::string s1 = txtEnterLogin->text().toStdString();
-    //std::string s2 = txtEnterPassword->text().toStdString();
-    //bool is_auth = m_db->authenticate("admin", "adminpasss");
-    //"SELECT * FROM User WHERE Login=:login AND Password=:pass""
     bool is_auth = m_db->authenticate(txtEnterLogin->text().toStdString(),
                                      txtEnterPassword->text().toStdString());
     if (is_auth)
     {
         lbCurrentUserLogin->setText(txtEnterLogin->text());
         UserGroupName user_group = m_db->getUserGroup(txtEnterLogin->text().toStdString());
-        //m_db->getUserRights(user_group);
         if (user_group == UserGroupName::ADMIN)
         {
             lbCurrentUserGroup->setText("Administrator");
@@ -926,8 +926,10 @@ void MainWindow::btnEnterLoginOkClicked()
         {
             lbCurrentUserGroup->setText("User");
         }
+        m_currentUser.setNewUser(txtEnterLogin->text(), user_group, m_db->getUserRights(user_group));
         btnAuthLogin->hide();
         btnAuthLogout->show();
+        updateUIbyUserGroup();
         emit userChanged();
         dlgEnterLogin->close();
     }
@@ -937,24 +939,27 @@ void MainWindow::btnEnterLoginOkClicked()
     }
 }
 
-void MainWindow::btnEnterLoginCloseClicked()
-{
-    dlgEnterLogin->close();
-}
-
 void MainWindow::btnRegistrationOkClicked()
 {
-    //
-}
-
-void MainWindow::btnRegistrationCloseClicked()
-{
-    //
+    try
+    {
+        m_db->addUser(User(txtRegistrationLogin->text().toStdString(),
+                           txtRegistrationPassword->text().toStdString(),
+                           cmbRegistrationGroup->currentText().toStdString())
+                      );
+    }
+    catch(SCORPDBAtMemoryLocationExeption e)
+    {
+        QMessageBox::warning(this, tr("Registration Failed"),
+                             tr("Registration failed! User with this name already exist!"));
+    }
 }
 
 void MainWindow::btnAuthLoginClicked()
 {
-    dlgEnterLogin->show();
+    txtEnterLogin->setText("");
+    txtEnterPassword->setText("");
+    dlgEnterLogin->open();
 }
 
 void MainWindow::btnAuthLogoutClicked()
@@ -962,7 +967,9 @@ void MainWindow::btnAuthLogoutClicked()
     btnAuthLogin->show();
     btnAuthLogout->hide();
     lbCurrentUserLogin->setText(tr("guest"));
-    lbCurrentUserGroup->setText("User");
+    lbCurrentUserGroup->setText(tr("User"));
+    m_currentUser.setNewUser(tr("guest"), UserGroupName::USER, m_db->getUserRights(UserGroupName::USER));
+    updateUIbyUserGroup();
     emit userChanged();
 }
 
@@ -1258,7 +1265,64 @@ void MainWindow::findTour()
     // request to DB
 }
 
-void MainWindow::changeUserGroup(UserGroupName group)
+void MainWindow::updateUIbyUserGroup()
 {
-    //
+    // Show/Hide AccountManagement
+    if (m_currentUser.getRightStatus(UserRight::AccountManagement))
+    {
+        mnAccounts->menuAction()->setVisible(true);
+    }
+    else
+    {
+        mnAccounts->menuAction()->setVisible(false);
+    }
+    // Show/Hide Map ToolBar and File menu
+    if (m_currentUser.getRightStatus(UserRight::EditMap))
+    {
+        mnSetMode->menuAction()->setVisible(true);
+        mnFile->menuAction()->setVisible(true);
+        m_toolBar->show();
+    }
+    else
+    {
+        mnSetMode->menuAction()->setVisible(false);
+        mnFile->menuAction()->setVisible(false);
+        m_toolBar->hide();
+    }
+    // Tours Editable
+    if (m_currentUser.getRightStatus(UserRight::EditSchedule))
+    {
+        updateTourListEditable(true);
+    }
+    else
+    {
+        updateTourListEditable(false);
+    }
+    // Trains Editable
+    if (m_currentUser.getRightStatus(UserRight::EditTrainsList))
+    {
+        updateTrainListEditable(true);
+    }
+    else
+    {
+        updateTrainListEditable(false);
+    }
+    // Stations Editable
+    if (m_currentUser.getRightStatus(UserRight::EditStationInfo))
+    {
+        updateStationListEditable(true);
+    }
+    else
+    {
+        updateStationListEditable(false);
+    }
+    // Show/Hide find Trips menu
+    if (m_currentUser.getRightStatus(UserRight::FindTrips))
+    {
+        actFindTour->setVisible(true);
+    }
+    else
+    {
+        actFindTour->setVisible(false);
+    }
 }

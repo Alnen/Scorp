@@ -51,10 +51,7 @@ private:
     void defineStatusBar();
 
     void defineAuthorizationForm();
-    //void defineAuthTurnOnForm();
-    //void defineAuthTurnOffForm();
     void defineLoginForm();
-    void defineRegistrationForm();
     void defineMap();
     void defineStationsList();
 
@@ -75,14 +72,16 @@ private:
     void defineEditDateTimeForm();
     QAbstractItemModel* modelFromStationList();
 
+    void updateStationListEditable(bool status);
+    void updateTrainListEditable(bool status);
+    void updateTourListEditable(bool status);
+
 private slots:
     void loadFromFile();
     void saveToFile();
 
     void btnEnterLoginOkClicked();
-    void btnEnterLoginCloseClicked();
     void btnRegistrationOkClicked();
-    void btnRegistrationCloseClicked();
     void btnAuthLoginClicked();
     void btnAuthLogoutClicked();
 
@@ -127,15 +126,13 @@ private slots:
     void acceptDepartureDateTimeChanges();
     void acceptArrivalDateTimeChanges();
     void findTour();
-    void changeUserGroup(UserGroupName group);
+    void updateUIbyUserGroup();
 
 private:
     UserInfo m_currentUser;
     ScorpDBInterface* m_db;
 
     QDialog* dlgEnterLogin;
-    QDialog* dlgRegistration;
-
     QDialog* dlgUsersList;
     QDialog* dlgStationsList;
     QDialog* dlgTrainsList;
@@ -165,18 +162,30 @@ private:
     QPushButton* btnAcceptUserChanges;
     QPushButton* btnAddUser;
 
+    QPushButton* btnStationsListAdd;
+    QPushButton* btnStationsListEdit;
+    QPushButton* btnStationsListRemove;
+    QPushButton* btnStationsListClear;
     QLineEdit* txtEditedStationName;
     QLineEdit* txtEditedStationX;
     QLineEdit* txtEditedStationY;
     QPushButton* btnAcceptStationChanges;
     QPushButton* btnAddStation;
 
+    QPushButton* btnTrainsListAdd;
+    QPushButton* btnTrainsListEdit;
+    QPushButton* btnTrainsListRemove;
+    QPushButton* btnTrainsListClear;
     QLineEdit* txtEditedTrainNumber;
     QLineEdit* txtEditedTrainStation;
     QLineEdit* txtEditedTrainRoute;
     QPushButton* btnAddTrain;
     QPushButton* btnAcceptTrainChanges;
 
+    QPushButton* btnToursListAdd;
+    QPushButton* btnToursListEdit;
+    QPushButton* btnToursListRemove;
+    QPushButton* btnToursListClear;
     QLineEdit* txtEditedTourName;
     QTableWidget* tableEditedTourStations;
     QPushButton* btnAddTour;
@@ -237,26 +246,12 @@ private:
     QStatusBar* m_statusBar;
     QLabel* lbCurrentOperation;
 
+    // Authorization Form
     QWidget* frameAuthorization;
     QLabel* lbCurrentUserGroup;
     QLabel* lbCurrentUserLogin;
     QPushButton* btnAuthLogin;
     QPushButton* btnAuthLogout;
-    /*
-    // auth form (TurnOn)
-    QFrame* frameAuthTurnOn;
-    QLabel* lbAuthTurnOnLogin;
-    QLabel* lbAuthTurnOnGroup;
-    QPushButton* btnAuthLogin;
-    QPushButton* btnAuthLogout;
-    QPushButton* btnAuthTurnOff;
-
-    // auth form (TurnOff)
-    QWidget* frameAuthTurnOff;
-    QLabel* lbAuthTurnOffLogin;
-    QPushButton* btnAuthTurnOn;
-    QLabel* lbCurrentLogin;
-    */
 
     // login enter form
     QLineEdit* txtEnterLogin;

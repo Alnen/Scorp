@@ -2,25 +2,16 @@
 #include "DB/ScorpDBInterface.h"
 #include <QObject>
 
+#include <QDebug>
+
 UserInfo::UserInfo()
-    : m_login(QObject::tr("Unknown")), m_group(UserGroupName::USER)
+    : m_login(QObject::tr("guest")), m_group(UserGroupName::USER)
 {
-    //setRights(UserGroupName::USER);
 }
 
 UserInfo::UserInfo(QString login, UserGroupName group)
     : m_login(login), m_group(group)
 {
-    //setRights(group);
-}
-
-bool UserInfo::signIn(QString login, QString password)
-{
-    // connect to database and check
-    // if OK
-    //m_login = login;
-    //m_group = UserGroup::OP; // or Admin
-    return true;
 }
 
 QString UserInfo::getLogin() const
@@ -38,7 +29,6 @@ void UserInfo::setGroup(UserGroupName group)
     if (group != m_group)
     {
         m_group = group;
-        //setRights(group);
     }
 }
 
@@ -61,7 +51,7 @@ size_t UserInfo::mapUserRightToInt(UserRight right) const
     {
         return 0;
     }
-    else if (right == UserRight::ViewMap)
+    else if (right == UserRight::EditMap)
     {
         return 1;
     }
@@ -92,41 +82,12 @@ size_t UserInfo::mapUserRightToInt(UserRight right) const
     return 0;
 }
 
-/*
-void UserInfo::setRights(UserGroupName group)
+void UserInfo::setNewUser(QString login, UserGroupName group, std::array<bool, 8> rights)
 {
-    if (group == UserGroupName::USER)
+    m_login = login;
+    m_group = group;
+    for (size_t i = 0; i < 8; ++i)
     {
-        m_rights[mapUserRightToInt(UserRight::ViewMap)] = true;
-        m_rights[mapUserRightToInt(UserRight::EditMap)] = false;
-        m_rights[mapUserRightToInt(UserRight::Authorization)] = true;
-        m_rights[mapUserRightToInt(UserRight::AccountManagement)] = false;
-        m_rights[mapUserRightToInt(UserRight::EditStationInfo)] = false;
-        m_rights[mapUserRightToInt(UserRight::EditSchedule)] = false;
-        m_rights[mapUserRightToInt(UserRight::EditTrainsList)] = false;
-        m_rights[mapUserRightToInt(UserRight::FindTrips)] = true;
-    }
-    else if (group == UserGroupName::ADMIN)
-    {
-        m_rights[mapUserRightToInt(UserRight::ViewMap)] = true;
-        m_rights[mapUserRightToInt(UserRight::EditMap)] = false;
-        m_rights[mapUserRightToInt(UserRight::Authorization)] = true;
-        m_rights[mapUserRightToInt(UserRight::AccountManagement)] = true;
-        m_rights[mapUserRightToInt(UserRight::EditStationInfo)] = false;
-        m_rights[mapUserRightToInt(UserRight::EditSchedule)] = false;
-        m_rights[mapUserRightToInt(UserRight::EditTrainsList)] = false;
-        m_rights[mapUserRightToInt(UserRight::FindTrips)] = true;
-    }
-    else if (group == UserGroupName::OPERATOR)
-    {
-        m_rights[mapUserRightToInt(UserRight::ViewMap)] = true;
-        m_rights[mapUserRightToInt(UserRight::EditMap)] = true;
-        m_rights[mapUserRightToInt(UserRight::Authorization)] = true;
-        m_rights[mapUserRightToInt(UserRight::AccountManagement)] = false;
-        m_rights[mapUserRightToInt(UserRight::EditStationInfo)] = true;
-        m_rights[mapUserRightToInt(UserRight::EditSchedule)] = true;
-        m_rights[mapUserRightToInt(UserRight::EditTrainsList)] = true;
-        m_rights[mapUserRightToInt(UserRight::FindTrips)] = true;
+        m_rights[i] = rights[i];
     }
 }
-*/
