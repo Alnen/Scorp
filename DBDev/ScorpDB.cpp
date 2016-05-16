@@ -1,500 +1,360 @@
 #include "ScorpDBSell.h"
 #include  <iostream>
-#include "SCORPExceptions.cpp"
+#include "ScorpExceptions.h"
 
-
-std::string* ScorpDBSell::getDataFromRow(std::string tableName, std::string Key) 
+std::vector<std::string> ScorpDBSell::getDataFromRow(std::string table_name,
+                                                     std::string key_column, std::string key)
 {
-	 	std::string keyColumn;
-		std::string Table;
-		if(tableName=="User")
-		{
-			keyColumn="Login";
-			Table="User";
-		}
-		else if (tableName=="UserGroups")
-		{
-			keyColumn="Name";
-			Table="User";
-		}
-		else if (tableName=="RoutePart")
-		{
-			keyColumn="Route";
-			Table="User";
-		}
-		else if (tableName=="Transition")
-		{
-			keyColumn="Transition";
-			Table="User";
-		}
-		else if (tableName=="Train")
-		{
-			keyColumn="Number";
-			Table="User";
-		}
-		else if (tableName=="Route")
-		{
-			keyColumn="Id";
-			Table="User";
-		}
-		else if (tableName=="Station")
-		{
-			keyColumn="Id";
-			Table="User";
-		}
-		try
-		{
-			SQLite::Statement   query(db, "SELECT * FROM "+Table +" where "+keyColumn+" LIKE :Key");
-			query.bind(":Key", Key);	
-			const int rowSize=query.getColumnCount();
-			std::string* queryColums=new std::string[rowSize];		
-			query.executeStep();
-				for(int i=0; i<rowSize; i++)
-				{
-					queryColums[i]=query.getColumn(i);
-				}		
-
-
-			return queryColums;
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption(tableName, Key);
-		}
+    std::vector<std::string> data_row;
+    if ((!table_name.empty()) && (!key_column.empty()) && (!key.empty()))
+    {
+        try
+        {
+            SQLite::Statement   query(db, "SELECT * FROM "+table_name
+                                      +" where "+key_column+" LIKE :Key");
+            query.bind(":Key", key);
+            int row_size = query.getColumnCount();
+            query.executeStep();
+            std::string col = "";
+            for(int i=0; i < row_size; ++i)
+            {
+                col = query.getColumn(i);
+                data_row.push_back(col);
+            }
+        }
+        catch(SQLite::Exception e)
+        {
+            throw SCORPDBAtMemoryLocationExeption(table_name, key);
+        }
+    }
+    return data_row;
 }
 
-std::vector<std::vector<std::string>> ScorpDBSell::getAllDataFromTable(std::string tableName) 
+std::vector<std::vector<std::string>> ScorpDBSell::getAllDataFromTable(std::string table_name)
 {
-		std::vector<std::vector<std::string>> tableRows;
-			std::string Table;
-		if(tableName=="User")
-		{
-			Table="User";
-		}
-		else if (tableName=="UserGroups")
-		{
-			Table="User";
-		}
-		else if (tableName=="RoutePart")
-		{
-			Table="User";
-		}
-		else if (tableName=="Transition")
-		{
-			Table="User";
-		}
-		else if (tableName=="Train")
-		{
-			Table="User";
-		}
-		else if (tableName=="Route")
-		{
-			Table="User";
-		}
-		else if (tableName=="Station")
-		{
-			Table="User";
-		}
-		try
-		{
-			SQLite::Statement   query(db, "SELECT * FROM "+Table );
-
-			const int rowSize=query.getColumnCount();		
-			std::vector<std::string> queryColums;
-			std::string currColumn;
-			while (query.executeStep())
-			{
-		
-				for(int i=0; i<rowSize; i++)
-				{
-					currColumn=query.getColumn(i);
-					queryColums.push_back(currColumn);
-				}
-				tableRows.push_back(queryColums);
-				queryColums.clear();
-			
-			}
-			return tableRows;		
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption(tableName, "");
-		}
-
+    std::vector<std::vector<std::string>> table_rows;
+    if (!table_name.empty())
+    {
+        try
+        {
+            SQLite::Statement query(db, "SELECT * FROM "+table_name);
+            int row_size = query.getColumnCount();
+            std::vector<std::string> query_colums;
+            std::string curr_column;
+            while (query.executeStep())
+            {
+                for(int i = 0; i < row_size; ++i)
+                {
+                    curr_column = query.getColumn(i);
+                    query_colums.push_back(curr_column);
+                }
+                table_rows.push_back(query_colums);
+                query_colums.clear();
+            }
+        }
+        catch(SQLite::Exception e)
+        {
+            throw SCORPDBAtMemoryLocationExeption(table_name, "");
+        }
+    }
+    return table_rows;
 }
 
-	void ScorpDBSell::changeData(std::string tableName, std::string Key, std::string ColumeName, std::string Data)
-	{
-		std::string keyColumn;
-		std::string Table;
-		std::string colume;
-		if(tableName=="User")
-		{
-			keyColumn="Login";
-			Table="User";
-		}
-		else if (tableName=="UserGroups")
-		{
-			keyColumn="Name";
-			Table="User";
-		}
-		else if (tableName=="RoutePart")
-		{
-			keyColumn="Route";
-			Table="User";
-		}
-		else if (tableName=="Transition")
-		{
-			keyColumn="Transition";
-			Table="User";
-		}
-		else if (tableName=="Train")
-		{
-			keyColumn="Number";
-			Table="User";
-		}
-		else if (tableName=="Route")
-		{
-			keyColumn="Id";
-			Table="User";
-		}
-		else if (tableName=="Station")
-		{
-			keyColumn="Id";
-			Table="User";
-		}
-		std::vector<std::vector<std::string>> infoAboutTable=getinfoAboutTable(Table);	
-		for(std::vector<std::string> row: infoAboutTable)
-		{
-			if(row[1].compare(ColumeName)==0)
-				colume=ColumeName;
-		}
-		try
-		{
-			if(!(keyColumn.empty() &&Table.empty()&&colume.empty()))
-			{
-				 SQLite::Statement   query(db, "UPDATE "+Table+" SET "+colume+" = :Data WHERE "+keyColumn+"=:Key"  );	
-				 query.bind(":Data", Data);
-				 query.bind(":Key", Key);		
-				 query.exec();
-			}
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption(Table, keyColumn);
-		}
-	}
+void ScorpDBSell::changeData(std::string table_name, std::string key_column, std::string key,
+                             std::string colume_name, std::string data)
+{
+    std::string colume;
+    std::vector<std::vector<std::string>> infoAboutTable = getInfoAboutTable(table_name);
+    for(std::vector<std::string> column_info: infoAboutTable)
+    {
+        if (column_info[1].compare(colume_name) == 0)
+            colume = colume_name;
+    }
+    try
+    {
+        if ((!key_column.empty()) && (!table_name.empty()) && (!key.empty())
+            && (!colume_name.empty()) && (!colume_name.empty()))
+        {
+             SQLite::Statement   query(db, "UPDATE "+table_name+" SET "+colume+" = :Data WHERE "+key_column+"=:Key");
+             query.bind(":Data", data);
+             query.bind(":Key", key);
+             query.exec();
+        }
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption(table_name, key_column);
+    }
+}
 
-	void ScorpDBSell::addRowToUser(std::string Login, std::string Password , std::string Group)
-	{
-		try
-		{
-			SQLite::Statement   query(db, "INSERT INTO User VALUES(:Login, :Password, :Group)"  );	
-			query.bind(":Login", Login);
-			query.bind(":Password", Password);
-			query.bind(":Group", Group);
-			query.exec();
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption("User", Login);
-		}
-	}
+void ScorpDBSell::addRowToUser(std::string login, std::string password , std::string group)
+{
+    try
+    {
+        SQLite::Statement query(db, "INSERT INTO User VALUES(:Login, :Password, :Group)");
+        query.bind(":Login", login);
+        query.bind(":Password", password);
+        query.bind(":Group", group);
+        query.exec();
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption("User", login);
+    }
+}
 
-	void ScorpDBSell::addRowToGroup(std::string Name, std::string ViewMap , std::string EditMap, std::string Authorization, std::string AccountManagement, std::string EditStationInfo, std::string EditSchedule, std::string EditTrainsList, std::string FindRoute )
-	{
-		try
-		{
-			SQLite::Statement   query(db, "INSERT INTO UserGroups VALUES(:Name, :ViewMap, :EditMap, :Authorization, :AccountManagement, :EditStationInfo, :EditSchedule, :EditTrainsList, :FindRoute)");	
-			query.bind(":Name", Name);
-			query.bind(":ViewMap", ViewMap);
-			query.bind(":EditMap", EditMap);
-			query.bind(":Authorization", Authorization);
-			query.bind(":AccountManagement", AccountManagement);
-			query.bind(":EditStationInfo", EditStationInfo);
-			query.bind(":EditSchedule", EditSchedule);
-			query.bind(":EditTrainsList", EditTrainsList);
-			query.bind(":FindRoute", FindRoute);
-			query.exec();
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption("UserGroups", Name);
-		}
-	}
+void ScorpDBSell::addRowToGroup(std::string name, std::string view_map, std::string edit_map,
+                                std::string authorization, std::string account_management,
+                                std::string edit_station_info, std::string edit_schedule,
+                                std::string edit_trains_list, std::string find_route)
+{
+    try
+    {
+        SQLite::Statement query(db, "INSERT INTO UserGroups VALUES(:Name, :ViewMap, :EditMap, :Authorization, :AccountManagement, :EditStationInfo, :EditSchedule, :EditTrainsList, :FindRoute)");
+        query.bind(":Name", name);
+        query.bind(":ViewMap", view_map);
+        query.bind(":EditMap", edit_map);
+        query.bind(":Authorization", authorization);
+        query.bind(":AccountManagement", account_management);
+        query.bind(":EditStationInfo", edit_station_info);
+        query.bind(":EditSchedule", edit_schedule);
+        query.bind(":EditTrainsList", edit_trains_list);
+        query.bind(":FindRoute", find_route);
+        query.exec();
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption("UserGroups", name);
+    }
+}
 
-	void ScorpDBSell::addRowToStation(std::string Id, std::string Name, std::string X, std::string Y, std::string Capacity )
-	{
-		try
-		{
-			SQLite::Statement   query(db, "INSERT INTO Station VALUES(:Id, :Name, :X, :Y, :Capacity)" );	
-			query.bind(":Id", Id);
-			query.bind(":Name", Name);
-			query.bind(":X", X);
-			query.bind(":Y", Y);
-			query.bind(":Capacity", Capacity);
-			query.exec();
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption("Station", Id);
-		}
+void ScorpDBSell::addRowToStation(std::string id, std::string name, std::string x, std::string y,
+                                  std::string capacity)
+{
+    try
+    {
+        SQLite::Statement query(db, "INSERT INTO Station VALUES(:Id, :Name, :X, :Y, :Capacity)");
+        query.bind(":Id", id);
+        query.bind(":Name", name);
+        query.bind(":X", x);
+        query.bind(":Y", y);
+        query.bind(":Capacity", capacity);
+        query.exec();
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption("Station", id);
+    }
+}
 
-	}
+void ScorpDBSell::addRowToRoutePart(std::string route, std::string transition,
+                                    std::string time_offset_from, std::string time_offset_to)
+{
+    try{
+        SQLite::Statement query(db, "INSERT INTO TimeDelay VALUES(:Route, :Transition, :TimeOffsetFrom, :TimeOffsetTo)");
+        query.bind(":Route", route);
+        query.bind(":Transition", transition);
+        query.bind(":TimeOffsetFrom", time_offset_from);
+        query.bind(":TimeOffsetTo", time_offset_to);
+        query.exec();
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption("RoutePart", route+" "+ transition);
+    }
+}
 
-	void ScorpDBSell::addRowToRoutePart(std::string Route, std::string Transition, std::string TimeOffsetFrom, std::string TimeOffsetTo)
-	{
-		try{	
-				SQLite::Statement   query(db, "INSERT INTO TimeDelay VALUES(:Route, :Transition, :TimeOffsetFrom, :TimeOffsetTo)"  );	
-				query.bind(":Route", Route);
-				query.bind(":Transition", Transition);
-				query.bind(":TimeOffsetFrom", TimeOffsetFrom);
-				query.bind(":TimeOffsetTo", TimeOffsetTo);
-				query.exec();
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption("RoutePart", Route+" "+ Transition);
-		}
-	}
+void ScorpDBSell::addRowToTransition(std::string transition, std::string station_from, std::string station_to)
+{
+    try
+    {
+        SQLite::Statement query(db, "INSERT INTO Transition VALUES(:Transition, :StationFrom, :StationTo)");
+        query.bind(":Transition", transition);
+        query.bind(":StationFrom", station_from);
+        query.bind(":StationTo", station_to);
+        query.exec();
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption("Transition", transition);
+    }
+}
 
+void ScorpDBSell::addRowToTrain(std::string number, std::string route)
+{
+    try
+    {
+         SQLite::Statement query(db, "INSERT INTO Train VALUES(:Number, :Route)" );
+         query.bind(":Number", number);
+         query.bind(":Route", route);
+         query.exec();
+     }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption("Train", number);
+    }
+}
+
+void ScorpDBSell::addRowToRoute(std::string id, std::string name)
+{
+    try
+    {
+         SQLite::Statement query(db, "INSERT INTO Route VALUES(:Id, :Name)");
+         query.bind(":Id", id);
+         query.bind(":Name", name);
+         query.exec();
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption("Route", id);
+    }
+}
+
+void ScorpDBSell::deleteRowFromTable(std::string table_name, std::string key_column, std::string key)
+{
+    try
+    {
+        if ((!key_column.empty()) && (!table_name.empty()))
+        {
+            SQLite::Statement query(db, "DELETE FROM "+table_name+" WHERE "+key_column+"=:key");
+            query.bind(":key", key);
+            query.exec();
+        }
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption(table_name, key);
+    }
+}
 	
-	void ScorpDBSell::addRowToTransition(std::string Transition, std::string StationFrom, std::string StationTo)
-	{
-		try
-		{
-			SQLite::Statement   query(db, "INSERT INTO Transition VALUES(:Transition, :StationFrom, :StationTo)"  );	
-			query.bind(":Transition", Transition);
-			query.bind(":StationFrom", StationFrom);
-			query.bind(":StationTo", StationTo);
-			query.exec();
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption("Transition", Transition);
-		}
-	}
-
-	void ScorpDBSell::addRowToTrain(std::string Number, std::string Route)
-	{
-		try
-		{
-			 SQLite::Statement   query(db, "INSERT INTO Train VALUES(:Number, :Route)" );	
-			 query.bind(":Number", Number);
-			 query.bind(":Route", Route);
-			 query.exec();
-		 }
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption("Train", Number);
-		}
-	}
-	void ScorpDBSell::addRowToRout(std::string Id, std::string Name)
-	{
-		try
-		{
-			 SQLite::Statement   query(db, "INSERT INTO Route VALUES(:Id, :Name)" );	
-			 query.bind(":Id", Id);
-			 query.bind(":Name", Name);
-			 query.exec();
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption("Route", Id);
-		}
-	}
-	void ScorpDBSell::deleteRowFromTable(std::string tableName, std::string Key)
-	{
-		std::string keyColumn;
-		std::string Table;
-		if(tableName=="User")
-		{
-			keyColumn="Login";
-			Table="User";
-		}
-		else if (tableName=="UserGroups")
-		{
-			keyColumn="Name";
-			Table="User";
-		}
-		else if (tableName=="RoutePart")
-		{
-			keyColumn="Route";
-			Table="User";
-		}
-		else if (tableName=="Transition")
-		{
-			keyColumn="Transition";
-			Table="User";
-		}
-		else if (tableName=="Train")
-		{
-			keyColumn="Number";
-			Table="User";
-		}
-		else if (tableName=="Route")
-		{
-			keyColumn="Id";
-			Table="User";
-		}
-		else if (tableName=="Station")
-		{
-			keyColumn="Id";
-			Table="User";
-		}
-		try
-		{
-			if(!(keyColumn.empty() &&Table.empty()))
-			{
-				SQLite::Statement   query(db, "DELETE FROM "+tableName+" WHERE "+keyColumn+"=:key" );		
-				query.bind(":key", Key);
-				query.exec();
-			}
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption(tableName, Key);
-		}
-		//db.exec("DELETE FROM "+tableName+" WHERE "+keyColumn+"='"+Key+"'" );
-	}
-
-	/*std::vector<std::vector<std::string>> ScorpDBSell::getInfoAboutReis(std::string StationFrom, std::string StationTo, std::string TimeShipment)
-	{
-		std::vector<std::vector<std::string>> tableRows;
-		SQLite::Statement   query(db, "SELECT * FROM Voyage" );
-	}*/
-
-	
-bool ScorpDBSell::isUserExistinDb(std::string login) 
+bool ScorpDBSell::isUserExistInDb(std::string login)
 {
-	std::vector<std::vector<std::string>> tableRows;
-		SQLite::Statement   query(db, "SELECT * FROM User WHERE Login=:login" );
-		query.bind(":login",login);
-		const int rowSize=query.getColumnCount();		
-		std::vector<std::string> queryColums;
-		std::string currColumn;
-		while (query.executeStep())
-		{
-		
-			for(int i=0; i<rowSize; i++)
-			{
-				currColumn=query.getColumn(i);
-				queryColums.push_back(currColumn);
-			}
-			tableRows.push_back(queryColums);
-			queryColums.clear();
-			
-		}
-		if(tableRows.size()==0) return false;
-		else return true;
+    std::vector<std::vector<std::string>> table_rows;
+    SQLite::Statement query(db, "SELECT * FROM User WHERE Login=:login");
+    query.bind(":login", login);
+    int row_size = query.getColumnCount();
+    std::vector<std::string> query_colums;
+    std::string curr_column;
+    while (query.executeStep())
+    {
+        for(int i = 0; i < row_size; ++i)
+        {
+            curr_column = query.getColumn(i);
+            query_colums.push_back(curr_column);
+        }
+        table_rows.push_back(query_colums);
+        query_colums.clear();
+    }
+    if (table_rows.size() == 0)
+        return false;
+    else
+        return true;
 }
-bool ScorpDBSell::isValidPass(std::string login, std::string pass) 
+
+bool ScorpDBSell::isValidPassword(std::string login, std::string pass)
 {
-	std::vector<std::vector<std::string>> tableRows;
-		SQLite::Statement   query(db, "SELECT * FROM User WHERE Login=:login AND Password=:pass" );
-		query.bind(":login",login);
-		query.bind(":pass", pass);
-		const int rowSize=query.getColumnCount();		
-		std::vector<std::string> queryColums;
-		std::string currColumn;
-		while (query.executeStep())
-		{
-		
-			for(int i=0; i<rowSize; i++)
-			{
-				currColumn=query.getColumn(i);
-				queryColums.push_back(currColumn);
-			}
-			tableRows.push_back(queryColums);
-			queryColums.clear();
-			
-		}
-		if(tableRows.size()==0) return false;
-		else return true;
+    std::vector<std::vector<std::string>> table_rows;
+    SQLite::Statement query(db, "SELECT * FROM User WHERE Login=:login AND Password=:pass");
+    query.bind(":login", login);
+    query.bind(":pass", pass);
+    int row_size = query.getColumnCount();
+    std::vector<std::string> query_colums;
+    std::string curr_column;
+    while (query.executeStep())
+    {
+        for(int i = 0; i < row_size; ++i)
+        {
+            curr_column = query.getColumn(i);
+            query_colums.push_back(curr_column);
+        }
+        table_rows.push_back(query_colums);
+        query_colums.clear();
+    }
+    if (table_rows.size() == 0)
+        return false;
+    else
+        return true;
 }
+
 std::string ScorpDBSell::getGroupUser(std::string login) 
 {
-	try
+    try
 	{
-			std::vector<std::string> queryColums;
-			SQLite::Statement   query(db, "SELECT * FROM User where Login=:login");
-			query.bind(":login", login);
-			const int rowSize=query.getColumnCount();
-			std::string currColumn;
-			query.executeStep();
-				for(int i=0; i<rowSize; i++)
-				{
-					currColumn=query.getColumn(i);
-					queryColums.push_back(currColumn);
-				}		
-			return queryColums[2];
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption("User", login);
-		}
+        std::vector<std::string> query_colums;
+        SQLite::Statement query(db, "SELECT * FROM User where Login=:login");
+        query.bind(":login", login);
+        int row_size = query.getColumnCount();
+        std::string curr_column;
+        query.executeStep();
+        for(int i = 0; i < row_size; ++i)
+        {
+            curr_column = query.getColumn(i);
+            query_colums.push_back(curr_column);
+        }
+        return query_colums[2];
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption("User", login);
+    }
+    return "";
 }
 
+std::vector<std::vector<std::string>> ScorpDBSell::getInfoAboutTable(std::string table_name)
+{
+    std::vector<std::vector<std::string>> table_rows;
+    try
+    {
+        SQLite::Statement query(db, "pragma table_info("+table_name+");");
+        int row_size = query.getColumnCount();
+        std::vector<std::string> query_colums;
+        std::string curr_column;
+        while (query.executeStep())
+        {
+            for(int i = 0; i < row_size; ++i)
+            {
+                curr_column = query.getColumn(i);
+                query_colums.push_back(curr_column);
+            }
+            table_rows.push_back(query_colums);
+            query_colums.clear();
+        }
+    }
+    catch(SQLite::Exception e)
+    {
+        throw SCORPDBAtMemoryLocationExeption(table_name, "");
+    }
+    return table_rows;
+}
 
-
-
-
-	std::vector<std::vector<std::string>> ScorpDBSell::getinfoAboutTable(std::string tableName)
-	{
-		std::vector<std::vector<std::string>> tableRows;
-			std::string Table;
-		if(tableName=="User")
-		{
-			Table="User";
-		}
-		else if (tableName=="UserGroups")
-		{
-			Table="User";
-		}
-		else if (tableName=="RoutePart")
-		{
-			Table="User";
-		}
-		else if (tableName=="Transition")
-		{
-			Table="User";
-		}
-		else if (tableName=="Train")
-		{
-			Table="User";
-		}
-		else if (tableName=="Route")
-		{
-			Table="User";
-		}
-		else if (tableName=="Station")
-		{
-			Table="User";
-		}
-		try
-		{
-			SQLite::Statement   query(db, "pragma table_info("+Table+");");
-			const int rowSize=query.getColumnCount();		
-			std::vector<std::string> queryColums;
-			std::string currColumn;
-			while (query.executeStep())
-			{
-		
-				for(int i=0; i<rowSize; i++)
-				{
-					currColumn=query.getColumn(i);
-					queryColums.push_back(currColumn);
-				}
-				tableRows.push_back(queryColums);
-				queryColums.clear();
-			
-			}
-			return tableRows;
-		}
-		catch(SQLite::Exception e)
-		{
-			throw SCORPDBAtMemoryLocationExeption(tableName, "");
-		}
-	}
-
-	
+std::string ScorpDBSell::tableNameToString(TableName table_name)
+{
+    if (table_name == TableName::USER)
+    {
+        return "User";
+    }
+    else if (table_name == TableName::USER_GROUPS)
+    {
+        return "UserGroups";
+    }
+    else if (table_name == TableName::ROUTE_PART)
+    {
+        return "RoutePart";
+    }
+    else if (table_name == TableName::TRANSITION)
+    {
+        return "Transition";
+    }
+    else if (table_name == TableName::TRAIN)
+    {
+        return "Train";
+    }
+    else if (table_name == TableName::ROUTE)
+    {
+        return "Route";
+    }
+    else if (table_name == TableName::STATION)
+    {
+        return "Station";
+    }
+}

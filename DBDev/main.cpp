@@ -9,26 +9,37 @@
 #include "ScorpDBInterface.h"
 #include<vector>
 void ScorpDbTest();
+void exceptionTest();
 void ScorpDBshellTest();
 int main()
 {
 
 	
-	 ScorpDBshellTest();
+	ScorpDBshellTest();
+	// exceptionTest();
 	
 	system("pause");
 	return 0;
 
+}
+void exceptionTest()
+{
+	Route rt(112, "");
+	
+	ScorpDBInterface *db=new ScorpDBSell("ScorpDB.db", false);
+	//db->addRoute(rt);
+	//db->changeDatainColume("User", "TestUser", "Password1", "qwertyuiop");
+	db->getUserGroup("sasas");
 }
 
 void ScorpDBshellTest()
 {
 
 	ScorpDBInterface *db=new ScorpDBSell("ScorpDB.db", false);
-	std::string* LoginAdminRow=db->getRowFromTable("User", "admin");
+	std::vector<std::string> LoginAdminRow=db->getRowFromTable(TableName::USER, "admin");
 	std::cout << "row: " << LoginAdminRow[0] << ", " << LoginAdminRow[1] << ", " << LoginAdminRow[2] << std::endl;
 	std::cout <<"--------------------------------------------------------------------------------"<<std::endl;
-	std::vector<std::vector<std::string>> AlldataFormTableUsers=db->getAllRowsFromTable("UserGroups");
+	std::vector<std::vector<std::string>> AlldataFormTableUsers=db->getAllRowsFromTable(TableName::USER_GROUPS);
 	for(std::vector<std::string> row: AlldataFormTableUsers)
 	{
 		std::cout << "row: ";
@@ -37,8 +48,8 @@ void ScorpDBshellTest()
 		std::cout <<std::endl;
 	}
 	std::cout <<"-------------------------------------------------------------------------------"<<std::endl;
-	db->changeDatainColume("User", "admin", "Password", "adminpasss");
-	AlldataFormTableUsers=db->getAllRowsFromTable("User");
+	db->changeDataInColume(TableName::USER, "admin", "Password", "adminpasss");
+	AlldataFormTableUsers=db->getAllRowsFromTable(TableName::USER);
 	for(std::vector<std::string> row: AlldataFormTableUsers)
 	{
 		std::cout << "row: ";
@@ -49,7 +60,7 @@ void ScorpDBshellTest()
 	std::cout <<"--------------------------------------------------------------------------------"<<std::endl;
 	User user("Operator2", "1111", "Operator");
 	db->addUser(user);
-	AlldataFormTableUsers=db->getAllRowsFromTable("User");
+	AlldataFormTableUsers=db->getAllRowsFromTable(TableName::USER);
 	for(std::vector<std::string> row: AlldataFormTableUsers)
 	{
 		std::cout << "row: ";
@@ -62,7 +73,7 @@ void ScorpDBshellTest()
 	UserGroup usgr("sdsd", true, true,	true, 	true,	true, true, true, 	true);
 
 	db->addUserGroups(usgr);
-	AlldataFormTableUsers=db->getAllRowsFromTable("UserGroups");
+	AlldataFormTableUsers=db->getAllRowsFromTable(TableName::USER_GROUPS);
 	for(std::vector<std::string> row: AlldataFormTableUsers)
 	{
 		std::cout << "row: ";
@@ -71,8 +82,8 @@ void ScorpDBshellTest()
 		std::cout <<std::endl;
 	}
 	std::cout <<"--------------------------------------------------------------------------------"<<std::endl;
-	db->deleteFromTable("UserGroups", "sdsd");
-	AlldataFormTableUsers=db->getAllRowsFromTable("UserGroups");
+	db->deleteFromTable(TableName::USER_GROUPS, "sdsd");
+	AlldataFormTableUsers=db->getAllRowsFromTable(TableName::USER_GROUPS);
 	for(std::vector<std::string> row: AlldataFormTableUsers)
 	{
 		std::cout << "row: ";
@@ -82,8 +93,8 @@ void ScorpDBshellTest()
 	}
 	std::cout <<"--------------------------------------------------------------------------------"<<std::endl;
 		
-	db->deleteFromTable("User", "Operator2");
-	AlldataFormTableUsers=db->getAllRowsFromTable("User");
+	db->deleteFromTable(TableName::USER, "Operator2");
+	AlldataFormTableUsers=db->getAllRowsFromTable(TableName::USER);
 	for(std::vector<std::string> row: AlldataFormTableUsers)
 	{
 		std::cout << "row: ";
@@ -101,11 +112,10 @@ void ScorpDBshellTest()
 	std::cout <<"Login-admin, pass-adminpass1:"<<std::endl;
 	if (db->authenticate("admin", "adminpass1"))  std::cout <<"true"<<std::endl; else std::cout <<"false"<<std::endl;
 	std::cout <<"Login-admin1, pass-adminpass:"<<std::endl;
-	if (db->authenticate("admin1", "adminpass"))  std::cout <<"true"<<std::endl; else std::cout <<"false"<<std::endl;
+	if (db->authenticate("", ""))  std::cout <<"true"<<std::endl; else std::cout <<"false"<<std::endl;
 	std::cout <<"--------------------------------------------------------------------------------"<<std::endl;
 	std::cout <<"--------------------------------------------------------------------------------"<<std::endl;
 	
-
 }
 
 
