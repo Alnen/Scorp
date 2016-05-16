@@ -5,6 +5,8 @@
 #include <QKeyEvent>
 #include <QDebug>
 
+#include "MarkerObject.h"
+
 MapScene::MapScene(QObject *parent)
     : QGraphicsScene(parent), m_mode(MapMode::View), m_linkedState(nullptr)
 {
@@ -32,6 +34,96 @@ bool MapScene::contains(PointGraphicsObject* item) const
         }
     }
     return false;
+}
+
+void MapScene::addMarkerCommand(int id, int state_id)
+{
+    m_markerCommandQueue.push_back(MarkerCommandStruct(MarkerCommand::ADD, id, state_id));
+}
+
+void MapScene::moveMarkerCommand(int id, int new_state_id)
+{
+    m_markerCommandQueue.push_back(MarkerCommandStruct(MarkerCommand::MOVE, id, new_state_id));
+}
+
+void MapScene::deleteMarkerCommand(int id)
+{
+    m_markerCommandQueue.push_back(MarkerCommandStruct(MarkerCommand::DELETE, id));
+}
+
+void MapScene::makeCommand()
+{
+    if (m_markerCommandQueue.size() > 0)
+    {
+        StateGraphicsObject* curr_state = nullptr;
+        if (m_markerCommandQueue[0].command == MarkerCommand::ADD)
+        {
+            for (auto item : this->items())
+            {
+                if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
+                {
+                    curr_state = (StateGraphicsObject*)item;
+                    if (curr_state->id() == m_markerCommandQueue[0].param2)
+                    {
+                        curr_state->addMarker(new MarkerObject(m_markerCommandQueue[0].param1,
+                                              TRAIN_COLOR, curr_state));
+                        break;
+                    }
+                }
+            }
+            curr_state = nullptr;
+        }
+        else if (m_markerCommandQueue[0].command == MarkerCommand::DELETE)
+        {
+            MarkerObject* found_marker = nullptr;
+            for (auto item : this->items())
+            {
+                if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
+                {
+                    curr_state = (StateGraphicsObject*)item;
+                    found_marker = curr_state->getMarker(m_markerCommandQueue[0].param1);
+                    if (found_marker)
+                    {
+                        curr_state->removeMarker(found_marker);
+                        delete found_marker;
+                        break;
+                    }
+                }
+            }
+        }
+        else if (m_markerCommandQueue[0].command == MarkerCommand::MOVE)
+        {
+            MarkerObject* found_marker = nullptr;
+            StateGraphicsObject* old_state = nullptr;
+            StateGraphicsObject* new_state = nullptr;
+            for (auto item : this->items())
+            {
+                if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
+                {
+                    curr_state = (StateGraphicsObject*)item;
+                    found_marker = curr_state->getMarker(m_markerCommandQueue[0].param1);
+                    if (found_marker)
+                    {
+                        old_state = curr_state;
+                    }
+                    if (curr_state->id() == m_markerCommandQueue[0].param2)
+                    {
+                        new_state = curr_state;
+                    }
+                    if (old_state && new_state)
+                    {
+                        break;
+                    }
+                }
+            }
+            if (old_state && new_state)
+            {
+                old_state->removeMarker(found_marker);
+                new_state->addMarker(found_marker);
+            }
+        }
+        m_markerCommandQueue.erase(m_markerCommandQueue.begin());
+    }
 }
 
 void MapScene::addLinkToScene(int index)
@@ -274,6 +366,8 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         state->setFillColor(QColor::fromRgb(0, 200, 0));
         state->setBorderWidth(3.f);
         state->setBorderColor(QColor::fromRgb(0, 0, 200));
+        //MarkerObject* marker = new MarkerObject(0, TRAIN_COLOR, state);
+        //state->addMarker(marker);
         addItem(state);
         //unselectItems();
         //clearSelectedItems();

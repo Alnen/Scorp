@@ -25,7 +25,7 @@ private:
                            std::string time_offset_from, std::string time_offset_to);
     void addRowToTransition(std::string transition, std::string station_from, std::string station_to);
     void addRowToTrain(std::string number, std::string route);
-    void addRowToRout(std::string id, std::string name);
+    void addRowToRoute(std::string id, std::string name);
     void changeData(std::string table_name, std::string key_column, std::string key,
                     std::string colume_name, std::string data);
     void deleteRowFromTable(std::string table_name, std::string key_column, std::string key);

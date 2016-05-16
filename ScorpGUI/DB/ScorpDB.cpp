@@ -195,7 +195,7 @@ void ScorpDBSell::addRowToTrain(std::string number, std::string route)
     }
 }
 
-void ScorpDBSell::addRowToRout(std::string id, std::string name)
+void ScorpDBSell::addRowToRoute(std::string id, std::string name)
 {
     try
     {

@@ -1,4 +1,5 @@
 #include "StateGraphicsObject.h"
+#include "MarkerObject.h"
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsEllipseItem>
@@ -67,6 +68,43 @@ void StateGraphicsObject::deselect()
     }
 }
 
+void StateGraphicsObject::addMarker(MarkerObject* marker)
+{
+    for (size_t i = 0; i < m_markerList.size(); ++i)
+    {
+        if (m_markerList[i] == marker)
+        {
+            return;
+        }
+    }
+    marker->connectToState(this);
+    m_markerList.push_back(marker);
+}
+
+void StateGraphicsObject::removeMarker(MarkerObject* marker)
+{
+    for (size_t i = 0; i < m_markerList.size(); ++i)
+    {
+        if (m_markerList[i] == marker)
+        {
+            m_markerList.erase(m_markerList.begin() + i);
+            return;
+        }
+    }
+}
+
+MarkerObject* StateGraphicsObject::getMarker(int marker_id)
+{
+    for (size_t i = 0; i < m_markerList.size(); ++i)
+    {
+        if (m_markerList[i]->getId() == marker_id)
+        {
+            return m_markerList[i];
+        }
+    }
+    return nullptr;
+}
+
 void StateGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     //++paintStateCounter;
@@ -98,6 +136,27 @@ void StateGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
         borderColor = m_borderColor;
     }
     painter->setPen(QPen(QBrush(borderColor), m_borderWidth));
-    painter->setBrush(fillColor);
+    painter->setBrush(QBrush(fillColor));
     painter->drawEllipse(-m_radius, -m_radius, 2*m_radius, 2*m_radius);
+    // draw markers
+    if (m_markerList.size() > 0)
+    {
+        int marker_r = 3;
+        QColor marker_border_color = QColor::fromRgb(0, 0, 0);
+        //m_markerList[0]->getBorderColor();
+        float marker_border_width = 1.f;//m_markerList[0]->getBorderWidth();
+        QColor marker_fill_color = QColor::fromRgb(0, 0, 0);
+        //m_markerList[0]->getFillColor();
+        painter->setPen(QPen(QBrush(marker_border_color), marker_border_width));
+        painter->setBrush(QBrush(marker_fill_color));
+        painter->drawEllipse(-marker_r, -marker_r, 2*marker_r, 2*marker_r);
+        painter->drawText(-3, 4, QString::number(m_markerList.size()));
+    }
+    //m_markerList[i]
+    /*
+    for (size_t i = 0; i < m_markerList)
+    {
+        //
+    }
+    */
 }

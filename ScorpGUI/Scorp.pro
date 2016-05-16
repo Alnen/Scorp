@@ -27,14 +27,13 @@ SOURCES += main.cpp\
     Map/GraphicsObjectsGroup.cpp \
     DB/ScorpDB.cpp \
     DB/ScorpDBSell.cpp \
-    Map/GraphicsObjectGroup.cpp \
-    Map/GraphObject.cpp \
     DB/sqlite/sqlite3.c \
     DB/sqlite/src/Backup.cpp \
     DB/sqlite/src/Column.cpp \
     DB/sqlite/src/Database.cpp \
     DB/sqlite/src/Statement.cpp \
-    DB/sqlite/src/Transaction.cpp
+    DB/sqlite/src/Transaction.cpp \
+    Map/MarkerObject.cpp
 
 HEADERS  += mainwindow.h \
     StationsList/StationsListModel.h \
@@ -51,8 +50,6 @@ HEADERS  += mainwindow.h \
     DB/ScorpDBInterface.h \
     DB/ScorpDBSell.h \
     DB/Tables.h \
-    Map/GraphicsObjectGroup.h \
-    Map/GraphObject.h \
     DB/ScorpExceptions.h \
     DB/sqlite/include/Assertion.h \
     DB/sqlite/include/Backup.h \
@@ -62,6 +59,7 @@ HEADERS  += mainwindow.h \
     DB/sqlite/include/SQLiteCpp.h \
     DB/sqlite/include/Statement.h \
     DB/sqlite/include/Transaction.h \
-    DB/sqlite/sqlite3.h
+    DB/sqlite/sqlite3.h \
+    Map/MarkerObject.h
 
 RC_FILE += icon.rc

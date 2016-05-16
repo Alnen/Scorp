@@ -177,7 +177,6 @@ private:
     QPushButton* btnTrainsListRemove;
     QPushButton* btnTrainsListClear;
     QLineEdit* txtEditedTrainNumber;
-    QLineEdit* txtEditedTrainStation;
     QLineEdit* txtEditedTrainRoute;
     QPushButton* btnAddTrain;
     QPushButton* btnAcceptTrainChanges;

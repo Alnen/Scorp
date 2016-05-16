@@ -4,6 +4,7 @@
 #include "PointGraphicsObject.h"
 #include <QRectF>
 
+class MarkerObject;
 //static int paintStateCounter = 0;
 
 class StateGraphicsObject : public PointGraphicsObject
@@ -19,12 +20,16 @@ public:
     int type() const Q_DECL_OVERRIDE;
     void select();
     void deselect();
+    void addMarker(MarkerObject* marker);
+    void removeMarker(MarkerObject* marker);
+    MarkerObject* getMarker(int marker_id);
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
 
 protected:
     float m_radius;
+    std::vector<MarkerObject*> m_markerList;
 };
 
 #endif // STATE_GRAPHICS_OBJECT_H

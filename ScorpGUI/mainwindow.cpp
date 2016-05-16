@@ -181,7 +181,7 @@ void MainWindow::defineMainMenu()
     connect(actSave, &QAction::triggered, this, &MainWindow::saveToFile);
     connect(actExit, &QAction::triggered, this, &MainWindow::close);
     connect(actUsersList, &QAction::triggered, dlgUsersList, &QDialog::open);
-    connect(actStationsList, &QAction::triggered, dlgStationsList, &QDialog::open);
+    connect(actStationsList, &QAction::triggered, this, &MainWindow::openStationsListForm);
     connect(actTrainsList, &QAction::triggered, dlgTrainsList, &QDialog::open);
     connect(actToursList, &QAction::triggered, dlgToursList, &QDialog::open);
     connect(actEditProfile, &QAction::triggered, this, &MainWindow::openEditProfileDialog);
@@ -313,6 +313,24 @@ void MainWindow::defineMap()
     m_mapScene->addItem(transition);
     TrackGraphicsObject* track = new TrackGraphicsObject(state, transition);
     m_mapScene->addItem(track);
+    */
+    /*
+    StateGraphicsObject* state = new StateGraphicsObject(0, 100, 100, 10);
+    m_mapScene->addItem(state);
+    StateGraphicsObject* state2 = new StateGraphicsObject(1, 200, 200, 10);
+    m_mapScene->addItem(state2);
+    */
+
+    //m_mapScene->addMarkerCommand(0, 0);
+    //m_mapScene->makeCommand();
+    //m_mapScene->moveMarkerCommand(0, 1);
+    //m_mapScene->makeCommand();
+    //m_mapScene->deleteMarkerCommand(0);
+    //m_mapScene->makeCommand();
+    /*
+    void moveMarkerCommand(int id, int new_state_id);
+    void deleteMarkerCommand(int id);
+    void makeCommand();
     */
 
     m_mapView->setScene(m_mapScene);
@@ -679,14 +697,8 @@ void MainWindow::defineEditTrainForm()
     txtEditedTrainNumber = new QLineEdit(dlgEditTrain);
     txtEditedTrainNumber->setGeometry(offset_x, lbTrainNumber->y(),
                                       dlgEditTrain->width() - 10 - offset_x, 20);
-    QLabel* lbTrainStation = new QLabel(tr("Current Station:"), dlgEditTrain);
-    lbTrainStation->setGeometry(lbTrainNumber->x(), lbTrainNumber->y() + lbTrainNumber->height() + 5,
-                                lbTrainNumber->width(), 20);
-    txtEditedTrainStation = new QLineEdit(dlgEditTrain);
-    txtEditedTrainStation->setGeometry(offset_x, lbTrainStation->y(),
-                                       txtEditedTrainNumber->width(), 20);
     QLabel* lbTrainRoute = new QLabel(tr("Route:"), dlgEditTrain);
-    lbTrainRoute->setGeometry(lbTrainStation->x(), lbTrainStation->y() + lbTrainStation->height() + 5,
+    lbTrainRoute->setGeometry(lbTrainNumber->x(), lbTrainNumber->y() + lbTrainNumber->height() + 5,
                               lbTrainNumber->width(), 20);
     txtEditedTrainRoute = new QLineEdit(dlgEditTrain);
     txtEditedTrainRoute->setGeometry(offset_x, lbTrainRoute->y(), txtEditedTrainNumber->width(), 20);
@@ -1009,7 +1021,6 @@ void MainWindow::showAllOperators()
 }
 */
 
-
 void MainWindow::openUsersListForm()
 {
     dlgUsersList->open();
@@ -1023,7 +1034,7 @@ void MainWindow::openEditProfileDialog()
 
 void MainWindow::openStationsListForm()
 {
-    //
+    dlgStationsList->open();
 }
 
 void MainWindow::openTrainsListForm()
