@@ -1,7 +1,5 @@
 @startuml
 
-package UI {
-
 PointGraphicsObject <|-- StateGraphicsObject
 PointGraphicsObject <|-- TrackGraphicsObject
 PointGraphicsObject <|-- TransitionGraphicsObject
@@ -314,8 +312,6 @@ enum UserGroup {
 User
 Admin
 Operator
-}
-
 }
 
 @enduml

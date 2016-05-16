@@ -1,0 +1,34 @@
+@startuml
+(*)  --> "Authentication"
+If "user group is 'Administrator'" then
+--> [Yes] "select in menu 'Users List'" as act1
+act1 --> "view users list" as act2
+
+If "button clicked" then
+--> ['Back' or 'Close'] act1
+else
+--> ['Add'] "Input user login,\npassword and\ngroup" as act3
+else
+--> ['Edit'] "Input user password\n and group" as act4
+else
+--> ['Remove'] "Remove selected\nusers" as act5
+else
+--> ['Clear'] "clear all\nuser list" as act6
+Endif
+
+act3 --> "Accept adding" as actAccept1
+act3 --> "Cancel adding" as actCancel1
+act4 --> "Accept changes" as actAccept2
+act4 --> "Cancel changes" as actCancel2
+act5 --> act2
+act6 --> act2
+
+actAccept1 --> act2
+actCancel1 --> act2
+actAccept2 --> act2
+actCancel2 --> act2
+
+else
+-->[No](*)
+Endif
+@enduml

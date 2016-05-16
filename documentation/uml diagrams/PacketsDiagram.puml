@@ -1,0 +1,23 @@
+@startuml
+
+package "User Interface" as packet1 {
+    package "Map" {
+    }
+    package "Station List" as packet2 {
+    }
+}
+
+package "Core" {
+    package "Petri Network" as packet3 {
+    }
+    package "Database Manager" as packet4 {
+    }
+}
+
+package "Database" {
+}
+
+packet4 -.-> Database
+packet1 -.-> Core
+
+@enduml

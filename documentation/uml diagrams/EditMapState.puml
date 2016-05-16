@@ -1,0 +1,36 @@
+@startuml
+[*] --> Authentication : Click button\n'Login'
+
+Authentication --> OperatorActions : User group\nis 'Operator'
+
+state OperatorActions {
+  [*] --> ViewMode
+  ViewMode --> MapModeSelection : Click to toolbar\nbutton
+  AddStationMode --> MapModeSelection : Click to toolbar\nbutton
+  AddLinkMode --> MapModeSelection : Click to toolbar\nbutton
+  MoveMode --> MapModeSelection : Click to toolbar\nbutton
+  DeleteMode --> MapModeSelection : Click to toolbar\nbutton
+  MapModeSelection --> ViewMode : Click button\n'SetViewMode'
+  MapModeSelection --> AddStationMode : Click button\n'SetAddStationMode'
+  MapModeSelection --> AddLinkMode : Click button\n'SetAddLinkMode'
+  MapModeSelection --> MoveMode : Click button\n'SetMoveMode'
+  MapModeSelection --> DeleteMode : Click button\n'SetDeleteMode'
+  AddStationMode --> CreateNewStation : Click mouse to map
+  CreateNewStation --> AddStationMode
+  CreateNewStation : Draw New Station
+  AddLinkMode --> SelectFisrtStation : Click to station
+  SelectFisrtStation --> CreateNewLink : Click to station
+  SelectFisrtStation --> AddLinkMode : Click mouse to free\nmapspace or to link
+  CreateNewLink : Draw New Link
+  CreateNewLink --> AddLinkMode
+  MoveMode --> SelectMovedItems : Click mouse\nto item
+  SelectMovedItems --> MoveMode : Click mouse\nto free\nmap space
+  SelectMovedItems --> MoveItems : Drag selected\nitems
+  MoveItems --> MoveMode
+  DeleteMode --> SelectDeletedItems : Click mouse\nto item
+  SelectDeletedItems --> DeleteMode : Click mouse\nto free\nmap space
+  SelectDeletedItems --> DeleteItems : Press button 'Delete'
+  DeleteItems --> DeleteMode
+}
+
+@enduml

@@ -1,0 +1,30 @@
+@startuml
+[*] --> UserActions
+
+UserActions --> Authentication : Click button\n'Login'
+AdministrationActions --> Authentication : Click button\n'Login'
+OperatorActions --> Authentication : Click button\n'Login'
+
+state Authentication {
+  [*] --> AuthenticationFormOpened
+  AuthenticationFormOpened --> CheckPersonData : Click button\n'Accept'
+  CheckPersonData --> AccessDenied : Input data\nis invalid
+  CheckPersonData --> AccessReceived : Input data\nis valid
+  AccessDenied : Show Warning\nMessage
+  AccessDenied --> UserActions : Current users group\nis 'User'
+  AccessDenied --> AdministrationActions : Current users group\nis 'Administration'
+  AccessDenied --> OperatorActions : Current users group\nis 'Operator'
+  AccessReceived --> OperatorActions : User group is\n'Operator'
+  AccessReceived --> UserActions : User group is\n'User'
+  AccessReceived --> AdministrationActions : User group is\n'Administrator'
+}
+
+state UserActions {
+}
+
+state AdministrationActions {
+}
+
+state OperatorActions {
+}
+@enduml
