@@ -62,13 +62,18 @@ public:
     using PetriNetTraits = _PetriNetTraits;
     using IdType = typename PetriNetTraits::IdType;
 
+    MarkerWrapper(const MarkerWrapper&) = delete;
+    MarkerWrapper(MarkerWrapper&&) = default;
+
+    MarkerWrapper& operator=(const MarkerWrapper&) = delete;
+    MarkerWrapper& operator=(MarkerWrapper&&) = default;
+
     MarkerWrapper() :
             MarkerObjectWrapper<Marker>(),
             IdObjectWrapper<IdType>(0),
             StateIdWrapper<_PetriNetTraits>(0)
     {
     }
-
 
     MarkerWrapper(IdType id, IdType parentId, Marker&& state) :
             MarkerObjectWrapper<Marker>(std::forward<Marker>(state)),

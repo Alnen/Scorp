@@ -88,15 +88,15 @@ public:
         IdType city1 = railwayPetriNet->addState<City>(City(std::string("City A")));
         IdType city2 = railwayPetriNet->addState<City>(City(std::string("City B")));
         IdType interCity = railwayPetriNet->addState<InterCity>(InterCity(std::string("InterCity")));
-        IdType roadMutex = railwayPetriNet->addState<>(Mutex(std::string("Mutex")));
+        IdType roadMutex = railwayPetriNet->addState<Mutex>(Mutex(std::string("Mutex")));
 
         // Transition Creation
         IdType cityExit = railwayPetriNet->addTransition<ExitCity>(ExitCity(std::string("ExitCity")));
         IdType cityEnter = railwayPetriNet->addTransition<EnterCity>(EnterCity(std::string("EnterCity")));
 
         // Marker Creation
-        IdType train = railwayPetriNet->addMarker(city1, Train(std::string("Train")));
-        IdType accessToken = railwayPetriNet->addMarker(roadMutex, AccessToken(std::string("AccessToken")));
+        IdType train = railwayPetriNet->addMarker<Train>(city1, Train(std::string("Train")));
+        IdType accessToken = railwayPetriNet->addMarker<AccessToken>(roadMutex, AccessToken(std::string("AccessToken")));
 
         // Linking
         railwayPetriNet->addStateToTransitionConnection<Mutex, ExitCity>(roadMutex, cityExit);
@@ -107,6 +107,21 @@ public:
 
         railwayPetriNet->addTransitionToStateConnection<EnterCity, Mutex>(cityEnter, roadMutex);
         railwayPetriNet->addTransitionToStateConnection<EnterCity, City>(cityEnter, city2);
+
+        // State creation
+        auto& _city1 = railwayPetriNet->getStateById<City>(city1);
+        auto& _city2 = railwayPetriNet->getStateById<City>(city2);
+        auto& _interCity = railwayPetriNet->getStateById<InterCity>(interCity);
+        auto& _roadMutex = railwayPetriNet->getStateById<Mutex>(roadMutex);
+
+        // Transition Creation
+        auto& _cityExit = railwayPetriNet->getTransitionById<ExitCity>(cityExit);
+        auto& _cityEnter = railwayPetriNet->getTransitionById<EnterCity>(cityEnter);
+
+        // Marker Creation
+        auto& _train = railwayPetriNet->getMarkerById<Train>(train);
+        auto& _accessToken = railwayPetriNet->getMarkerById<AccessToken>(accessToken);
+        std::cout << "done" << std::endl;
     }
 
     virtual void TearDown() override {
@@ -118,6 +133,7 @@ public:
 
 TEST_F(PetriNetMarkerPropagationTest, sunnyCase)
 {
+    railwayPetriNet->executeMarkersPropagation();
     railwayPetriNet->executeMarkersPropagation();
     ASSERT_TRUE(true);
 }

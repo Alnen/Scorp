@@ -9,6 +9,8 @@ public:
 
     using IdType = _IdType;
 
+    IdObjectWrapper() = default;
+
     IdObjectWrapper(IdType id): m_id(id)
     {
     }

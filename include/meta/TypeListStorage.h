@@ -23,28 +23,28 @@ public:
     using RestStorage = TypeListStorage<_Functor, _Storage, typename TypeList::Tail>;
 
     template <class T>
-    typename std::enable_if<std::is_same<T, Type>::value, Storage&>::type
+    typename std::enable_if<std::is_same<T, Type>::value, Storage>::type&
     getStorage()
     {
         return m_storage;
     }
 
     template <class T>
-    typename std::enable_if<std::is_same<T, Type>::value, const Storage&>::type
+    const typename std::enable_if<std::is_same<T, Type>::value, Storage>::type&
     getStorage() const
     {
         return m_storage;
     }
 
     template <class T>
-    typename std::enable_if<!std::is_same<T, Type>::value, _Storage<typename _Functor<T>::type>&>::type
+    typename std::enable_if<!std::is_same<T, Type>::value, _Storage<typename _Functor<T>::type>>::type&
     getStorage()
     {
         return RestStorage::template getStorage<T>();
     }
 
     template <class T>
-    typename std::enable_if<!std::is_same<T, Type>::value, const _Storage<typename _Functor<T>::type>&>::type
+    const typename std::enable_if<!std::is_same<T, Type>::value,  _Storage<typename _Functor<T>::type>>::type&
     getStorage() const
     {
         return RestStorage::template getStorage<T>();

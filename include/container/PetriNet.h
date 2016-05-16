@@ -128,7 +128,7 @@ public:
     State& getStateById(IdType id)
     {
         auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
-        auto& stateWrapper = stateStorage[id];
+        auto& stateWrapper = stateStorage.find(id)->second;
         return stateWrapper.getState();
     }
 
@@ -144,7 +144,7 @@ public:
     Transition& getTransitionById(IdType id)
     {
         auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
-        auto& transitionWrapper = transitionStorage[id];
+        auto& transitionWrapper = transitionStorage.find(id)->second;
         return transitionWrapper.getTransition();
     }
 
@@ -193,11 +193,12 @@ public:
         {
             return false;
         }
-        markerStorage.erase(iterator);
 
         // Delete id from father's marker storage
         IdType stateId = iterator->second.getStateId();
         IdType markerId = iterator->second.getId();
+
+        markerStorage.erase(iterator);
 
         using Functor = MarkerEraser<Marker, decltype(m_petriNetStorage), IdType>;
         Functor functor(m_petriNetStorage, markerId, stateId);
@@ -395,13 +396,13 @@ public:
     {
         // TODO: error handling
         auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
-        auto& stateWrapper = *stateStorage.find(stateId);
+        auto& stateWrapper = stateStorage.find(stateId)->second;
 
         auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
-        auto& transitionWrapper = *transitionStorage.find(transitionId);
+        auto& transitionWrapper = transitionStorage.find(transitionId)->second;
 
-        stateWrapper.second.template getInTransitionStorage<Transition>().push_back(transitionId);
-        transitionWrapper.second.template getOutStateStorage<State>().push_back(stateId);
+        stateWrapper.template getInTransitionStorage<Transition>().push_back(transitionId);
+        transitionWrapper.template getOutStateStorage<State>().push_back(stateId);
 
         return true;
     };
@@ -863,7 +864,7 @@ private:
     public:
         using IndexType = IdType;
         template <class _State>
-        using MarkerStorageFinder = typename PetriNet<PetriNetTraits>::MarkerStorageFinder<_State>;
+        using MarkerStorageFinder = typename PetriNet<PetriNetTraits>::template MarkerStorageFinder<_State>;
 
         StatesMarkerStorageFinder(PetriNet<PetriNetTraits>& petriNet,  IndexType stateId, IndexType markerTypeId):
             m_petriNet(petriNet),
