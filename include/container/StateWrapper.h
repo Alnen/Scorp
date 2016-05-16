@@ -104,6 +104,14 @@ public:
     using PetriNetTraits = _PetriNetTraits;
     using IdType = typename PetriNetTraits::IdType;
 
+    StateWrapper() = delete;
+    StateWrapper(const StateWrapper&) = delete;
+    StateWrapper(StateWrapper&&) = default;
+
+    StateWrapper& operator=(const StateWrapper&) = delete;
+    StateWrapper& operator=(StateWrapper&&) = default;
+
+
     StateWrapper(IdType id, State&& state) :
         StateObjectWrapper<State>(std::forward<State>(state)),
         IdObjectWrapper<IdType>(id)

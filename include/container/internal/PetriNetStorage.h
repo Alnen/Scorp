@@ -31,6 +31,14 @@ public:
     template <class T>
     using SpecializedTransitionWrapper = meta::TypeHolder<TransitionWrapper<T, PetriNetTraits>>;
 
+    PetriNetStorage() = default;
+
+    PetriNetStorage(const PetriNetStorage&) = delete;
+    PetriNetStorage(PetriNetStorage&&) = default;
+
+    PetriNetStorage& operator=(const PetriNetStorage&) = delete;
+    PetriNetStorage& operator=(PetriNetStorage&&) = default;
+
     template <class T>
     Storage<typename SpecializedMarkerWrapper<T>::type>& getMarkerStorage()
     {

@@ -36,7 +36,7 @@ public:
         for (const auto& outMarker : outMarkers)
         {
             auto& serializedMarkerInState = outMarker.get();
-            serializedMarkerInState.template createState<typename MarkerList::Head>();
+            IndexType markerId = serializedMarkerInState.template createState<typename MarkerList::Head>();
         }
     }
 };
