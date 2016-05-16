@@ -2,11 +2,17 @@
 
 
 
-object "State1<City, InterCity, Semaphore>" as State1
+object "State1<City>" as State1
+object "State2<InterCity>" as State2
+object "State3<Semaphore>" as State3
 
-object "marker1<Train, AccesToken>" as marker1
+object "marker1<AccesToken>" as marker1
+object "marker2<Train>" as marker2
 
-object "transition1<CityEnter, CityExit>" as transition1
+
+object "transition1<CityEnter>" as transition1
+object "transition2<CityExit>" as transition2
+
 
 object "vectorMarkerTrain<MarkerWrapper<Train>>" as vectorMarkerTrain
 object "vectorMarkerAccessToken<MarkerWrapper<AccessToken>>" as vectorMarkerAccessToken
@@ -15,17 +21,17 @@ object "vectorStateInterCity<StateWrapper<InterCity>>" as vectorStateInterCity
 object "vectorStateSemaphore<StateWrapper<Semaphore>>" as vectorStateSemaphore
 object "vectorTransitionCityEnter<TransitionWrapper<CityEnter>>" as vectorTransitionCityEnter
 object "vectorTransitionCityExit<TransitionWrapper<CityExit>>" as vectorTransitionCityExit
-object "railway<Marker, State,  Transition>" as railway
+object "railway<MarkerList<Train, AccesToken>, StateList<city, InterCity, Semaphore>,  TransitionList<CityEnter, CityExit>>" as railway
 
 State1--o vectorStateCity
-State1--o vectorStateInterCity
-State1--o vectorStateSemaphore
+State2--o vectorStateInterCity
+State3--o vectorStateSemaphore
 
 marker1--o vectorMarkerTrain
-marker1--o vectorMarkerAccessToken
+marker2--o vectorMarkerAccessToken
 
 transition1--o vectorTransitionCityEnter
-transition1--o vectorTransitionCityExit
+transition2--o vectorTransitionCityExit
 
 
 vectorMarkerTrain --o railway
@@ -36,7 +42,7 @@ vectorStateSemaphore --o railway
 vectorTransitionCityEnter --o railway
 vectorTransitionCityExit --o railway
 
-object "df: sdsd" as df
+
 
 
 @enduml
