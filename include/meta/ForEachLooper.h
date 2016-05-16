@@ -57,6 +57,14 @@ struct ForEachLooper
     Functor& m_functor;
 };
 
+template<class Functor, class TypeList, class... Args>
+Functor makeForEachLooper(Args&&... args) {
+    Functor functor(std::forward<Args>(args)...);
+    meta::ForEachLooper<TypeList, Functor> looper(functor);
+    looper();
+    return std::move(functor);
+}
+
 }
 
 #endif //SCORPCORE_FOREACHLOOP_H
