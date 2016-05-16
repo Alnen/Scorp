@@ -2,7 +2,7 @@
 #include <list>
 #include <vector>
 #include <math.h>
-#include "list_of_memory_nodes.cpp"
+#include "list_of_memory_nodes.h"
 
 class SeglistAllocator {
 
@@ -52,7 +52,7 @@ std::cout << "before allocation" << std::endl;
         return answer;
     }
     void deallocate(void* elem, std::size_t alloc_size) {
-
+std::cout << "before deallocation" << std::endl;
         return l->deallocate(elem, alloc_size);
 
     }

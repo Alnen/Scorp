@@ -1,5 +1,4 @@
-#include "pool_allocator.cpp"
-#include "seglist_allocator.cpp"
+#include "seglist_allocator.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <limits>
@@ -38,18 +37,21 @@ public :
     inline pointer allocate(size_type n, const void * = 0) {
         std::cout << "use my allocator to allocate sizeof(T)=" << sizeof(T) << std::endl;
         if (n == 1) {
-std::cout << "my allocator" << std::endl;
+std::cout << "my allocator allocation" << std::endl;
                     return static_cast<T*>(SeglistAllocator::instance().allocate(sizeof(T)));
 
                 } else {
-            std::cout << "std allocator" << std::endl;
+            std::cout << "std allocator allocation" << std::endl;
                     return std::allocator<T>().allocate(n);
                 }
     }
     inline void deallocate(pointer p, size_type n) {
+        std::cout << "use my allocator to deallocate sizeof(T)=" << sizeof(T) << std::endl;
         if (n == 1) {
+            std::cout << "my allocator deallocation" << std::endl;
                     SeglistAllocator::instance().deallocate(static_cast<void*>(p), sizeof(T));
                 } else {
+            std::cout << "std allocator deallocation" << std::endl;
                     return std::allocator<T>().deallocate(p, n);
                 }
     }

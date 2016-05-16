@@ -85,6 +85,8 @@ public:
         }
     }
     void deallocate(void* elem, std::size_t alloc_size){
+        std::cout << "In deallocate function" << std::endl;
+
         if((alloc_size <= memory_unit) && (alloc_size > memory_unit_prev)){
 
             MemoryNode* node = static_cast<MemoryNode*>(elem);
@@ -94,6 +96,8 @@ public:
         } else {
             l->deallocate(elem, alloc_size);
         }
+
+        std::cout << "After deallocate function" << std::endl;
     }
 
 };
