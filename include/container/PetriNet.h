@@ -175,7 +175,7 @@ public:
     }
 
     template <class Transition>
-    const StateWrapperType<Transition>& getTransitionWrapperById(IdType id) const
+    const TransitionWrapperType<Transition>& getTransitionWrapperById(IdType id) const
     {
         auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
         auto& transitionWrapper = transitionStorage.find(id)->second;
@@ -514,18 +514,13 @@ public:
     };
 
     template <class... Args>
-    void executeMarkersPropagation(Args&&... args)
+    size_t executeMarkersPropagation(Args&&... args)
     {
         std::cout << "Hello" << std::endl;
-        m_propagator();
-        // For every transition
-        // Ask if can perform transition
-        // If yes than delete from before and save future transitions
-        // If no go to next transition
-        // After all transitions are done then apply all saved transformations at once.
+        return m_propagator();
     };
 
-    template<class IndexType>
+    template <class IndexType>
     class SerializedObject {
     public:
         SerializedObject(IndexType objectId, IndexType objectTypeId) :
@@ -616,12 +611,12 @@ private:
             return m_transiton;
         }
 
-        const std::vector<SerializedMarkerInState<IndexType>> &getSerializedMarkers() const
+        const std::vector<SerializedMarkerInState<IndexType>>& getSerializedMarkers() const
         {
             return m_serializedMarkers;
         }
 
-        std::vector<SerializedMarkerInState<IndexType>> &getSerializedMarkers()
+        std::vector<SerializedMarkerInState<IndexType>>& getSerializedMarkers()
         {
             return m_serializedMarkers;
         }
@@ -707,11 +702,6 @@ private:
                                     transition.getId(),
                                     TransitionEnum::template getValue<Transition>()),
                                     propagator.moveOutSerializedMarkers());
-                    MarkerPropagationDisicion desicionMaker;
-                    desicionMaker.template operator()<Transition>(
-                            m_petriNet,
-                            m_serializedTransitionPropagation.back().getSerializedMarkers(),
-                            transition);
                 }
             }
 
@@ -1086,6 +1076,38 @@ private:
         }
     };
 
+    // Marker Propagation executor
+
+    class SerializedMarkerProgationExecutor
+    {
+    public:
+        SerializedMarkerProgationExecutor(
+                PetriNet<PetriNetTraits> &petriNet,
+                IdType  transitionId,
+                std::vector<SerializedMarkerInState<IdType>>& m_serializedTransitionPropagation):
+            m_petriNet(petriNet),
+            m_transitionId(transitionId),
+            m_serializedMarkers(m_serializedTransitionPropagation)
+        {
+        }
+
+        template <class Transition>
+        void operator()()
+        {
+            auto& transition =  m_petriNet.getTransitionWrapperById<Transition>(m_transitionId);
+            MarkerPropagationDisicion desicionMaker;
+            desicionMaker.template operator()<Transition>(
+                    m_petriNet,
+                    m_serializedMarkers,
+                    transition);
+        }
+
+    private:
+        PetriNet<PetriNetTraits> &m_petriNet;
+        IdType  m_transitionId;
+        std::vector<SerializedMarkerInState<IdType>>& m_serializedMarkers;
+    };
+
     // Marker Propagation
 
     class MarkerPropagationExecutor {
@@ -1097,7 +1119,7 @@ private:
         MarkerPropagationExecutor(PetriNet<PetriNetTraits>& m_petriNet) :
                 m_petriNet(m_petriNet) {}
 
-        void operator()() const {
+        size_t operator()() const {
             using Train = typename decltype(meta::TypeEnum<MarkerList, IdType>::template getTypeHolder<0>())::type;
             using AccessToken = typename decltype(meta::TypeEnum<MarkerList, IdType>::template getTypeHolder<1>())::type;
             std::cout << "Trains count " << m_petriNet.sizeMarker<Train>() << std::endl;
@@ -1118,9 +1140,15 @@ private:
                         << std::endl;
                 }
                 std::cout << std::endl;
+                meta::calculateBasedOnRealtime<SerializedMarkerProgationExecutor, TransitionList>(
+                        serializedTransition.getSerializedTransition().getObjectSerializedType(),
+                        m_petriNet,
+                        serializedTransition.getSerializedTransition().getObjectId(),
+                        serializedTransition.getSerializedMarkers());
             }
             std::cout << "Trains count " << m_petriNet.sizeMarker<Train>() << std::endl;
             std::cout << "AccessToken count " << m_petriNet.sizeMarker<AccessToken>() << std::endl;
+            return serializedTransitions.size();
         }
 
 private:
