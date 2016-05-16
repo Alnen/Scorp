@@ -326,6 +326,21 @@ private:
                         m_elementToVisit.emplace_back(EventType::TRANSITION_DESCRIPTION_END, currentEvent.second);
                         break;
                     }
+                    case EventType::MARKER:break;
+                    case EventType::STATE_DESCRIPTION_BEGIN:break;
+                    case EventType::STATE_DESCRIPTION_END:break;
+                    case EventType::TRANSITION_DESCRIPTION_BEGIN:break;
+                    case EventType::TRANSITION_DESCRIPTION_END:break;
+                    case EventType::MARKER_STORAGE_BEGIN:break;
+                    case EventType::MARKER_STORAGE_END:break;
+                    case EventType::IN_STATE_STORAGE_BEGIN:break;
+                    case EventType::IN_STATE_STORAGE_END:break;
+                    case EventType::OUT_STATE_STORAGE_BEGIN:break;
+                    case EventType::OUT_STATE_STORAGE_END:break;
+                    case EventType::IN_TRANSITION_STORAGE_BEGIN:break;
+                    case EventType::IN_TRANSITION_STORAGE_END:break;
+                    case EventType::OUT_TRANSITION_STORAGE_BEGIN:break;
+                    case EventType::OUT_TRANSITION_STORAGE_END:break;
                 }
             }
         }

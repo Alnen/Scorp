@@ -5,6 +5,7 @@
 #include "container/internal/RandomMarkerPropagator.h"
 #include "TransitionWrapper.h"
 #include "PetriNet.h"
+#include "allocator/StlAllocator.h"
 
 template <class _MarkerList, class _TransitionList, class _StateList>
 struct PetriNetTraits
@@ -26,6 +27,9 @@ struct PetriNetTraits
             PetriNetTraits<MarkerList, TransitionList, StateList>,
             Transition
     >;
+
+    template <class Type>
+    using Allocator = allocator::Allocator<Type>;
 };
 
 #endif //PETRINETTRAITS_H
