@@ -121,5 +121,31 @@ TEST_F(PetriNetMarkerPropagationTest, sunnyCase)
     ASSERT_EQ(1, railwayPetriNet->executeMarkersPropagation());
     ASSERT_EQ(1, railwayPetriNet->executeMarkersPropagation());
     ASSERT_EQ(0, railwayPetriNet->executeMarkersPropagation());
-    ASSERT_TRUE(true);
+}
+
+TEST_F(PetriNetMarkerPropagationTest, iteratorSunnyCase)
+{
+    std::vector<std::string> enumMapping = {
+            "MARKER",
+            "STATE",
+            "TRANSITION",
+            "STATE_DESCRIPTION_BEGIN",
+            "STATE_DESCRIPTION_END",
+            "TRANSITION_DESCRIPTION_BEGIN",
+            "TRANSITION_DESCRIPTION_END",
+            "MARKER_STORAGE_BEGIN",
+            "MARKER_STORAGE_END",
+            "IN_STATE_STORAGE_BEGIN",
+            "IN_STATE_STORAGE_END",
+            "OUT_STATE_STORAGE_BEGIN",
+            "OUT_STATE_STORAGE_END",
+            "IN_TRANSITION_STORAGE_BEGIN",
+            "IN_TRANSITION_STORAGE_END",
+            "OUT_TRANSITION_STORAGE_BEGIN",
+            "OUT_TRANSITION_STORAGE_END"
+    };
+    for (auto it = railwayPetriNet->getIteratorBeginFromState<City>(0); it != railwayPetriNet->getIteratorEnd(); ++it)
+    {
+        std::cout << enumMapping[static_cast<int>((*it).first)] << " " << (*it).second.getObjectId() << " " << (*it).second.getObjectSerializedType() << std::endl;
+    }
 }

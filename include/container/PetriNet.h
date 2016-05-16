@@ -8,8 +8,15 @@
 #include <iostream>
 #include "container/internal/PetriNetStorage.h"
 #include "container/internal/PetriNetHelpers.h"
+#include "container/PetriNetIterator.h"
 
-namespace container {
+namespace container
+{
+
+namespace iterator {
+template <class PetriNetTraits>
+class PetriNetIterator;
+}
 
 template <class _PetriNetTraits>
 class PetriNet
@@ -544,6 +551,38 @@ public:
         IndexType m_objectId = IndexType();
         IndexType m_objectSerializedType = IndexType();
     };
+
+    template <class Transition>
+    iterator::PetriNetIterator<PetriNetTraits> getIteratorBeginFromTransition(IdType transitionId) const
+    {
+        return iterator::PetriNetIterator<PetriNetTraits>(
+                *this,
+                iterator::PetriNetIterator<PetriNetTraits>::Event(
+                        iterator::PetriNetIterator<PetriNetTraits>::EventType::TRANSITION,
+                        SerializedObject<IdType>(transitionId, meta::TypeEnum<TransitionList, IdType>::template getValue<Transition>())),
+                false);
+    }
+
+    template <class State>
+    typename iterator::PetriNetIterator<PetriNetTraits> getIteratorBeginFromState(IdType stateId) const
+    {
+        return typename iterator::PetriNetIterator<PetriNetTraits>(
+                *this,
+                typename iterator::PetriNetIterator<PetriNetTraits>::Event(
+                        iterator::PetriNetIterator<PetriNetTraits>::EventType::STATE,
+                        SerializedObject<IdType>(stateId, meta::TypeEnum<StateList, IdType>::template getValue<State>())),
+                false);
+    }
+
+    typename iterator::PetriNetIterator<PetriNetTraits> getIteratorEnd() const
+    {
+        return iterator::PetriNetIterator<PetriNetTraits>(
+                *this,
+                typename iterator::PetriNetIterator<PetriNetTraits>::Event(
+                        iterator::PetriNetIterator<PetriNetTraits>::EventType::STATE,
+                        SerializedObject<IdType>(-1, -1)),
+                true);
+    }
 
 private:
     class MarkerPropagationExecutor;
