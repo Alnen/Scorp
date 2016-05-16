@@ -107,21 +107,6 @@ public:
 
         railwayPetriNet->addTransitionToStateConnection<EnterCity, Mutex>(cityEnter, roadMutex);
         railwayPetriNet->addTransitionToStateConnection<EnterCity, City>(cityEnter, city2);
-
-        // State creation
-        auto& _city1 = railwayPetriNet->getStateById<City>(city1);
-        auto& _city2 = railwayPetriNet->getStateById<City>(city2);
-        auto& _interCity = railwayPetriNet->getStateById<InterCity>(interCity);
-        auto& _roadMutex = railwayPetriNet->getStateById<Mutex>(roadMutex);
-
-        // Transition Creation
-        auto& _cityExit = railwayPetriNet->getTransitionById<ExitCity>(cityExit);
-        auto& _cityEnter = railwayPetriNet->getTransitionById<EnterCity>(cityEnter);
-
-        // Marker Creation
-        auto& _train = railwayPetriNet->getMarkerById<Train>(train);
-        auto& _accessToken = railwayPetriNet->getMarkerById<AccessToken>(accessToken);
-        std::cout << "done" << std::endl;
     }
 
     virtual void TearDown() override {
