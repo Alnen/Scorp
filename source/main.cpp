@@ -49,17 +49,6 @@ private:
 };
 
 using TestTypeList = meta::TypeList<int, char, float>;
-using TestTypeListStorage = IdentityTypeListStorage<TestTypeList>;
-
-template <>
-struct PetriNetTraits<meta::TypeList<SpecialMarker, int>, TestTypeList, TestTypeList>
-{
-    using MarkerList = meta::TypeList<SpecialMarker, int>;
-    using TransitionList = TestTypeList;
-    using StateList = TestTypeList;
-    using IdType = int;
-    using IdGenerator = IntegralIdGenerator<IdType>;
-};
 
 using TestPetriNetTraits = PetriNetTraits<meta::TypeList<SpecialMarker, int>, TestTypeList, TestTypeList>;
 using TestPetriNet = PetriNet<TestPetriNetTraits>;
@@ -70,18 +59,6 @@ void test1()
     TestPetriNet petriNet;
 
     TypeStorage<int> storage;
-    TestTypeListStorage pr_store;
-    TypeStorage<float>& int_st_ref = pr_store.getStorage<float>();
-    int_st_ref.push_back(60.5f);
-    int_st_ref.push_back(70.5f);
-    int_st_ref.push_back(80.5f);
-
-    for (const float value : int_st_ref)
-    {
-        std::cout << value << std::endl;
-    }
-
-
     storage.push_back(10);
     storage.push_back(20);
     storage.push_back(30);
