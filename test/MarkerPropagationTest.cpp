@@ -79,7 +79,7 @@ class PetriNetMarkerPropagationTest : public testing::Test
 {
 public:
     using RailwayPetriNetTraits = PetriNetTraits<MarkerList, TransitionList, StateList>;
-    using RailwayPetriNet = PetriNet<RailwayPetriNetTraits>;
+    using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
     using IdType = typename RailwayPetriNetTraits::IdType;
 
     virtual void SetUp() override {
@@ -107,21 +107,6 @@ public:
 
         railwayPetriNet->addTransitionToStateConnection<EnterCity, Mutex>(cityEnter, roadMutex);
         railwayPetriNet->addTransitionToStateConnection<EnterCity, City>(cityEnter, city2);
-
-        // State creation
-        auto& _city1 = railwayPetriNet->getStateById<City>(city1);
-        auto& _city2 = railwayPetriNet->getStateById<City>(city2);
-        auto& _interCity = railwayPetriNet->getStateById<InterCity>(interCity);
-        auto& _roadMutex = railwayPetriNet->getStateById<Mutex>(roadMutex);
-
-        // Transition Creation
-        auto& _cityExit = railwayPetriNet->getTransitionById<ExitCity>(cityExit);
-        auto& _cityEnter = railwayPetriNet->getTransitionById<EnterCity>(cityEnter);
-
-        // Marker Creation
-        auto& _train = railwayPetriNet->getMarkerById<Train>(train);
-        auto& _accessToken = railwayPetriNet->getMarkerById<AccessToken>(accessToken);
-        std::cout << "done" << std::endl;
     }
 
     virtual void TearDown() override {
@@ -136,5 +121,31 @@ TEST_F(PetriNetMarkerPropagationTest, sunnyCase)
     ASSERT_EQ(1, railwayPetriNet->executeMarkersPropagation());
     ASSERT_EQ(1, railwayPetriNet->executeMarkersPropagation());
     ASSERT_EQ(0, railwayPetriNet->executeMarkersPropagation());
-    ASSERT_TRUE(true);
+}
+
+TEST_F(PetriNetMarkerPropagationTest, iteratorSunnyCase)
+{
+    std::vector<std::string> enumMapping = {
+            "MARKER",
+            "STATE",
+            "TRANSITION",
+            "STATE_DESCRIPTION_BEGIN",
+            "STATE_DESCRIPTION_END",
+            "TRANSITION_DESCRIPTION_BEGIN",
+            "TRANSITION_DESCRIPTION_END",
+            "MARKER_STORAGE_BEGIN",
+            "MARKER_STORAGE_END",
+            "IN_STATE_STORAGE_BEGIN",
+            "IN_STATE_STORAGE_END",
+            "OUT_STATE_STORAGE_BEGIN",
+            "OUT_STATE_STORAGE_END",
+            "IN_TRANSITION_STORAGE_BEGIN",
+            "IN_TRANSITION_STORAGE_END",
+            "OUT_TRANSITION_STORAGE_BEGIN",
+            "OUT_TRANSITION_STORAGE_END"
+    };
+    for (auto it = railwayPetriNet->getIteratorBeginFromState<City>(0); it != railwayPetriNet->getIteratorEnd(); ++it)
+    {
+        std::cout << enumMapping[static_cast<int>((*it).first)] << " " << (*it).second.getObjectId() << " " << (*it).second.getObjectSerializedType() << std::endl;
+    }
 }
