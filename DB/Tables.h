@@ -1,6 +1,10 @@
 #ifndef TABLES_h
 #define TABLES_h
-#include<iostream>
+//#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
 class User
 {
 private:
@@ -114,6 +118,28 @@ public:
 	{
 		return StationTo;
 	}
+    void serialize(std::ofstream& output)
+    {
+        output << "Transition";
+        output << "," << transition;
+        output << "," << StationFrom;
+        output << "," << StationTo;
+    }
+
+    void deserialize(std::ifstream& input)
+    {
+        std::string type_line;
+        std::string transition_line;
+        std::string station_from_line;
+        std::string station_to_line;
+        std::getline(input, type_line, ',');
+        std::getline(input, transition_line, ',');
+        std::getline(input, station_from_line, ',');
+        std::getline(input, station_to_line);
+        if (!(std::istringstream(transition_line) >> transition)) transition = 0;
+        if (!(std::istringstream(station_from_line) >> StationFrom)) StationFrom = 0;
+        if (!(std::istringstream(station_to_line) >> StationTo)) StationTo = 0;
+    }
 };
 
 class Train
@@ -135,7 +161,24 @@ public:
 	{
 		return Route;
 	}
+    void serialize(std::ofstream& output)
+    {
+        output << "Train";
+        output << "," << Number;
+        output << "," << Route;
+    }
 
+    void deserialize(std::ifstream& input)
+    {
+        std::string type_line;
+        std::string number_line;
+        std::string route_line;
+        std::getline(input, type_line, ',');
+        std::getline(input, number_line, ',');
+        std::getline(input, route_line);
+        if (!(std::istringstream(number_line) >> Number)) Number = 0;
+        if (!(std::istringstream(route_line) >> Route)) Route = 0;
+    }
 };
 
 class Station
@@ -175,8 +218,36 @@ public:
 	{
 		return Capasity;
 	}
+    void serialize(std::ofstream& output)
+    {
+        output << "Station";
+        output << "," << Id;
+        output << "," << Name;
+        output << "," << X;
+        output << "," << Y;
+        output << "," << Capasity;
+    }
 
+    void deserialize(std::ifstream& input)
+    {
+        std::string type_line;
+        std::string id_line;
+        std::string x_line;
+        std::string y_line;
+        std::string capasity_line;
+        std::getline(input, type_line, ',');
+        std::getline(input, id_line, ',');
+        std::getline(input, Name, ',');
+        std::getline(input, x_line, ',');
+        std::getline(input, y_line, ',');
+        std::getline(input, capasity_line);
+        if (!(std::istringstream(id_line) >> Id)) Id = 0;
+        if (!(std::istringstream(x_line) >> X)) X = 0;
+        if (!(std::istringstream(y_line) >> Y)) Y = 0;
+        if (!(std::istringstream(capasity_line) >> Capasity)) Capasity = 0;
+    }
 };
+
 class RoutePart
 {
 private:
