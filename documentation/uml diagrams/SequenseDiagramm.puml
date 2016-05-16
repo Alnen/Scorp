@@ -1,0 +1,13 @@
+@startuml
+
+
+User -> GUI: click to 'Find Tour'
+GUI --> User: open from 'Find Tour'
+User -> GUI: input values to filds
+User -> GUI: click button 'Find'
+GUI -> Core: getTours(d_place, d_time, a_place, a_time)
+Core ->  DBManager: getTours(d_place, d_time, a_place, a_time)
+DBManager --> Core:std::vector<Route> tours
+Core --> GUI:fill tours table
+GUI --> User: show updated tours table
+@enduml

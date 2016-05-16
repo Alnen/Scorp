@@ -1,0 +1,9 @@
+@startuml
+node PC{
+component SCORP
+database scorpDB.mdb
+SCORP.>scorpDB.mdb
+}
+
+
+@enduml

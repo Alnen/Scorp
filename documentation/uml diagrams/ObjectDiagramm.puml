@@ -1,0 +1,42 @@
+@startuml
+
+
+
+object "State1<City, InterCity, Semaphore>" as State1
+
+object "marker1<Train, AccesToken>" as marker1
+
+object "transition1<CityEnter, CityExit>" as transition1
+
+object "vectorMarkerTrain<MarkerWrapper<Train>>" as vectorMarkerTrain
+object "vectorMarkerAccessToken<MarkerWrapper<AccessToken>>" as vectorMarkerAccessToken
+object "vectorStateCity<StateWrapper<City>>" as vectorStateCity
+object "vectorStateInterCity<StateWrapper<InterCity>>" as vectorStateInterCity
+object "vectorStateSemaphore<StateWrapper<Semaphore>>" as vectorStateSemaphore
+object "vectorTransitionCityEnter<TransitionWrapper<CityEnter>>" as vectorTransitionCityEnter
+object "vectorTransitionCityExit<TransitionWrapper<CityExit>>" as vectorTransitionCityExit
+object "railway<Marker, State,  Transition>" as railway
+
+State1--o vectorStateCity
+State1--o vectorStateInterCity
+State1--o vectorStateSemaphore
+
+marker1--o vectorMarkerTrain
+marker1--o vectorMarkerAccessToken
+
+transition1--o vectorTransitionCityEnter
+transition1--o vectorTransitionCityExit
+
+
+vectorMarkerTrain --o railway
+vectorMarkerAccessToken --o railway
+vectorStateCity --o railway
+vectorStateInterCity --o railway
+vectorStateSemaphore --o railway
+vectorTransitionCityEnter --o railway
+vectorTransitionCityExit --o railway
+
+object "df: sdsd" as df
+
+
+@enduml

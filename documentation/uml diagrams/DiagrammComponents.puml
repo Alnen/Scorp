@@ -1,0 +1,15 @@
+@startuml
+
+database SCORPDB.mdb
+[DBManager]
+[GUI]
+package "Core" {
+[Container]..>[Logics]
+
+}
+SCORPDB.mdb ..> DBManager
+DBManager ..> GUI
+DBManager ..> Logics
+Logics ..> GUI
+Container ..> GUI
+@enduml
