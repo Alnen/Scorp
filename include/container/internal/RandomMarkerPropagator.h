@@ -9,8 +9,12 @@
 #include <container/StateWrapper.h>
 #include <utility>
 
+namespace container {
+
 template <class _PetriNetTraits>
 class PetriNet;
+
+}
 
 template <class _PetriNetTraits, class Transition>
 class MarkerPropagationSolver
@@ -20,15 +24,15 @@ public:
     using IndexType = typename PetriNetTraits::IdType;
     using TransitionList = typename PetriNetTraits::TransitionList;
     using MarkerList = typename PetriNetTraits::MarkerList;
-    using PetriNetType = PetriNet<PetriNetTraits>;
+    using PetriNetType = container::PetriNet<PetriNetTraits>;
     template <class Resource, class Deleter>
     using ResourceHolder = typename PetriNetType::template ResourceHolder<Resource, Deleter>;
-    using SerializedMarkerInState = typename PetriNet<PetriNetTraits>::template SerializedMarkerInState<IndexType>;
-    using MarkerFiller = typename PetriNet<PetriNetTraits>::MarkerFiller;
+    using SerializedMarkerInState = typename container::PetriNet<PetriNetTraits>::template SerializedMarkerInState<IndexType>;
+    using MarkerFiller = typename container::PetriNet<PetriNetTraits>::MarkerFiller;
 
     template <class Deleter>
     void operator()(
-            PetriNet<PetriNetTraits>& petriNet,
+            container::PetriNet<PetriNetTraits>& petriNet,
             const TransitionWrapper<Transition, PetriNetTraits>& transition,
             const std::vector<std::reference_wrapper<ResourceHolder<SerializedMarkerInState, Deleter>>>& inMarkers,
             const std::vector<std::reference_wrapper<MarkerFiller>>& outMarkers)
@@ -85,7 +89,7 @@ public:
     using MarkerList = typename PetriNetTraits::MarkerList;
 
     boost::optional<std::pair<IdType, IdType>> operator()(
-            const PetriNet<PetriNetTraits>& petriNet,
+            const container::PetriNet<PetriNetTraits>& petriNet,
             const TransitionWrapper<Transition, PetriNetTraits>& transition,
             const StateWrapper<State, PetriNetTraits>& state) const
     {

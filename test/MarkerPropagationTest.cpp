@@ -79,7 +79,7 @@ class PetriNetMarkerPropagationTest : public testing::Test
 {
 public:
     using RailwayPetriNetTraits = PetriNetTraits<MarkerList, TransitionList, StateList>;
-    using RailwayPetriNet = PetriNet<RailwayPetriNetTraits>;
+    using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
     using IdType = typename RailwayPetriNetTraits::IdType;
 
     virtual void SetUp() override {

@@ -9,6 +9,8 @@
 #include "container/internal/PetriNetStorage.h"
 #include "container/internal/PetriNetHelpers.h"
 
+namespace container {
+
 template <class _PetriNetTraits>
 class PetriNet
 {
@@ -1155,5 +1157,7 @@ private:
     PetriNet<PetriNetTraits> &m_petriNet;
 };
 };
+
+}
 
 #endif //PETRINET_H
