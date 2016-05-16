@@ -133,7 +133,8 @@ public:
 
 TEST_F(PetriNetMarkerPropagationTest, sunnyCase)
 {
-    railwayPetriNet->executeMarkersPropagation();
-    railwayPetriNet->executeMarkersPropagation();
+    ASSERT_EQ(1, railwayPetriNet->executeMarkersPropagation());
+    ASSERT_EQ(1, railwayPetriNet->executeMarkersPropagation());
+    ASSERT_EQ(0, railwayPetriNet->executeMarkersPropagation());
     ASSERT_TRUE(true);
 }
