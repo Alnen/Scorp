@@ -8,7 +8,9 @@ include_directories(${BOOST_ROOT})
 
 add_subdirectory(source)
 add_subdirectory(lib)
-add_subdirectory(test)
+if(NOT WIN32)
+    add_subdirectory(test)
+endif()
 
 message("SOURCE_FILES: ${SOURCE_FILES}")
 
