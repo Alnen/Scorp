@@ -13,6 +13,11 @@ TEMPLATE = app
 
 CONFIG += c++11
 
+INCLUDEPATH += $$PWD/include
+
+INCLUDEPATH += $$(BOOST_ROOT)
+LIBS += -L$$(BOOST_ROOT)/stage/lib/
+
 SOURCES += GUI/main.cpp\
     GUI/StationsList/StationsListModel.cpp \
     GUI/StationsList/TreeModel.cpp \
@@ -34,7 +39,7 @@ SOURCES += GUI/main.cpp\
     DB/sqlite/src/Transaction.cpp \
     GUI/Map/MarkerObject.cpp \
     GUI/Map/TrackGraphicsObject.cpp \
-    GUI/mainwindow.cpp \
+    GUI/mainwindow.cpp
 
 HEADERS  += GUI/mainwindow.h \
     DB/ScorpDBInterface.h \
