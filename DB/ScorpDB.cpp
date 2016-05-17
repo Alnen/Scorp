@@ -1,6 +1,7 @@
 #include "ScorpDBSell.h"
 #include  <iostream>
 #include "ScorpExceptions.h"
+#include <string>
 
 std::vector<std::string> ScorpDBSell::getDataFromRow(std::string table_name,
                                                      std::string key_column, std::string key)
@@ -18,7 +19,7 @@ std::vector<std::string> ScorpDBSell::getDataFromRow(std::string table_name,
             std::string col = "";
             for(int i=0; i < row_size; ++i)
             {
-                col = query.getColumn(i);
+                col = query.getColumn(i).getText();
                 data_row.push_back(col);
             }
         }
@@ -45,7 +46,7 @@ std::vector<std::vector<std::string>> ScorpDBSell::getAllDataFromTable(std::stri
             {
                 for(int i = 0; i < row_size; ++i)
                 {
-                    curr_column = query.getColumn(i);
+                    curr_column = query.getColumn(i).getText();
                     query_colums.push_back(curr_column);
                 }
                 table_rows.push_back(query_colums);
@@ -239,7 +240,7 @@ bool ScorpDBSell::isUserExistInDb(std::string login)
     {
         for(int i = 0; i < row_size; ++i)
         {
-            curr_column = query.getColumn(i);
+            curr_column = query.getColumn(i).getText();
             query_colums.push_back(curr_column);
         }
         table_rows.push_back(query_colums);
@@ -264,7 +265,7 @@ bool ScorpDBSell::isValidPassword(std::string login, std::string pass)
     {
         for(int i = 0; i < row_size; ++i)
         {
-            curr_column = query.getColumn(i);
+            curr_column = query.getColumn(i).getText();
             query_colums.push_back(curr_column);
         }
         table_rows.push_back(query_colums);
@@ -288,7 +289,7 @@ std::string ScorpDBSell::getGroupUser(std::string login)
         query.executeStep();
         for(int i = 0; i < row_size; ++i)
         {
-            curr_column = query.getColumn(i);
+            curr_column = query.getColumn(i).getText();
             query_colums.push_back(curr_column);
         }
         return query_colums[2];
@@ -313,7 +314,7 @@ std::vector<std::vector<std::string>> ScorpDBSell::getInfoAboutTable(std::string
         {
             for(int i = 0; i < row_size; ++i)
             {
-                curr_column = query.getColumn(i);
+                curr_column = query.getColumn(i).getText();
                 query_colums.push_back(curr_column);
             }
             table_rows.push_back(query_colums);

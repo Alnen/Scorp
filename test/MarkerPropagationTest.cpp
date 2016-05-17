@@ -144,8 +144,21 @@ TEST_F(PetriNetMarkerPropagationTest, iteratorSunnyCase)
             "OUT_TRANSITION_STORAGE_BEGIN",
             "OUT_TRANSITION_STORAGE_END"
     };
+    size_t identLevel = 0;
     for (auto it = railwayPetriNet->getIteratorBeginFromState<City>(0); it != railwayPetriNet->getIteratorEnd(); ++it)
     {
-        std::cout << enumMapping[static_cast<int>((*it).first)] << " " << (*it).second.getObjectId() << " " << (*it).second.getObjectSerializedType() << std::endl;
+        if (static_cast<int>((*it).first) > 2)
+        {
+            if ((static_cast<int>((*it).first) - 3) % 2 == 0)
+            {
+                identLevel += 4;
+            }
+            else
+            {
+                identLevel -= 4;
+            }
+        }
+
+        std::cout << std::string(identLevel, ' ') <<  enumMapping[static_cast<int>((*it).first)] << " " << (*it).second.getObjectId() << " " << (*it).second.getObjectSerializedType() << std::endl;
     }
 }
