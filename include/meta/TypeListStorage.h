@@ -58,14 +58,14 @@ template <template <class T> class _Functor, template <class T>  class _Storage>
 class TypeListStorage<_Functor, _Storage, meta::TypeList<>>
 {};
 
-template <class T>
-using VectorStorage = std::vector<T, std::allocator<T>>;
+template <class T, class Allocator>
+using VectorStorage = std::vector<T, Allocator>;
 
-template <class IdType, class Comparator>
+template <class IdType, class Comparator, class Allocator>
 struct MapStorageFactory
 {
     template <class T>
-    using MapStorage = boost::container::flat_map<IdType, T, Comparator>;
+    using MapStorage = boost::container::flat_map<IdType, T, Comparator, Allocator>;
 };
 
 template <class _TypeList, template <class T> class _Container = VectorStorage>

@@ -23,7 +23,12 @@ public:
     using StateList = typename PetriNetTraits::StateList;
 
     template <class T>
-    using Storage = typename meta::MapStorageFactory<IdType, std::less<IdType>>::template MapStorage<T>;
+    using Storage = typename meta::MapStorageFactory<
+            IdType,
+            std::less<IdType>,
+            typename PetriNetTraits::template Allocator<std::pair<IdType, T>>
+    >::template MapStorage<T>;
+
     template <class T>
     using SpecializedMarkerWrapper = meta::TypeHolder<MarkerWrapper<T, PetriNetTraits>>;
     template <class T>

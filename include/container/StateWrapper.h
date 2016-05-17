@@ -46,7 +46,7 @@ public:
     using MarkerList = typename PetriNetTraits::MarkerList;
     using TransitionList = typename PetriNetTraits::TransitionList;
     template <class T>
-    using StorageTypeFactory = meta::VectorStorage<T>;
+    using StorageTypeFactory = meta::VectorStorage<T, typename PetriNetTraits::template Allocator<T>>;
     using Storage = StorageTypeFactory<IdType>;
 
     template <class T>

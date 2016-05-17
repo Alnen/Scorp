@@ -39,7 +39,7 @@ public:
     using StateList = typename PetriNetTraits::StateList;
     using IdType = typename PetriNetTraits::IdType;
     template <class T>
-    using StorageTypeFactory = meta::VectorStorage<T>;
+    using StorageTypeFactory = meta::VectorStorage<T, typename PetriNetTraits::template Allocator<T>>;
     using Storage = StorageTypeFactory<IdType>;
 
     template <class T>

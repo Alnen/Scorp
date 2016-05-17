@@ -20,7 +20,7 @@ template <class IdType>
 struct MarkerExtractor
 {
     template <class Marker, class Wrapper>
-    const std::vector<IdType>& operator()(const Wrapper& wrapper) const
+    auto operator()(const Wrapper& wrapper) const -> decltype(wrapper.template getMarkerStorage<Marker>())
     {
         return wrapper.template getMarkerStorage<Marker>();
     }
@@ -30,7 +30,7 @@ template <class IdType>
 struct InStateExtractor
 {
     template <class Marker, class Wrapper>
-    const std::vector<IdType>& operator()(const Wrapper& wrapper) const
+    auto operator()(const Wrapper& wrapper) const -> decltype(wrapper.template getInStateStorage<Marker>())
     {
         return wrapper.template getInStateStorage<Marker>();
     }
@@ -40,7 +40,7 @@ template <class IdType>
 struct OutStateExtractor
 {
     template <class Marker, class Wrapper>
-    const std::vector<IdType>& operator()(const Wrapper& wrapper) const
+    auto operator()(const Wrapper& wrapper) const -> decltype(wrapper.template getOutStateStorage<Marker>())
     {
         return wrapper.template getOutStateStorage<Marker>();
     }
@@ -50,7 +50,7 @@ template <class IdType>
 struct InTransitionExtractor
 {
     template <class Marker, class Wrapper>
-    const std::vector<IdType>& operator()(const Wrapper& wrapper) const
+    auto operator()(const Wrapper& wrapper) const -> decltype(wrapper.template getInTransitionStorage<Marker>())
     {
         return wrapper.template getInTransitionStorage<Marker>();
     }
@@ -60,7 +60,7 @@ template <class IdType>
 struct OutTransitionExtractor
 {
     template <class Marker, class Wrapper>
-    const std::vector<IdType>& operator()(const Wrapper& wrapper) const
+    auto operator()(const Wrapper& wrapper) const -> decltype(wrapper.template getOutTransitionStorage<Marker>())
     {
         return wrapper.template getOutTransitionStorage<Marker>();
     }
