@@ -1,3 +1,5 @@
 project(ScorpCore_test)
 
-add_subdirectory(googletest)
+if(NOT WIN32)
+    add_subdirectory(googletest)
+endif()
