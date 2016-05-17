@@ -11,6 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Scorp
 TEMPLATE = app
 
+CONFIG += c++11
 
 SOURCES += GUI/main.cpp\
     GUI/StationsList/StationsListModel.cpp \

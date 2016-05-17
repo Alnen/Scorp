@@ -72,7 +72,7 @@ void ScorpDBSell::addTransition(Transition transition)
 {
     try
     {
-        addRowToTransition(std::to_string(transition.gettransition()),  std::to_string(transition.getStationFrom()),std::to_string(transition.getStationTo()));
+        addRowToTransition(std::to_string(transition.getTransition()),  std::to_string(transition.getStationFrom()),std::to_string(transition.getStationTo()));
     }
     catch(SCORPDBAtMemoryLocationExeption e)
     {

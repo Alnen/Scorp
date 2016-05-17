@@ -206,8 +206,8 @@ public:
     {
         output << "Transition";
         output << "," << m_transition;
-        output << "," << StationFrom;
-        output << "," << StationTo;
+        output << "," << m_stationFrom;
+        output << "," << m_stationTo;
     }
 
     void deserialize(std::ifstream& input)
@@ -221,8 +221,8 @@ public:
         std::getline(input, station_from_line, ',');
         std::getline(input, station_to_line);
         if (!(std::istringstream(transition_line) >> m_transition)) m_transition = 0;
-        if (!(std::istringstream(station_from_line) >> StationFrom)) StationFrom = 0;
-        if (!(std::istringstream(station_to_line) >> StationTo)) StationTo = 0;
+        if (!(std::istringstream(station_from_line) >> m_stationFrom)) m_stationFrom = 0;
+        if (!(std::istringstream(station_to_line) >> m_stationTo)) m_stationTo = 0;
     }
 };
 

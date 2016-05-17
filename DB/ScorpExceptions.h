@@ -1,31 +1,38 @@
 #ifndef SCORP_EXCEPTION_H
 #define SCORP_EXCEPTION_H
 
-#include<iostream>
+#include <iostream>
 #include <exception>
-class SCORPBaseExeption: public std::exception {
+
+class SCORPBaseExeption: public std::exception
+{
 public:
-   __fastcall SCORPBaseExeption( std::string Msg) :exception(Msg.c_str()){}
    virtual std::string getErrorCode()=0;
 };
 
-class SCORPDBAtMemoryLocationExeption: public SCORPBaseExeption {
-	std::string keyColum;
-    std::string tableName;
+class SCORPDBAtMemoryLocationExeption : public SCORPBaseExeption
+{
+    std::string m_keyColumn;
+    std::string m_tableName;
 public:
-   __fastcall SCORPDBAtMemoryLocationExeption( std::string msg) :SCORPBaseExeption(msg.c_str()){}
-   __fastcall SCORPDBAtMemoryLocationExeption( std::string table, std::string key) :SCORPBaseExeption(table.c_str()){tableName=table; keyColum=key;}
+    SCORPDBAtMemoryLocationExeption(std::string table, std::string key)
+       : m_tableName(table), m_keyColumn(key)
+    {
+    }
+
     virtual std::string getErrorCode()
     {
         return "SCORPDB01";
     }
-    std::string GetTableName()
+
+    std::string getTableName()
     {
-        return tableName;
+        return m_tableName;
     }
-    std::string GetKeyColum()
+
+    std::string getKeyColumn()
     {
-        return keyColum;
+        return m_keyColumn;
     }
 };
 
