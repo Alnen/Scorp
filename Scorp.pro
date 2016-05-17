@@ -66,6 +66,7 @@ HEADERS  += GUI/mainwindow.h \
     GUI/StationsList/StationsListModel.h \
     GUI/StationsList/TreeModel.h \
     GUI/StationsList/TreeModelItem.h \
-    GUI/UserInfo.h
+    GUI/UserInfo.h \
+    GUI/PetriNetComponents.h
 
 RC_FILE += GUI/icon.rc

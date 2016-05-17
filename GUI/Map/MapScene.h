@@ -4,9 +4,12 @@
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
 #include <vector>
-
-
+#include <memory>
 #include "LinkGraphicsObject.h"
+#include "../PetriNetComponents.h"
+
+class TestPetriNet;
+
 class StateGraphicsObject;
 //class LinkGraphicsObject;
 class PointGraphicsObject;
@@ -73,6 +76,8 @@ private:
     StateGraphicsObject* getStateById(int id);
     StateGraphicsObject* getMarkerById(int id);
 
+    void createNewState(int x, int y);
+
 private:
     struct StateLink {
         StateGraphicsObject* state;
@@ -95,6 +100,7 @@ private:
     int new_state_id;
     int new_link_id;
     std::vector<MarkerCommandStruct> m_markerCommandQueue;
+    std::unique_ptr<PetryNetComponent::RailwayPetriNet> m_petriNet;
 };
 
 #endif // MAP_SCENE_H

@@ -46,7 +46,7 @@ void ScorpDBSell::addUser(User user)
     {
         addRowToUser(user.getLogin(), user.getPassword(), user.getUserGroup());
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -63,7 +63,7 @@ void ScorpDBSell::addUserGroups(UserGroup user_group)
             user_group.getEditTrainsList() ? "true" : "false",
             user_group.getFindtrips() ? "true":"false");
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -74,7 +74,7 @@ void ScorpDBSell::addTransition(Transition transition)
     {
         addRowToTransition(std::to_string(transition.getTransition()),  std::to_string(transition.getStationFrom()),std::to_string(transition.getStationTo()));
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -85,7 +85,7 @@ void ScorpDBSell::addTrain(Train train)
     {
         addRowToTrain(std::to_string(train.getNumber()), std::to_string(train.getRoute()));
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -96,7 +96,7 @@ void ScorpDBSell::addStation(Station station)
     {
         addRowToStation(std::to_string(station.getId()), station.geName(), std::to_string(station.getX()),std::to_string(station.getY()), std::to_string(station.getCapasity()));
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -108,7 +108,7 @@ void ScorpDBSell::addRoutePart(RoutePart route_part)
         addRowToRoutePart(std::to_string(route_part.getRoute()), std::to_string(route_part.getTransistion()),
                          route_part.getTimeOffsetFrom(),  route_part.getTimeOffsetTo());
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -119,7 +119,7 @@ void ScorpDBSell::addRoute(Route route)
     {
         addRowToRoute(std::to_string(route.getId()), route.getName());
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -159,7 +159,7 @@ void  ScorpDBSell::changeDataInColume(TableName table_name, std::string key,
             changeData("Station", "Id", key, colume_name, data);
         }
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -197,7 +197,7 @@ void  ScorpDBSell::deleteFromTable(TableName table_name, std::string key)
             deleteRowFromTable("Station", "Id", key);
         }
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -235,7 +235,7 @@ std::vector<std::string> ScorpDBSell::getRowFromTable(TableName table_name, std:
             return getDataFromRow("Station", "Id", key);
         }
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
     }
@@ -292,7 +292,7 @@ UserGroupName ScorpDBSell::getUserGroup(std::string login)
     {
         group = getGroupUser(login);
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         throw e;
         return UserGroupName::USER;

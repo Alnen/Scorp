@@ -190,3 +190,13 @@ QPointF PointGraphicsObject::getPointByEquation(float x_p, float y_p,
     float scale_factor = length / sqrt(delta_x * delta_x + delta_y * delta_y);
     return QPointF(x_p + scale_factor * delta_x, y_p + scale_factor * delta_y);
 }
+
+PetryNetComponent::IdType PointGraphicsObject::getContainerId()
+{
+    //
+}
+
+void PointGraphicsObject::setContainerId(PetryNetComponent::IdType id)
+{
+    //
+}

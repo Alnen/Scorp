@@ -4,7 +4,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QDebug>
-
 #include "MarkerObject.h"
 
 MapScene::MapScene(QObject *parent)
@@ -13,6 +12,7 @@ MapScene::MapScene(QObject *parent)
     new_state_id = 0;
     new_link_id = 0;
     connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
+    m_petriNet = std::unique_ptr<PetryNetComponent::RailwayPetriNet>(new PetryNetComponent::RailwayPetriNet());
 }
 
 MapScene::MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent)
@@ -21,6 +21,7 @@ MapScene::MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent)
     new_state_id = 0;
     new_link_id = 0;
     connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
+    m_petriNet = std::unique_ptr<PetryNetComponent::RailwayPetriNet>(new PetryNetComponent::RailwayPetriNet());
 }
 
 bool MapScene::contains(PointGraphicsObject* item) const
@@ -362,6 +363,8 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     */
     if (m_mode == MapMode::AddState)
     {
+        createNewState((int)mouse_pos.x(), (int)mouse_pos.y());
+        /*
         StateGraphicsObject* state = new StateGraphicsObject(++new_state_id, mouse_pos.x(), mouse_pos.y(), 10);
         state->setFillColor(QColor::fromRgb(0, 200, 0));
         state->setBorderWidth(3.f);
@@ -372,6 +375,7 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         //unselectItems();
         //clearSelectedItems();
         //state->select();
+        */
     }
     else if (m_mode == MapMode::AddLink)
     {
@@ -570,4 +574,19 @@ void MapScene::updateObjectsPosition()
     {
         updateLinksPosition(m_selectedStates);
     }
+}
+
+void MapScene::createNewState(int x, int y)
+{
+    std::string station_name = "Station " + std::to_string(++new_state_id);
+    auto state_id = m_petriNet->addState<PetryNetComponent::Station>(PetryNetComponent::Station(new_state_id,
+                                                                     station_name, x, y, 2));
+    StateGraphicsObject* state = new StateGraphicsObject(new_state_id, x, y, 10);
+    state->setFillColor(QColor::fromRgb(0, 200, 0));
+    state->setBorderWidth(3.f);
+    state->setBorderColor(QColor::fromRgb(0, 0, 200));
+    state->setContainerId(state_id);
+    //MarkerObject* marker = new MarkerObject(0, TRAIN_COLOR, state);
+    //state->addMarker(marker);
+    addItem(state);
 }

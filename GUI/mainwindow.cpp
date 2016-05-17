@@ -960,7 +960,7 @@ void MainWindow::btnRegistrationOkClicked()
                            cmbRegistrationGroup->currentText().toStdString())
                       );
     }
-    catch(SCORPDBAtMemoryLocationExeption e)
+    catch(SCORPDBAtMemoryLocationException e)
     {
         QMessageBox::warning(this, tr("Registration Failed"),
                              tr("Registration failed! User with this name already exist!"));

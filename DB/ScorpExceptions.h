@@ -4,18 +4,18 @@
 #include <iostream>
 #include <exception>
 
-class SCORPBaseExeption: public std::exception
+class SCORPBaseException: public std::exception
 {
 public:
    virtual std::string getErrorCode()=0;
 };
 
-class SCORPDBAtMemoryLocationExeption : public SCORPBaseExeption
+class SCORPDBAtMemoryLocationException : public SCORPBaseException
 {
     std::string m_keyColumn;
     std::string m_tableName;
 public:
-    SCORPDBAtMemoryLocationExeption(std::string table, std::string key)
+    SCORPDBAtMemoryLocationException(std::string table, std::string key)
        : m_tableName(table), m_keyColumn(key)
     {
     }

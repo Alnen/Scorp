@@ -8,6 +8,8 @@
 #include <QObject>
 #include <vector>
 
+#include "../PetriNetComponents.h"
+
 namespace GraphicsObjectType
 {
     enum { PointType = QAbstractGraphicsShapeItem::UserType + 1, StateType, TransitionType, TrackType};
@@ -44,6 +46,9 @@ public:
     static float normalizeAngle(float angle);
     static float getAngle(float sin_a, float cos_a);
 
+    PetryNetComponent::IdType getContainerId();
+    void setContainerId(PetryNetComponent::IdType id);
+
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
 
@@ -55,6 +60,7 @@ protected:
     bool m_selected;
     int m_id;
     int m_parentID;
+    PetryNetComponent::IdType m_containerId;
 };
 
 #endif // POINT_GRAPHICS_ITEM_H

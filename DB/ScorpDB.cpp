@@ -25,7 +25,7 @@ std::vector<std::string> ScorpDBSell::getDataFromRow(std::string table_name,
         }
         catch(SQLite::Exception e)
         {
-            throw SCORPDBAtMemoryLocationExeption(table_name, key);
+            throw SCORPDBAtMemoryLocationException(table_name, key);
         }
     }
     return data_row;
@@ -55,7 +55,7 @@ std::vector<std::vector<std::string>> ScorpDBSell::getAllDataFromTable(std::stri
         }
         catch(SQLite::Exception e)
         {
-            throw SCORPDBAtMemoryLocationExeption(table_name, "");
+            throw SCORPDBAtMemoryLocationException(table_name, "");
         }
     }
     return table_rows;
@@ -84,7 +84,7 @@ void ScorpDBSell::changeData(std::string table_name, std::string key_column, std
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption(table_name, key_column);
+        throw SCORPDBAtMemoryLocationException(table_name, key_column);
     }
 }
 
@@ -100,7 +100,7 @@ void ScorpDBSell::addRowToUser(std::string login, std::string password , std::st
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption("User", login);
+        throw SCORPDBAtMemoryLocationException("User", login);
     }
 }
 
@@ -125,7 +125,7 @@ void ScorpDBSell::addRowToGroup(std::string name, std::string view_map, std::str
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption("UserGroups", name);
+        throw SCORPDBAtMemoryLocationException("UserGroups", name);
     }
 }
 
@@ -144,7 +144,7 @@ void ScorpDBSell::addRowToStation(std::string id, std::string name, std::string 
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption("Station", id);
+        throw SCORPDBAtMemoryLocationException("Station", id);
     }
 }
 
@@ -161,7 +161,7 @@ void ScorpDBSell::addRowToRoutePart(std::string route, std::string transition,
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption("RoutePart", route+" "+ transition);
+        throw SCORPDBAtMemoryLocationException("RoutePart", route+" "+ transition);
     }
 }
 
@@ -177,7 +177,7 @@ void ScorpDBSell::addRowToTransition(std::string transition, std::string station
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption("Transition", transition);
+        throw SCORPDBAtMemoryLocationException("Transition", transition);
     }
 }
 
@@ -192,7 +192,7 @@ void ScorpDBSell::addRowToTrain(std::string number, std::string route)
      }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption("Train", number);
+        throw SCORPDBAtMemoryLocationException("Train", number);
     }
 }
 
@@ -207,7 +207,7 @@ void ScorpDBSell::addRowToRoute(std::string id, std::string name)
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption("Route", id);
+        throw SCORPDBAtMemoryLocationException("Route", id);
     }
 }
 
@@ -224,7 +224,7 @@ void ScorpDBSell::deleteRowFromTable(std::string table_name, std::string key_col
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption(table_name, key);
+        throw SCORPDBAtMemoryLocationException(table_name, key);
     }
 }
 	
@@ -296,7 +296,7 @@ std::string ScorpDBSell::getGroupUser(std::string login)
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption("User", login);
+        throw SCORPDBAtMemoryLocationException("User", login);
     }
     return "";
 }
@@ -323,7 +323,7 @@ std::vector<std::vector<std::string>> ScorpDBSell::getInfoAboutTable(std::string
     }
     catch(SQLite::Exception e)
     {
-        throw SCORPDBAtMemoryLocationExeption(table_name, "");
+        throw SCORPDBAtMemoryLocationException(table_name, "");
     }
     return table_rows;
 }

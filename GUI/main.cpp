@@ -59,7 +59,6 @@ private:
 };
 
 using TestTypeList = meta::TypeList<int, char, float>;
-
 using TestPetriNetTraits = PetriNetTraits<meta::TypeList<SpecialMarker, int>, TestTypeList, TestTypeList>;
 using TestPetriNet = container::PetriNet<TestPetriNetTraits>;
 using TestPetriNetStorage = PetriNetStorage<TestPetriNetTraits>;
