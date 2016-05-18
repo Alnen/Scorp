@@ -1,6 +1,9 @@
+#include <algorithm/CountReachableMarkers.h>
+#include <manipulator/PositionValidator.h>
 #include "gtest/gtest.h"
 #include "container/PetriNetTraits.h"
 #include "container/PetriNet.h"
+#include "manipulator/PositionValidator.h"
 
 class Base
 {
@@ -78,7 +81,7 @@ using TransitionList = meta::TypeList<ExitCity, EnterCity>;
 class PetriNetMarkerPropagationTest : public testing::Test
 {
 public:
-    using RailwayPetriNetTraits = PetriNetTraits<MarkerList, TransitionList, StateList>;
+    using RailwayPetriNetTraits = container::PetriNetTraits<MarkerList, TransitionList, StateList>;
     using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
     using IdType = typename RailwayPetriNetTraits::IdType;
 
@@ -161,4 +164,28 @@ TEST_F(PetriNetMarkerPropagationTest, iteratorSunnyCase)
 
         std::cout << std::string(identLevel, ' ') <<  enumMapping[static_cast<int>((*it).first)] << " " << (*it).second.getObjectId() << " " << (*it).second.getObjectSerializedType() << std::endl;
     }
+}
+
+TEST_F(PetriNetMarkerPropagationTest, inputManupulatorTest)
+{
+    std::cout << algorithm::countReachableMarkers(railwayPetriNet->getIteratorBeginFromState<City>(0), railwayPetriNet->getIteratorEnd()) << std::endl;
+}
+
+TEST_F(PetriNetMarkerPropagationTest, outputManipulatorTest)
+{
+    std::ostringstream stream;
+    stream << manupulator::positioninserter;
+    ASSERT_EQ("\n0\n", stream.str());
+}
+
+TEST_F(PetriNetMarkerPropagationTest, inputManipulatorPassTest)
+{
+    std::istringstream stream("0");
+    ASSERT_NO_THROW({ stream >> manupulator::positionvalidator; });
+}
+
+TEST_F(PetriNetMarkerPropagationTest, inputManipulatorFailTest)
+{
+    std::istringstream stream("1");
+    ASSERT_THROW({ stream >> manupulator::positionvalidator; }, manupulator::StreamIsNotValid);
 }

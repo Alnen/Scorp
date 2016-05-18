@@ -5,6 +5,9 @@
 #include "IdObjectWrapper.h"
 #include "container/internal/PetriNetStorage.h"
 
+namespace container
+{
+
 template <class _Marker>
 class MarkerObjectWrapper
 {
@@ -93,5 +96,7 @@ public:
     ~MarkerWrapper() {
     }
 };
+
+}
 
 #endif //MARKERWRAPPER_H

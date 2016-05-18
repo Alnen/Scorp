@@ -7,6 +7,9 @@
 #include "PetriNet.h"
 #include "allocator/StlAllocator.h"
 
+namespace container
+{
+
 template <class _MarkerList, class _TransitionList, class _StateList>
 struct PetriNetTraits
 {
@@ -31,5 +34,7 @@ struct PetriNetTraits
     template <class Type>
     using Allocator = allocator::Allocator<Type>;
 };
+
+}
 
 #endif //PETRINETTRAITS_H

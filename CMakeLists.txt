@@ -14,4 +14,4 @@ endif()
 
 message("SOURCE_FILES: ${SOURCE_FILES}")
 
-add_executable(ScorpCore ${SOURCE_FILES})
+add_executable(ScorpCore ${SOURCE_FILES} include/algorithm/CountReachableMarkers.h)
