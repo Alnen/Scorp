@@ -1,12 +1,12 @@
-#include "ScorpDBShell.h"
+#include "ScorpDBSell.h"
 #include "ScorpExceptions.h"
 #include "set"
-ScorpDBShell::ScorpDBShell(void)
+ScorpDBSell::ScorpDBSell(void)
     : db("ScorpDB.db", SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE)
 {	
 }
 
-ScorpDBShell::ScorpDBShell(std::string db_path, bool is_new)
+ScorpDBSell::ScorpDBSell(std::string db_path, bool is_new)
     : db(db_path, SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE)
 {
     if(is_new)
@@ -40,7 +40,7 @@ ScorpDBShell::ScorpDBShell(std::string db_path, bool is_new)
 	}
 }
 
-void ScorpDBShell::addUser(User user)
+void ScorpDBSell::addUser(User user)  
 {
     try
     {
@@ -51,7 +51,7 @@ void ScorpDBShell::addUser(User user)
         throw e;
     }
 }
-void ScorpDBShell::addUserGroups(UserGroup user_group)
+void ScorpDBSell::addUserGroups(UserGroup user_group)
 {
     try
     {
@@ -68,7 +68,7 @@ void ScorpDBShell::addUserGroups(UserGroup user_group)
         throw e;
     }
 }
-void ScorpDBShell::addTransition(Transition transition)
+void ScorpDBSell::addTransition(Transition transition)
 {
     try
     {
@@ -79,7 +79,7 @@ void ScorpDBShell::addTransition(Transition transition)
         throw e;
     }
 }
-void ScorpDBShell::addTrain(Train train)
+void ScorpDBSell::addTrain(Train train)
 {
     try
     {
@@ -90,7 +90,7 @@ void ScorpDBShell::addTrain(Train train)
         throw e;
     }
 }
-void ScorpDBShell::addStation(Station station)
+void ScorpDBSell::addStation(Station station)
 {
     try
     {
@@ -101,7 +101,7 @@ void ScorpDBShell::addStation(Station station)
         throw e;
     }
 }
-void ScorpDBShell::addRoutePart(RoutePart route_part)
+void ScorpDBSell::addRoutePart(RoutePart route_part)
 {
     try
     {
@@ -113,7 +113,7 @@ void ScorpDBShell::addRoutePart(RoutePart route_part)
         throw e;
     }
 }
-void ScorpDBShell::addRoute(Route route)
+void ScorpDBSell::addRoute(Route route)
 {
     try
     {
@@ -125,7 +125,7 @@ void ScorpDBShell::addRoute(Route route)
     }
 }
 
-void  ScorpDBShell::changeDataInColume(TableName table_name, std::string key,
+void  ScorpDBSell::changeDataInColume(TableName table_name, std::string key,
                                       std::string colume_name, std::string data)
 {
     try
@@ -164,7 +164,7 @@ void  ScorpDBShell::changeDataInColume(TableName table_name, std::string key,
         throw e;
     }
 }
-void  ScorpDBShell::deleteFromTable(TableName table_name, std::string key)
+void  ScorpDBSell::deleteFromTable(TableName table_name, std::string key)
 {
     try
     {
@@ -202,7 +202,7 @@ void  ScorpDBShell::deleteFromTable(TableName table_name, std::string key)
         throw e;
     }
 }
-std::vector<std::string> ScorpDBShell::getRowFromTable(TableName table_name, std::string key)
+std::vector<std::string> ScorpDBSell::getRowFromTable(TableName table_name, std::string key)
 {
     try
     {
@@ -241,20 +241,20 @@ std::vector<std::string> ScorpDBShell::getRowFromTable(TableName table_name, std
     }
     return std::vector<std::string>();
 }
-std::vector<std::vector<std::string>>  ScorpDBShell::getAllRowsFromTable(TableName table_name)
+std::vector<std::vector<std::string>>  ScorpDBSell::getAllRowsFromTable(TableName table_name)
 {
     return  getAllDataFromTable(tableNameToString(table_name));
 }
-bool ScorpDBShell::isUserExist(std::string login)
+bool ScorpDBSell::isUserExist(std::string login) 
 {
     return isUserExistInDb(login);
 }
-bool ScorpDBShell::authenticate(std::string login, std::string password)
+bool ScorpDBSell::authenticate(std::string login, std::string password) 
 {
     return isValidPassword(login, password);
 }
 
-std::array<bool, 8> ScorpDBShell::getUserRights(UserGroupName group)
+std::array<bool, 8> ScorpDBSell::getUserRights(UserGroupName group)
 {
     std::array<bool, 8> rights;
     std::string group_name = "";
@@ -285,7 +285,7 @@ std::array<bool, 8> ScorpDBShell::getUserRights(UserGroupName group)
     return rights;
 }
 
-UserGroupName ScorpDBShell::getUserGroup(std::string login) //cxcxcx
+UserGroupName ScorpDBSell::getUserGroup(std::string login)
 {
     std::string group;
     try
@@ -311,7 +311,7 @@ UserGroupName ScorpDBShell::getUserGroup(std::string login) //cxcxcx
     }
 }
 
-std::vector<std::string> ScorpDBShell::getRoutsFromAtoB(std::string stA, std::string stB)
+std::vector<std::string> ScorpDBSell::getRoutsFromAtoB(std::string stA, std::string stB)
 {
     std::vector<std::vector<std::string>> routs= getAllRowsFromTable(TableName::ROUTE);
     std::vector<std::vector<std::string>> routParts= getAllRowsFromTable(TableName::ROUTE_PART);
@@ -347,6 +347,8 @@ std::vector<std::string> ScorpDBShell::getRoutsFromAtoB(std::string stA, std::st
     return resultRouts;
 
 }
-ScorpDBShell::~ScorpDBShell(void)
+
+
+ScorpDBSell::~ScorpDBSell(void)
 {
 }

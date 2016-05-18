@@ -36,4 +36,55 @@ public:
     }
 };
 
+class ItemNotFoundException : public SCORPBaseException
+{
+    enum class TypeItrem{USER, USER_GROUP, TRANSITION, TRAIN, STATION, ROUTE, ROUTE_PART};
+     std::string item;
+public:
+    ItemNotFoundException(TypeItrem lostTypeItem)
+    {
+        if(lostTypeItem==TypeItrem::USER)
+        {
+            item="User";
+        }
+        if(lostTypeItem==TypeItrem::USER_GROUP)
+        {
+            item="User Group";
+        }
+        if(lostTypeItem==TypeItrem::TRANSITION)
+        {
+            item="Transition";
+        }
+        if(lostTypeItem==TypeItrem::TRAIN)
+        {
+            item="Train";
+        }
+        if(lostTypeItem==TypeItrem::STATION)
+        {
+            item="Station";
+        }
+        if(lostTypeItem==TypeItrem::ROUTE)
+        {
+            item="Route";
+        }
+        if(lostTypeItem==TypeItrem::ROUTE_PART)
+        {
+            item="Route Part";
+        }
+    }
+
+    virtual std::string getErrorCode()
+    {
+        return "SCORPDB02";
+    }
+
+    std::string getLostItem()
+    {
+        return item;
+    }
+
+
+};
+
+
 #endif // SCORP_EXCEPTION_H
