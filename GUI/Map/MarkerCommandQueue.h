@@ -50,6 +50,7 @@ public:
     void moveMarkerCommand(int id, int new_state_id);
     void deleteMarkerCommand(int id);
     void makeCommand();
+    void makeAllCommands();
     void setScene(MapScene* scene);
 };
 

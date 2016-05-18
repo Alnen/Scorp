@@ -104,6 +104,7 @@ private:
     int new_state_id;
     int new_link_id;
     //std::vector<MarkerCommandStruct> m_markerCommandQueue;
+public:
     std::unique_ptr<RailwayPetriNet> m_petriNet;
 };
 

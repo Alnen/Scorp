@@ -1024,6 +1024,11 @@ public:
         {
             return m_filled;
         }
+		
+		const SerializedState& getState()
+        {
+            return m_state;
+        }
 
     private:
         bool m_filled = false;

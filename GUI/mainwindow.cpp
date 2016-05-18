@@ -1362,8 +1362,14 @@ void MainWindow::makeStep()
     makeCommand();
     */
     // container -> make step
+    //
+    //MarkerCommandQueue::getInstance().setScene(m_mapScene);
+    //MarkerCommandQueue::getInstance().addMarkerCommand(0, 1);
+    //MarkerCommandQueue::getInstance().makeCommand();
+
     MarkerCommandQueue::getInstance().setScene(m_mapScene);
-    MarkerCommandQueue::getInstance().addMarkerCommand(0, 1);
-    MarkerCommandQueue::getInstance().makeCommand();
+    m_mapScene->m_petriNet->executeMarkersPropagation();
+    MarkerCommandQueue::getInstance().makeAllCommands();
+
     m_mapScene->update(m_mapScene->sceneRect());
 }

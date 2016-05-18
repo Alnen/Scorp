@@ -122,6 +122,14 @@ void MarkerCommandQueue::makeCommand()
     }
 }
 
+void MarkerCommandQueue::makeAllCommands()
+{
+    while (m_commands.size() > 0)
+    {
+        makeCommand();
+    }
+}
+
 void MarkerCommandQueue::setScene(MapScene* scene)
 {
     if (p_instance)
