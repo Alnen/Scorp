@@ -5,6 +5,9 @@
 #include "PetriNetTraits.h"
 #include "IdObjectWrapper.h"
 
+namespace container
+{
+
 template <class _Transition, class _PetriNetTraits>
 class TransitionWrapper;
 
@@ -129,5 +132,7 @@ public:
     ~StateWrapper() {
     }
 };
+
+}
 
 #endif //STATEWRAPPER_H

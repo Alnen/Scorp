@@ -30,11 +30,11 @@ public:
     >::template MapStorage<T>;
 
     template <class T>
-    using SpecializedMarkerWrapper = meta::TypeHolder<MarkerWrapper<T, PetriNetTraits>>;
+    using SpecializedMarkerWrapper = meta::TypeHolder<container::MarkerWrapper<T, PetriNetTraits>>;
     template <class T>
-    using SpecializedStateWrapper = meta::TypeHolder<StateWrapper<T, PetriNetTraits>>;
+    using SpecializedStateWrapper = meta::TypeHolder<container::StateWrapper<T, PetriNetTraits>>;
     template <class T>
-    using SpecializedTransitionWrapper = meta::TypeHolder<TransitionWrapper<T, PetriNetTraits>>;
+    using SpecializedTransitionWrapper = meta::TypeHolder<container::TransitionWrapper<T, PetriNetTraits>>;
 
     PetriNetStorage() = default;
 

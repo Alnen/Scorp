@@ -1,6 +1,9 @@
 #ifndef IDOBJECTWRAPPER_H
 #define IDOBJECTWRAPPER_H
 
+namespace container
+{
+
 template <class _IdType>
 class IdObjectWrapper
 {
@@ -29,5 +32,7 @@ protected:
 private:
     IdType m_id;
 };
+
+}
 
 #endif //IDOBJECTWRAPPER_H

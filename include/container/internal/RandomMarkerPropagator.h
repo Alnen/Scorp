@@ -33,7 +33,7 @@ public:
     template <class Deleter>
     void operator()(
             container::PetriNet<PetriNetTraits>& petriNet,
-            const TransitionWrapper<Transition, PetriNetTraits>& transition,
+            const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
             const std::vector<std::reference_wrapper<ResourceHolder<SerializedMarkerInState, Deleter>>>& inMarkers,
             const std::vector<std::reference_wrapper<MarkerFiller>>& outMarkers)
     {
@@ -56,7 +56,7 @@ public:
     MarkerExtractor1() = default;
     MarkerExtractor1(const MarkerExtractor1<PetriNetTraits, State>&) = default;
 
-    MarkerExtractor1(const StateWrapper<State, PetriNetTraits>& state):
+    MarkerExtractor1(const container::StateWrapper<State, PetriNetTraits>& state):
          m_state(state)
     {
     }
@@ -75,7 +75,7 @@ public:
     }
 
     std::pair<IndexType, IndexType> serializedMarker;
-    const StateWrapper<State, PetriNetTraits>& m_state;
+    const container::StateWrapper<State, PetriNetTraits>& m_state;
 };
 
 template <class _PetriNetTraits, class _Transition, class _State>
@@ -90,8 +90,8 @@ public:
 
     boost::optional<std::pair<IdType, IdType>> operator()(
             const container::PetriNet<PetriNetTraits>& petriNet,
-            const TransitionWrapper<Transition, PetriNetTraits>& transition,
-            const StateWrapper<State, PetriNetTraits>& state) const
+            const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
+            const container::StateWrapper<State, PetriNetTraits>& state) const
     {
         MarkerExtractor1<PetriNetTraits, State> extractor(state);
         meta::ForEachLooper<MarkerList, decltype(extractor)> looper(extractor);

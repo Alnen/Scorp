@@ -4,7 +4,7 @@
 using TestMarkerList = meta::TypeList<int>;
 using TestStateList = meta::TypeList<int>;
 using TestTransitionList = meta::TypeList<int>;
-using TestPetriNetTrait = PetriNetTraits<TestMarkerList, TestStateList, TestTransitionList>;
+using TestPetriNetTrait = container::PetriNetTraits<TestMarkerList, TestStateList, TestTransitionList>;
 using TestPetriNet = container::PetriNet<TestPetriNetTrait>;
 
 class BasePetriNetTest: public testing::Test

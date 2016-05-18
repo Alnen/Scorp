@@ -4,6 +4,9 @@
 #include "IdObjectWrapper.h"
 #include "meta/TypeListStorage.h"
 
+namespace container
+{
+
 template <class _State, class _PetriNetTraits>
 class StateWrapper;
 
@@ -102,5 +105,7 @@ public:
     ~TransitionWrapper() {
     }
 };
+
+}
 
 #endif //TRANSITIONWRAPPER_H
