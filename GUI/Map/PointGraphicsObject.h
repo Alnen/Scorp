@@ -35,7 +35,7 @@ public:
     bool selectEnable() const;
     virtual void setParentID(int parent);
     virtual int parentID() const;
-    virtual int id() const;
+    virtual int getId() const;
     QRectF boundingRect() const Q_DECL_OVERRIDE;
     int type() const Q_DECL_OVERRIDE;
 
@@ -45,9 +45,6 @@ public:
     static QPointF getEquationIntersectionPoint(float k1, float b1, float k2, float b2);
     static float normalizeAngle(float angle);
     static float getAngle(float sin_a, float cos_a);
-
-    PetryNetComponent::IdType getContainerId();
-    void setContainerId(PetryNetComponent::IdType id);
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;

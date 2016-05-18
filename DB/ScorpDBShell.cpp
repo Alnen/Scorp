@@ -1,12 +1,12 @@
-#include "ScorpDBSell.h"
+#include "ScorpDBShell.h"
 #include "ScorpExceptions.h"
 
-ScorpDBSell::ScorpDBSell(void)
+ScorpDBShell::ScorpDBShell(void)
     : db("ScorpDB.db", SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE)
 {	
 }
 
-ScorpDBSell::ScorpDBSell(std::string db_path, bool is_new)
+ScorpDBShell::ScorpDBShell(std::string db_path, bool is_new)
     : db(db_path, SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE)
 {
     if(is_new)
@@ -40,7 +40,7 @@ ScorpDBSell::ScorpDBSell(std::string db_path, bool is_new)
 	}
 }
 
-void ScorpDBSell::addUser(User user)  
+void ScorpDBShell::addUser(User user)
 {
     try
     {
@@ -51,7 +51,7 @@ void ScorpDBSell::addUser(User user)
         throw e;
     }
 }
-void ScorpDBSell::addUserGroups(UserGroup user_group)
+void ScorpDBShell::addUserGroups(UserGroup user_group)
 {
     try
     {
@@ -68,7 +68,7 @@ void ScorpDBSell::addUserGroups(UserGroup user_group)
         throw e;
     }
 }
-void ScorpDBSell::addTransition(Transition transition)
+void ScorpDBShell::addTransition(Transition transition)
 {
     try
     {
@@ -79,7 +79,7 @@ void ScorpDBSell::addTransition(Transition transition)
         throw e;
     }
 }
-void ScorpDBSell::addTrain(Train train)
+void ScorpDBShell::addTrain(Train train)
 {
     try
     {
@@ -90,7 +90,7 @@ void ScorpDBSell::addTrain(Train train)
         throw e;
     }
 }
-void ScorpDBSell::addStation(Station station)
+void ScorpDBShell::addStation(Station station)
 {
     try
     {
@@ -101,7 +101,7 @@ void ScorpDBSell::addStation(Station station)
         throw e;
     }
 }
-void ScorpDBSell::addRoutePart(RoutePart route_part)
+void ScorpDBShell::addRoutePart(RoutePart route_part)
 {
     try
     {
@@ -113,7 +113,7 @@ void ScorpDBSell::addRoutePart(RoutePart route_part)
         throw e;
     }
 }
-void ScorpDBSell::addRoute(Route route)
+void ScorpDBShell::addRoute(Route route)
 {
     try
     {
@@ -125,7 +125,7 @@ void ScorpDBSell::addRoute(Route route)
     }
 }
 
-void  ScorpDBSell::changeDataInColume(TableName table_name, std::string key,
+void  ScorpDBShell::changeDataInColume(TableName table_name, std::string key,
                                       std::string colume_name, std::string data)
 {
     try
@@ -164,7 +164,7 @@ void  ScorpDBSell::changeDataInColume(TableName table_name, std::string key,
         throw e;
     }
 }
-void  ScorpDBSell::deleteFromTable(TableName table_name, std::string key)
+void  ScorpDBShell::deleteFromTable(TableName table_name, std::string key)
 {
     try
     {
@@ -202,7 +202,7 @@ void  ScorpDBSell::deleteFromTable(TableName table_name, std::string key)
         throw e;
     }
 }
-std::vector<std::string> ScorpDBSell::getRowFromTable(TableName table_name, std::string key)
+std::vector<std::string> ScorpDBShell::getRowFromTable(TableName table_name, std::string key)
 {
     try
     {
@@ -241,20 +241,20 @@ std::vector<std::string> ScorpDBSell::getRowFromTable(TableName table_name, std:
     }
     return std::vector<std::string>();
 }
-std::vector<std::vector<std::string>>  ScorpDBSell::getAllRowsFromTable(TableName table_name)
+std::vector<std::vector<std::string>>  ScorpDBShell::getAllRowsFromTable(TableName table_name)
 {
     return  getAllDataFromTable(tableNameToString(table_name));
 }
-bool ScorpDBSell::isUserExist(std::string login) 
+bool ScorpDBShell::isUserExist(std::string login)
 {
     return isUserExistInDb(login);
 }
-bool ScorpDBSell::authenticate(std::string login, std::string password) 
+bool ScorpDBShell::authenticate(std::string login, std::string password)
 {
     return isValidPassword(login, password);
 }
 
-std::array<bool, 8> ScorpDBSell::getUserRights(UserGroupName group)
+std::array<bool, 8> ScorpDBShell::getUserRights(UserGroupName group)
 {
     std::array<bool, 8> rights;
     std::string group_name = "";
@@ -285,7 +285,7 @@ std::array<bool, 8> ScorpDBSell::getUserRights(UserGroupName group)
     return rights;
 }
 
-UserGroupName ScorpDBSell::getUserGroup(std::string login)
+UserGroupName ScorpDBShell::getUserGroup(std::string login)
 {
     std::string group;
     try
@@ -311,6 +311,6 @@ UserGroupName ScorpDBSell::getUserGroup(std::string login)
     }
 }
 
-ScorpDBSell::~ScorpDBSell(void)
+ScorpDBShell::~ScorpDBShell(void)
 {
 }

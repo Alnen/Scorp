@@ -9,7 +9,7 @@
 #include "DB/sqlite/sqlite3.h"
 #include <vector>
 
-class ScorpDBSell: public ScorpDBInterface	
+class ScorpDBShell: public ScorpDBInterface
 {
 private:
     SQLite::Database db;
@@ -37,8 +37,8 @@ private:
     std::string tableNameToString(TableName table_name);
 
 public:
-	ScorpDBSell(void);
-    ScorpDBSell(std::string db_name, bool is_new);
+    ScorpDBShell(void);
+    ScorpDBShell(std::string db_name, bool is_new);
     void addUser(User user) override;
     void addUserGroups(UserGroup user_group) override;
     void addTransition(Transition transition) override;
@@ -55,7 +55,7 @@ public:
     bool authenticate(std::string login, std::string password) override;
     std::array<bool, 8> getUserRights(UserGroupName group) override;
     UserGroupName getUserGroup(std::string login) override;
-	~ScorpDBSell(void);
+    ~ScorpDBShell(void);
 };
 
 #endif // SCORP_DB_SELL_H

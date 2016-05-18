@@ -17,6 +17,7 @@ class PointGraphicsObject;
 enum class MapMode { View, Move, AddState, AddLink, Delete };
 enum class MapViewType { Detailed, Generalized, Mixed };
 
+/*
 enum class MarkerCommand { ADD, DELETE, MOVE };
 
 struct MarkerCommandStruct
@@ -29,6 +30,7 @@ struct MarkerCommandStruct
     {
     }
 };
+*/
 
 class MapScene : public QGraphicsScene
 {
@@ -37,10 +39,14 @@ public:
     explicit MapScene(QObject *parent = 0);
     explicit MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent = 0);
     bool contains(PointGraphicsObject* item) const;
+    /*
     void addMarkerCommand(int id, int state_id);
     void moveMarkerCommand(int id, int new_state_id);
     void deleteMarkerCommand(int id);
     void makeCommand();
+    */
+    StateGraphicsObject* createNewState(int x, int y);
+    void createNewLink(StateGraphicsObject* state1, StateGraphicsObject* state2);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
@@ -76,8 +82,6 @@ private:
     StateGraphicsObject* getStateById(int id);
     StateGraphicsObject* getMarkerById(int id);
 
-    void createNewState(int x, int y);
-
 private:
     struct StateLink {
         StateGraphicsObject* state;
@@ -99,7 +103,7 @@ private:
     std::vector<LinkGraphicsObject> m_links;
     int new_state_id;
     int new_link_id;
-    std::vector<MarkerCommandStruct> m_markerCommandQueue;
+    //std::vector<MarkerCommandStruct> m_markerCommandQueue;
     std::unique_ptr<PetryNetComponent::RailwayPetriNet> m_petriNet;
 };
 

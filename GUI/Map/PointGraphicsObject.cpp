@@ -109,7 +109,7 @@ int PointGraphicsObject::parentID() const
     return m_parentID;
 }
 
-int PointGraphicsObject::id() const
+int PointGraphicsObject::getId() const
 {
     return m_id;
 }
@@ -189,14 +189,4 @@ QPointF PointGraphicsObject::getPointByEquation(float x_p, float y_p,
     float delta_y = y_p - k * x_n - b;
     float scale_factor = length / sqrt(delta_x * delta_x + delta_y * delta_y);
     return QPointF(x_p + scale_factor * delta_x, y_p + scale_factor * delta_y);
-}
-
-PetryNetComponent::IdType PointGraphicsObject::getContainerId()
-{
-    //
-}
-
-void PointGraphicsObject::setContainerId(PetryNetComponent::IdType id)
-{
-    //
 }

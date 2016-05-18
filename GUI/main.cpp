@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 //#include "DB/ScorpDBInterface.h"
-#include "DB/ScorpDBSell.h"
+#include "DB/ScorpDBShell.h"
 
 #include <fstream>
 #include <string>

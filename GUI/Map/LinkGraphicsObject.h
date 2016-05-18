@@ -3,6 +3,7 @@
 
 #include "GraphicsObjectsGroup.h"
 #include <QObject>
+#include "../PetriNetComponents.h"
 
 class StateGraphicsObject;
 
@@ -11,7 +12,8 @@ enum class LinkViewMode { DETAILED, GENERIC, FLEXIBLE };
 class LinkGraphicsObject
 {
 public:
-    LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2);
+    LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
+                       PetryNetComponent::RailwayPetriNet* petri_net = nullptr);
     void select();
     void deselect();
     bool selectEnable();

@@ -11,7 +11,7 @@ class StateGraphicsObject : public PointGraphicsObject
 {
     Q_OBJECT
 public:
-    StateGraphicsObject(int id, float center_x, float center_y, float radius, QColor fill_color = QColor::fromRgb(255, 0, 0),
+    StateGraphicsObject(int getId, float center_x, float center_y, float radius, QColor fill_color = QColor::fromRgb(255, 0, 0),
                   QGraphicsItem* parent = nullptr);
     float getRadius() const;
     void setRadius(float radius);

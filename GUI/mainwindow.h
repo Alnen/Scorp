@@ -127,8 +127,10 @@ private slots:
     void acceptArrivalDateTimeChanges();
     void findTour();
     void updateUIbyUserGroup();
+    void makeStep();
 
 private:
+    QPushButton* btnMakeStep;
     UserInfo m_currentUser;
     ScorpDBInterface* m_db;
 

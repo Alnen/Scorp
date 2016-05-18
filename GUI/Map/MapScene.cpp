@@ -37,6 +37,7 @@ bool MapScene::contains(PointGraphicsObject* item) const
     return false;
 }
 
+/*
 void MapScene::addMarkerCommand(int id, int state_id)
 {
     m_markerCommandQueue.push_back(MarkerCommandStruct(MarkerCommand::ADD, id, state_id));
@@ -64,7 +65,7 @@ void MapScene::makeCommand()
                 if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
                 {
                     curr_state = (StateGraphicsObject*)item;
-                    if (curr_state->id() == m_markerCommandQueue[0].param2)
+                    if (curr_state->getId() == m_markerCommandQueue[0].param2)
                     {
                         curr_state->addMarker(new MarkerObject(m_markerCommandQueue[0].param1,
                                               TRAIN_COLOR, curr_state));
@@ -107,7 +108,7 @@ void MapScene::makeCommand()
                     {
                         old_state = curr_state;
                     }
-                    if (curr_state->id() == m_markerCommandQueue[0].param2)
+                    if (curr_state->getId() == m_markerCommandQueue[0].param2)
                     {
                         new_state = curr_state;
                     }
@@ -126,6 +127,7 @@ void MapScene::makeCommand()
         m_markerCommandQueue.erase(m_markerCommandQueue.begin());
     }
 }
+*/
 
 void MapScene::addLinkToScene(int index)
 {
@@ -216,7 +218,7 @@ void MapScene::retainSelectedItems()
             is_found = false;
             for (int i = 0; i < m_selectedStates.size(); ++i)
             {
-                if (m_selectedStates[i]->id() == state_item->id())
+                if (m_selectedStates[i]->getId() == state_item->getId())
                 {
                     is_found = true;
                     break;
@@ -385,16 +387,7 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             {
                 // generate transition
                 //unselectItems();
-                LinkGraphicsObject link(++new_link_id, m_linkedState, m_selectedStates[0]);
-                m_links.push_back(link);
-                m_stateLinks.push_back(StateLink(m_linkedState, m_links[m_links.size()-1].getID(), true));
-                m_stateLinks.push_back(StateLink(m_selectedStates[0], m_links[m_links.size()-1].getID(), false));
-                addLinkToScene(m_links.size()-1);
-                //disconnect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
-                unselectItems();
-                //clearSelectedItems();
-                //connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
-                m_links[m_links.size()-1].select();
+                createNewLink(m_linkedState, m_selectedStates[0]);
                 m_linkedState = nullptr;
                 //this->update(this->sceneRect());
             }
@@ -576,17 +569,27 @@ void MapScene::updateObjectsPosition()
     }
 }
 
-void MapScene::createNewState(int x, int y)
+StateGraphicsObject* MapScene::createNewState(int x, int y)
 {
     std::string station_name = "Station " + std::to_string(++new_state_id);
-    auto state_id = m_petriNet->addState<PetryNetComponent::Station>(PetryNetComponent::Station(new_state_id,
-                                                                     station_name, x, y, 2));
-    StateGraphicsObject* state = new StateGraphicsObject(new_state_id, x, y, 10);
+    auto state_id = m_petriNet->addState<PetryNetComponent::Station>(PetryNetComponent::Station(station_name, x, y, 2));
+    StateGraphicsObject* state = new StateGraphicsObject((int)state_id, x, y, 10);
     state->setFillColor(QColor::fromRgb(0, 200, 0));
     state->setBorderWidth(3.f);
     state->setBorderColor(QColor::fromRgb(0, 0, 200));
-    state->setContainerId(state_id);
     //MarkerObject* marker = new MarkerObject(0, TRAIN_COLOR, state);
     //state->addMarker(marker);
     addItem(state);
+    return state;
+}
+
+void MapScene::createNewLink(StateGraphicsObject* state1, StateGraphicsObject* state2)
+{
+    LinkGraphicsObject link(++new_link_id, state1, state2, m_petriNet.get());
+    m_links.push_back(link);
+    m_stateLinks.push_back(StateLink(state1, m_links[m_links.size()-1].getID(), true));
+    m_stateLinks.push_back(StateLink(state2, m_links[m_links.size()-1].getID(), false));
+    addLinkToScene(m_links.size()-1);
+    unselectItems();
+    m_links[m_links.size()-1].select();
 }

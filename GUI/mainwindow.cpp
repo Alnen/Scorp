@@ -37,7 +37,7 @@
 #include <QDebug>
 
 #include "DB/ScorpExceptions.h"
-#include "DB/ScorpDBSell.h"
+#include "DB/ScorpDBShell.h"
 #include "Map/MapScene.h"
 #include "Map/TrackGraphicsObject.h"
 #include "Map/PointGraphicsObject.h"
@@ -47,10 +47,12 @@
 #include "StationsList/TreeModel.h"
 #include "StationsList/StationsListModel.h"
 
+#include "Map/MarkerCommandQueue.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    m_db = new ScorpDBSell("../Scorp/DB/ScorpDB.db", false);
+    m_db = new ScorpDBShell("../Scorp/DB/ScorpDB.db", false);
     //this->setFixedSize(QSize(600, 500));
     QRect desktop_screen = QApplication::desktop()->screen()->rect();
     QPoint center_pos = desktop_screen.center();
@@ -87,8 +89,12 @@ MainWindow::MainWindow(QWidget *parent)
     defineLoginForm();
     defineMap();
     defineStationsList();
-
     defineAuthorizationForm();
+
+    btnMakeStep = new QPushButton(tr("Make Step"), this);
+    btnMakeStep->setGeometry(this->width() - 84, frameAuthorization->y()+frameAuthorization->height()+2, 80, 20);
+    connect(btnMakeStep, &QPushButton::clicked, this, &MainWindow::makeStep);
+
     m_currentUser.setUserRights(m_db->getUserRights(UserGroupName::USER));
     updateUIbyUserGroup();
 }
@@ -103,6 +109,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     // move authorizationform
     frameAuthorization->setGeometry(new_size.width() - frameAuthorization->width() - 2, 0,
                                     frameAuthorization->width(), frameAuthorization->height());
+    btnMakeStep->setGeometry(this->width() - 84, frameAuthorization->y()+frameAuthorization->height()+2, 80, 20);
     // move status bar
     m_statusBar->setGeometry(0, new_size.height()-24, new_size.width(), 24);
     // resize map
@@ -287,11 +294,19 @@ void MainWindow::defineMap()
     StateGraphicsObject* state2 = new StateGraphicsObject(1, 300, 300, 10);
     m_mapScene->addItem(state2);
     LinkGraphicsObject link(2, state, state2);
-    std::vector<PointGraphicsObject*> link_items(link.getLinkParts());
+    */
+    //std::vector<PointGraphicsObject*> link_items(link.getLinkParts());
+    /*
     for (size_t i = 0; i < link_items.size(); ++i)
     {
         m_mapScene->addItem(link_items[i]);
     }
+    */
+    //m_mapScene->addLinkToScene(0);
+    /*
+    StateGraphicsObject* state1 = m_mapScene->createNewState(100, 100);
+    StateGraphicsObject* state2 = m_mapScene->createNewState(200, 200);
+    m_mapScene->createNewLink(state1, state2);
     */
 
     /*
@@ -1336,4 +1351,19 @@ void MainWindow::updateUIbyUserGroup()
     {
         actFindTour->setVisible(false);
     }
+}
+
+void MainWindow::makeStep()
+{
+    /*
+    addMarkerCommand(int id, int state_id);
+    moveMarkerCommand(int id, int new_state_id);
+    deleteMarkerCommand(int id);
+    makeCommand();
+    */
+    // container -> make step
+    MarkerCommandQueue::getInstance().setScene(m_mapScene);
+    MarkerCommandQueue::getInstance().addMarkerCommand(0, 1);
+    MarkerCommandQueue::getInstance().makeCommand();
+    m_mapScene->update(m_mapScene->sceneRect());
 }

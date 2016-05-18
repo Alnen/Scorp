@@ -3,30 +3,14 @@
 
 #include "container/PetriNetTraits.h"
 #include "container/PetriNet.h"
+#include "meta/RuntimeTypeSwitch.h"
+#include "container/TransitionWrapper.h"
+#include "container/StateWrapper.h"
+#include <utility>
 
 namespace PetryNetComponent
 {
-class BaseComponent
-{
-private:
-    int m_id;
-
-public:
-    BaseComponent() : m_id(0)
-    {
-    }
-
-    BaseComponent(int id) : m_id(id)
-    {
-    }
-
-    const int getId() const
-    {
-        return m_id;
-    }
-};
-
-class Station : public BaseComponent
+class Station
 {
 private:
     std::string m_name;
@@ -35,13 +19,12 @@ private:
     int m_capacity;
 
 public:
-    Station(int id = 0) : BaseComponent(id),
-        m_name(""), m_x(0), m_y(0), m_capacity(1)
+    Station() : m_name(""), m_x(0), m_y(0), m_capacity(1)
     {
     }
 
-    Station(int id, std::string name, int x, int y, int capacity=1)
-        : BaseComponent(id), m_name(name), m_x(x), m_y(y), m_capacity(capacity)
+    Station(std::string name, int x, int y, int capacity=1)
+        : m_name(name), m_x(x), m_y(y), m_capacity(capacity)
     {
     }
 
@@ -66,41 +49,37 @@ public:
     }
 };
 
-class InterState : public BaseComponent
+class InterState
 {
 public:
-    InterState(int id = 0) : BaseComponent(id)
+    InterState()
     {
     }
 };
 
-class Semaphore : public BaseComponent
+class Semaphore
 {
 public:
-    Semaphore(int id = 0) : BaseComponent(id)
+    Semaphore()
     {
     }
 };
 
-class AccessToken : public BaseComponent
+class AccessToken
 {
 public:
-    AccessToken(int id = 0) : BaseComponent(id)
+    AccessToken()
     {
     }
 };
 
-class Train : public BaseComponent
+class Train
 {
 private:
     int m_number;
 
 public:
-    Train(int number) : BaseComponent(), m_number(number)
-    {
-    }
-
-    Train(int id, int number) : BaseComponent(id), m_number(number)
+    Train(int number) : m_number(number)
     {
     }
 
@@ -110,34 +89,81 @@ public:
     }
 };
 
-class ExitFromStation : public BaseComponent
+class ExitFromStation
 {
 public:
-    ExitFromStation() : BaseComponent()
-    {
-    }
-
-    ExitFromStation(int id) : BaseComponent(id)
+    ExitFromStation()
     {
     }
 };
 
-class EnterToStation : public BaseComponent
+class EnterToStation
 {
 public:
-    EnterToStation() : BaseComponent()
-    {
-    }
-
-    EnterToStation(int id) : BaseComponent(id)
+    EnterToStation()
     {
     }
 };
 
-using MarkerList = meta::TypeList<Train, AccessToken>;
-using StateList = meta::TypeList<Station, InterState, Semaphore>;
-using TransitionList = meta::TypeList<ExitFromStation, EnterToStation>;
-using RailwayPetriNetTraits = PetriNetTraits<MarkerList, TransitionList, StateList>;
+template <class _PetriNetTraits, class Transition>
+class MarkerPropagationSolver
+{
+public:
+    using PetriNetTraits = _PetriNetTraits;
+    using IndexType = typename PetriNetTraits::IdType;
+    using TransitionList = typename PetriNetTraits::TransitionList;
+    using MarkerList = typename PetriNetTraits::MarkerList;
+    using PetriNetType = container::PetriNet<PetriNetTraits>;
+    template <class Resource, class Deleter>
+    using ResourceHolder = typename PetriNetType::template ResourceHolder<Resource, Deleter>;
+    using SerializedMarkerInState = typename container::PetriNet<PetriNetTraits>::template SerializedMarkerInState<IndexType>;
+    using MarkerFiller = typename container::PetriNet<PetriNetTraits>::MarkerFiller;
+
+    template <class Deleter>
+    void operator()(
+            container::PetriNet<PetriNetTraits>& petriNet,
+            const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
+            const std::vector<std::reference_wrapper<ResourceHolder<SerializedMarkerInState, Deleter>>>& inMarkers,
+            const std::vector<std::reference_wrapper<MarkerFiller>>& outMarkers)
+    {
+        for (const auto& outMarker : outMarkers)
+        {
+            auto& serializedMarkerInState = outMarker.get();
+            IndexType markerId = serializedMarkerInState.template createState<typename MarkerList::Head>();
+        }
+    }
+};
+
+using _MarkerList = meta::TypeList<Train, AccessToken>;
+using _StateList = meta::TypeList<Station, InterState, Semaphore>;
+using _TransitionList = meta::TypeList<ExitFromStation, EnterToStation>;
+
+template <>
+struct container::PetriNetTraits<_MarkerList, _StateList, _TransitionList>
+{
+    using MarkerList = _MarkerList;
+    using TransitionList = _TransitionList;
+    using StateList = _StateList;
+    using IdType = int;
+    using IdGenerator = IntegralIdGenerator<IdType>;
+
+    template <class Transition, class State>
+    using MarkerExtractor = MarkerExtractor<
+            PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
+            Transition,
+            State>;
+
+    template <class Transition>
+    using MarkerPropagationSolver = MarkerPropagationSolver<
+            PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
+            Transition
+    >;
+
+    template <class Type>
+    using Allocator = allocator::Allocator<Type>;
+};
+
+using RailwayPetriNetTraits = PetriNetTraits<_MarkerList, _TransitionList, _StateList>;
 using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
 using IdType = typename RailwayPetriNetTraits::IdType;
 }

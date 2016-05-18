@@ -5,10 +5,12 @@
 #include "TrackGraphicsObject.h"
 #include "TransitionGraphicsObject.h"
 #include "MapScene.h"
+#include "MarkerObject.h"
 
-//static int counter = 0;
+static int train_counter = 0;
 
-LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2)
+LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
+                                       PetryNetComponent::RailwayPetriNet* petri_net)
     : m_id(id), m_selectionEnable(false), m_viewMode(LinkViewMode::FLEXIBLE), m_selected(false)
 {
     m_minLength = 100.f;
@@ -31,41 +33,57 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
     float cos_alpha = delta_x / part_length;
     float sin_alpha = delta_y / part_length;
     float angle = main_line.getAngle(sin_alpha, cos_alpha);
-    TransitionGraphicsObject* first_transition = new TransitionGraphicsObject(0, quarter_point.x(), quarter_point.y(),
+
+    int state_id1 = state1->getId();
+    int state_id2 = state2->getId();
+
+    auto first_tr_id = (petri_net ? petri_net->addTransition<PetryNetComponent::ExitFromStation>(PetryNetComponent::ExitFromStation()) : 0);
+    TransitionGraphicsObject* first_transition = new TransitionGraphicsObject((int)first_tr_id, quarter_point.x(), quarter_point.y(),
                                                      6, 18, QColor::fromRgb(0, 200, 200));
     first_transition->setRotation(angle);
     first_transition->setParentID(m_id);
     m_detailsInfoGroup.addItem(first_transition);
-    TransitionGraphicsObject* second_transition = new TransitionGraphicsObject(1, three_quarters_point.x(), three_quarters_point.y(),
+
+    auto second_tr_id = (petri_net ? petri_net->addTransition<PetryNetComponent::EnterToStation>(PetryNetComponent::EnterToStation()) : 1);
+    TransitionGraphicsObject* second_transition = new TransitionGraphicsObject((int)second_tr_id, three_quarters_point.x(), three_quarters_point.y(),
                                                       6, 18, QColor::fromRgb(200, 100, 0));
     second_transition->setRotation(angle);
     second_transition->setParentID(m_id);
     m_detailsInfoGroup.addItem(second_transition);
 
-    StateGraphicsObject* interm_state = new StateGraphicsObject(2, interm_state_point.x(), interm_state_point.y(), 10,
+    auto interm_state_id = (petri_net ? petri_net->addState<PetryNetComponent::InterState>(PetryNetComponent::InterState()) : 2);
+    StateGraphicsObject* interm_state = new StateGraphicsObject((int)interm_state_id, interm_state_point.x(), interm_state_point.y(), 10,
                                                                 QColor::fromRgb(200, 200, 0));
     interm_state->setParentID(m_id);
     m_detailsInfoGroup.addItem(interm_state);
-    StateGraphicsObject* blocking_state = new StateGraphicsObject(3, mutex_state_point.x(), mutex_state_point.y(), 10,
+
+    auto blocking_state_id = (petri_net ? petri_net->addState<PetryNetComponent::Semaphore>(PetryNetComponent::Semaphore()) : 3);
+    StateGraphicsObject* blocking_state = new StateGraphicsObject((int)blocking_state_id, mutex_state_point.x(), mutex_state_point.y(), 10,
                                                                   QColor::fromRgb(200, 200, 200));
     blocking_state->setParentID(m_id);
     m_detailsInfoGroup.addItem(blocking_state);
 
+    petri_net->addStateToTransitionConnection<PetryNetComponent::Station, PetryNetComponent::ExitFromStation>(state_id1, first_tr_id);
     TrackGraphicsObject* track = new TrackGraphicsObject(4, state1, first_transition);
     track->setParentID(m_id);
     m_detailsInfoGroup.addItem(track);
+    petri_net->addTransitionToStateConnection<PetryNetComponent::EnterToStation, PetryNetComponent::Station>(second_tr_id, state_id2);
     track = new TrackGraphicsObject(5, state2, second_transition, TrackDirection::FROM_SECOND_TO_FIRST);
     track->setParentID(m_id);
     m_detailsInfoGroup.addItem(track);
+    petri_net->addTransitionToStateConnection<PetryNetComponent::ExitFromStation, PetryNetComponent::InterState>(first_tr_id, interm_state_id);
     track = new TrackGraphicsObject(6, interm_state, first_transition, TrackDirection::FROM_SECOND_TO_FIRST);
     track->setParentID(m_id);
     m_detailsInfoGroup.addItem(track);
+    petri_net->addStateToTransitionConnection<PetryNetComponent::InterState, PetryNetComponent::EnterToStation>(interm_state_id, second_tr_id);
     track = new TrackGraphicsObject(7, interm_state, second_transition);
     track->setParentID(m_id);
     m_detailsInfoGroup.addItem(track);
+    petri_net->addTransitionToStateConnection<PetryNetComponent::ExitFromStation, PetryNetComponent::Semaphore>(first_tr_id, blocking_state_id);
     track = new TrackGraphicsObject(8, blocking_state, first_transition);
     track->setParentID(m_id);
     m_detailsInfoGroup.addItem(track);
+    petri_net->addStateToTransitionConnection<PetryNetComponent::Semaphore, PetryNetComponent::EnterToStation>(blocking_state_id, first_tr_id);
     track = new TrackGraphicsObject(9, blocking_state, second_transition, TrackDirection::FROM_SECOND_TO_FIRST);
     track->setParentID(m_id);
     m_detailsInfoGroup.addItem(track);
@@ -93,6 +111,14 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
         interm_state->setCenter(interm_state_point.x(), interm_state_point.y());
     }
     interm_state->show();
+
+    // create markers
+    auto train_marker_id = petri_net->addMarker<PetryNetComponent::Train>(state_id1, PetryNetComponent::Train(++train_counter));
+    MarkerObject* train_marker = new MarkerObject(train_marker_id, 0);
+    state1->addMarker(train_marker);
+    auto access_token_id = petri_net->addMarker<PetryNetComponent::AccessToken>(blocking_state_id, PetryNetComponent::AccessToken());
+    MarkerObject* access_token = new MarkerObject(access_token_id, 1);
+    blocking_state->addMarker(access_token);
 }
 
 void LinkGraphicsObject::select()
