@@ -69,6 +69,7 @@ HEADERS  += GUI/mainwindow.h \
     GUI/UserInfo.h \
     GUI/PetriNetComponents.h \
     DB/ScorpDBShell.h \
-    GUI/Map/MarkerCommandQueue.h
+    GUI/Map/MarkerCommandQueue.h \
+    GUI/PetriNetUsing.h
 
 RC_FILE += GUI/icon.rc

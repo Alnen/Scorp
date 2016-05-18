@@ -3,7 +3,7 @@
 
 #include "GraphicsObjectsGroup.h"
 #include <QObject>
-#include "../PetriNetComponents.h"
+#include "../PetriNetUsing.h"
 
 class StateGraphicsObject;
 
@@ -13,7 +13,7 @@ class LinkGraphicsObject
 {
 public:
     LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
-                       PetryNetComponent::RailwayPetriNet* petri_net = nullptr);
+                       RailwayPetriNet* petri_net = nullptr);
     void select();
     void deselect();
     bool selectEnable();

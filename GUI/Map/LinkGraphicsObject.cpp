@@ -10,7 +10,7 @@
 static int train_counter = 0;
 
 LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
-                                       PetryNetComponent::RailwayPetriNet* petri_net)
+                                       RailwayPetriNet* petri_net)
     : m_id(id), m_selectionEnable(false), m_viewMode(LinkViewMode::FLEXIBLE), m_selected(false)
 {
     m_minLength = 100.f;

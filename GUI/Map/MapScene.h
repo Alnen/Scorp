@@ -6,7 +6,7 @@
 #include <vector>
 #include <memory>
 #include "LinkGraphicsObject.h"
-#include "../PetriNetComponents.h"
+#include "../PetriNetUsing.h"
 
 class TestPetriNet;
 
@@ -104,7 +104,7 @@ private:
     int new_state_id;
     int new_link_id;
     //std::vector<MarkerCommandStruct> m_markerCommandQueue;
-    std::unique_ptr<PetryNetComponent::RailwayPetriNet> m_petriNet;
+    std::unique_ptr<RailwayPetriNet> m_petriNet;
 };
 
 #endif // MAP_SCENE_H

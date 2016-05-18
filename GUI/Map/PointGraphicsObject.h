@@ -8,7 +8,7 @@
 #include <QObject>
 #include <vector>
 
-#include "../PetriNetComponents.h"
+#include "../PetriNetUsing.h"
 
 namespace GraphicsObjectType
 {
@@ -57,7 +57,7 @@ protected:
     bool m_selected;
     int m_id;
     int m_parentID;
-    PetryNetComponent::IdType m_containerId;
+    IdType m_containerId;
 };
 
 #endif // POINT_GRAPHICS_ITEM_H
