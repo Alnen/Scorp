@@ -1,6 +1,6 @@
 #include "ScorpDBShell.h"
 #include "ScorpExceptions.h"
-
+#include "set"
 ScorpDBShell::ScorpDBShell(void)
     : db("ScorpDB.db", SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE)
 {	
@@ -311,6 +311,42 @@ UserGroupName ScorpDBShell::getUserGroup(std::string login) //cxcxcx
     }
 }
 
+std::vector<std::string> ScorpDBShell::getRoutsFromAtoB(std::string stA, std::string stB)
+{
+    std::vector<std::vector<std::string>> routs= getAllRowsFromTable(TableName::ROUTE);
+    std::vector<std::vector<std::string>> routParts= getAllRowsFromTable(TableName::ROUTE_PART);
+    std::vector<std::vector<std::string>> transitions= getAllRowsFromTable(TableName::TRANSITION);
+    std::set<std::string> validTrasitionsA;
+    std::set<std::string> validTrasitionsB;
+    std::vector<std::string> resultRouts;
+    for(std::vector<std::string> tr: transitions)
+    {
+        if(tr[1]==stA) validTrasitionsA.insert(tr[0]);
+        if(tr[1]==stB) validTrasitionsB.insert(tr[0]);
+
+    }
+    bool aCheck, bCheck;
+    for(std::vector<std::string> rout: routs)
+    {
+        aCheck=false;
+        bCheck=false;
+        for(std::vector<std::string> routPart: routParts)
+        if((rout[0])==routPart[0])
+        {
+            if(validTrasitionsA.find(routPart[1])!=validTrasitionsA.end()) aCheck=true;
+            if(validTrasitionsB.find(routPart[1])!=validTrasitionsB.end()) bCheck=true;
+            if(aCheck&&bCheck)
+            {
+                resultRouts.push_back(rout[0]);
+                aCheck=false;
+                bCheck=false;
+            }
+
+        }
+    }
+    return resultRouts;
+
+}
 ScorpDBShell::~ScorpDBShell(void)
 {
 }

@@ -55,6 +55,7 @@ public:
     bool authenticate(std::string login, std::string password) override;
     std::array<bool, 8> getUserRights(UserGroupName group) override;
     UserGroupName getUserGroup(std::string login) override;
+    std::vector<std::string> getRoutsFromAtoB(std::string stA, std::string stB);
     ~ScorpDBShell(void);
 };
 

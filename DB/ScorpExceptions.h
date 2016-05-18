@@ -86,4 +86,5 @@ public:
 
 };
 
+
 #endif // SCORP_EXCEPTION_H
