@@ -873,10 +873,10 @@ private:
         template <class Marker>
         void operator()()
         {
-            m_storage = m_state.template getMarkerStorage<Marker>();
+            m_storage = &m_state.template getMarkerStorage<Marker>();
         }
 
-        std::vector<IndexType>& getStatesMarkerStorage() const
+        std::vector<IndexType, typename PetriNetTraits::template Allocator<IndexType>>& getStatesMarkerStorage() const
         {
             if (m_storage == nullptr)
             {
@@ -886,7 +886,7 @@ private:
         }
 
     private:
-        std::vector<IndexType>* m_storage = nullptr;
+        std::vector<IndexType, typename PetriNetTraits::template Allocator<IndexType>>* m_storage = nullptr;
         StateWrapper<State, PetriNetTraits>& m_state;
     };
 
@@ -908,23 +908,23 @@ private:
         void operator()()
         {
             auto& stateStorage = m_petriNet.m_petriNetStorage.template getStateStorage<State>();
-            auto& stateWrapper = stateStorage[m_stateId];
+            auto& stateWrapper = stateStorage.find(m_stateId)->second;
 
             MarkerStorageFinder<State> markerStorageFinder = std::move(meta::calculateBasedOnRealtime<MarkerStorageFinder<State>, MarkerList>(m_markerTypeId, stateWrapper));
-            m_vector = markerStorageFinder.getStatesMarkerStorage();
+            m_vector = &markerStorageFinder.getStatesMarkerStorage();
         }
 
-        std::vector<IndexType>& getStatesMarkerStorage() const
+        std::vector<IndexType, typename PetriNetTraits::template Allocator<IndexType>>& getStatesMarkerStorage() const
         {
-            if (m_petriNet == nullptr)
+            if (m_vector == nullptr)
             {
                 throw std::runtime_error("Couldn't find state's marker storage");
             }
-            return *m_petriNet;
+            return *m_vector;
         }
 
     private:
-        std::vector<IndexType>* m_vector = nullptr;
+        std::vector<IndexType, typename PetriNetTraits::template Allocator<IndexType>>* m_vector = nullptr;
         PetriNet<PetriNetTraits>& m_petriNet;
         IndexType m_stateId;
         IndexType m_markerTypeId;
@@ -941,10 +941,10 @@ private:
         }
 
         template <class Marker>
-        void MarkerType()
+        void operator()()
         {
             auto& markerStorage = m_petriNet.m_petriNetStorage.template getMarkerStorage<Marker>();
-            auto& markerWrapper = markerStorage[m_markerId];
+            auto& markerWrapper = markerStorage.find(m_markerId)->second;
 
             markerWrapper.setId(m_parentId);
         }
@@ -975,7 +975,7 @@ public:
         MarkerFiller& operator=(MarkerFiller&&) = default;
 
     private:
-        std::vector<IndexType>& getMarkerStorage(const SerializedState& state, IndexType markerTypeId)
+        std::vector<IndexType, typename PetriNetTraits::template Allocator<IndexType>>& getMarkerStorage(const SerializedState& state, IndexType markerTypeId)
         {
             StatesMarkerStorageFinder markerStorageFinder = std::move(meta::calculateBasedOnRealtime<StatesMarkerStorageFinder, StateList>(
                     state.getObjectSerializedType(),
@@ -1010,7 +1010,7 @@ public:
                     m_state.getObjectId());
 
             m_filled = true;
-            return serializedMarker.getMarker();
+            return serializedMarker.getMarker().getObjectId();
         }
 
         template <class Marker, class... Args>

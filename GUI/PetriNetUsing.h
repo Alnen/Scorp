@@ -45,7 +45,7 @@ public:
 
             case meta::TypeEnum<StateList, IndexType>::template getValue<PetryNetComponent::Station>():
             {
-                IndexType markerId = serializedMarkerInState.moveState(std::move(inMarkers.front));
+                IndexType markerId = serializedMarkerInState.moveState(std::move(inMarkers.front().get()));
                 //log move
                 MarkerCommandQueue::getInstance().moveMarkerCommand(markerId, serializedMarkerInState.getState().getObjectId());
                 break;
@@ -94,9 +94,9 @@ public:
 
             case meta::TypeEnum<StateList, IndexType>::template getValue<PetryNetComponent::Station>():
             {
-                IndexType markerId = outMarkers.front().moveState(std::move(serializedMarkerInState));
+                IndexType markerId = outMarkers.front().get().moveState(std::move(serializedMarkerInState));
                 // log move
-                MarkerCommandQueue::getInstance().moveMarkerCommand(markerId, outMarkers.front().getState().getObjectId());
+                MarkerCommandQueue::getInstance().moveMarkerCommand(markerId, outMarkers.front().get().getState().getObjectId());
                 break;
             }
 
@@ -116,11 +116,7 @@ using _MarkerList = meta::TypeList<PetryNetComponent::Train, PetryNetComponent::
 using _StateList = meta::TypeList<PetryNetComponent::Station, PetryNetComponent::InterState, PetryNetComponent::Semaphore>;
 using _TransitionList = meta::TypeList<PetryNetComponent::ExitFromStation, PetryNetComponent::EnterToStation>;
 
-namespace container
-{
-template <>
-struct PetriNetTraits<_MarkerList, _StateList, _TransitionList>
-{
+struct RailwayPetriNetTraits {
     using MarkerList = _MarkerList;
     using TransitionList = _TransitionList;
     using StateList = _StateList;
@@ -129,22 +125,20 @@ struct PetriNetTraits<_MarkerList, _StateList, _TransitionList>
 
     template <class Transition, class State>
     using MarkerExtractor = MarkerExtractor<
-            PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
+            RailwayPetriNetTraits,
             Transition,
             State>;
 
     template <class Transition>
     using MarkerPropagationSolver = RailwayMarkerPropagationSolver<
-            PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
+            RailwayPetriNetTraits,
             Transition
     >;
 
     template <class Type>
     using Allocator = allocator::Allocator<Type>;
 };
-}
 
-using RailwayPetriNetTraits = container::PetriNetTraits<_MarkerList, _TransitionList, _StateList>;
 using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
 using IdType = typename RailwayPetriNetTraits::IdType;
 

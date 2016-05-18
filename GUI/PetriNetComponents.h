@@ -1,6 +1,8 @@
 #ifndef PETRI_NET_COMPONENTS
 #define PETRI_NET_COMPONENTS
 
+#include <string>
+
 namespace PetryNetComponent
 {
 class Station
@@ -72,7 +74,7 @@ private:
     int m_number;
 
 public:
-    Train(int number) : m_number(number)
+    Train(int number = 0) : m_number(number)
     {
     }
 
