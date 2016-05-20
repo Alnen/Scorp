@@ -29,7 +29,6 @@ SOURCES += GUI/main.cpp\
     GUI/UserInfo.cpp \
     GUI/Map/LinkGraphicsObject.cpp \
     GUI/Map/GraphicsObjectsGroup.cpp \
-    DB/ScorpDB.cpp \
     DB/sqlite/sqlite3.c \
     DB/sqlite/src/Backup.cpp \
     DB/sqlite/src/Column.cpp \
@@ -39,13 +38,12 @@ SOURCES += GUI/main.cpp\
     GUI/Map/MarkerObject.cpp \
     GUI/Map/TrackGraphicsObject.cpp \
     GUI/mainwindow.cpp \
+    GUI/Map/MarkerCommandQueue.cpp \
     DB/ScorpDBShell.cpp \
-    GUI/Map/MarkerCommandQueue.cpp
+    exceptions/ScorpDBException.cpp \
+    exceptions/ScorpCoreException.cpp
 
 HEADERS  += GUI/mainwindow.h \
-    DB/ScorpDBInterface.h \
-    DB/Tables.h \
-    DB/ScorpExceptions.h \
     DB/sqlite/include/Assertion.h \
     DB/sqlite/include/Backup.h \
     DB/sqlite/include/Column.h \
@@ -70,6 +68,10 @@ HEADERS  += GUI/mainwindow.h \
     GUI/PetriNetComponents.h \
     DB/ScorpDBShell.h \
     GUI/Map/MarkerCommandQueue.h \
-    GUI/PetriNetUsing.h
+    GUI/PetriNetUsing.h \
+    DB/ScorpDBObject.h \
+    exceptions/ScorpException.h \
+    exceptions/ScorpDBException.h \
+    exceptions/ScorpCoreException.h
 
 RC_FILE += GUI/icon.rc

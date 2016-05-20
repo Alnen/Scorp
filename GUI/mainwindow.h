@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <memory>
 #include "UserInfo.h"
+#include "DB/ScorpDBShell.h"
 
 class QTreeView;
 class QGraphicsView;
@@ -28,7 +29,6 @@ class QCalendarWidget;
 class MapScene;
 class StationsListModel;
 enum class MapMode;
-class ScorpDBInterface;
 class QCompleter;
 class QAbstractItemModel;
 
@@ -41,6 +41,7 @@ public:
     ~MainWindow();
 
 signals:
+    void mainWindowCreated();
     void userChanged();
 
 private:
@@ -77,6 +78,7 @@ private:
     void updateTourListEditable(bool status);
 
 private slots:
+    void connectToDatabase();
     void loadFromFile();
     void saveToFile();
 
@@ -130,9 +132,10 @@ private slots:
     void makeStep();
 
 private:
+    QString m_databasePath;
     QPushButton* btnMakeStep;
     UserInfo m_currentUser;
-    ScorpDBInterface* m_db;
+    ScorpDBShell m_databaseManager;
 
     QDialog* dlgEnterLogin;
     QDialog* dlgUsersList;

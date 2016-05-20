@@ -6,13 +6,15 @@
 #include <QDebug>
 #include "MarkerObject.h"
 
+int state_id_generator = 0;
+
 MapScene::MapScene(QObject *parent)
     : QGraphicsScene(parent), m_mode(MapMode::View), m_linkedState(nullptr)
 {
     new_state_id = 0;
     new_link_id = 0;
     connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
-    m_petriNet = std::unique_ptr<RailwayPetriNet>(new RailwayPetriNet());
+    //m_petriNet = std::unique_ptr<RailwayPetriNet>(new RailwayPetriNet());
 }
 
 MapScene::MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent)
@@ -21,7 +23,7 @@ MapScene::MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent)
     new_state_id = 0;
     new_link_id = 0;
     connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
-    m_petriNet = std::unique_ptr<RailwayPetriNet>(new RailwayPetriNet());
+    //m_petriNet = std::unique_ptr<RailwayPetriNet>(new RailwayPetriNet());
 }
 
 bool MapScene::contains(PointGraphicsObject* item) const
@@ -572,13 +574,14 @@ void MapScene::updateObjectsPosition()
 StateGraphicsObject* MapScene::createNewState(int x, int y)
 {
     std::string station_name = "Station " + std::to_string(++new_state_id);
-    auto state_id = m_petriNet->addState<PetryNetComponent::Station>(PetryNetComponent::Station(station_name, x, y, 2));
+    //auto state_id = m_petriNet->addState<PetryNetComponent::Station>(PetryNetComponent::Station(station_name, x, y, 2));
+    int state_id = state_id_generator++;
     StateGraphicsObject* state = new StateGraphicsObject((int)state_id, x, y, 10);
     state->setFillColor(QColor::fromRgb(0, 200, 0));
     state->setBorderWidth(3.f);
     state->setBorderColor(QColor::fromRgb(0, 0, 200));
-    unselectItems();
-    clearSelectedItems();
+    //unselectItems();
+    //clearSelectedItems();
     //MarkerObject* marker = new MarkerObject(0, TRAIN_COLOR, state);
     //state->addMarker(marker);
     addItem(state);
@@ -587,7 +590,8 @@ StateGraphicsObject* MapScene::createNewState(int x, int y)
 
 void MapScene::createNewLink(StateGraphicsObject* state1, StateGraphicsObject* state2)
 {
-    LinkGraphicsObject link(++new_link_id, state1, state2, m_petriNet.get());
+    //LinkGraphicsObject link(++new_link_id, state1, state2, m_petriNet.get());
+    LinkGraphicsObject link(++new_link_id, state1, state2, nullptr);
     m_links.push_back(link);
     m_stateLinks.push_back(StateLink(state1, m_links[m_links.size()-1].getID(), true));
     m_stateLinks.push_back(StateLink(state2, m_links[m_links.size()-1].getID(), false));

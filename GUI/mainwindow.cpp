@@ -36,7 +36,7 @@
 #include <QResizeEvent>
 #include <QDebug>
 
-#include "DB/ScorpExceptions.h"
+//#include "exceptions/ScorpDBException.h"
 #include "DB/ScorpDBShell.h"
 #include "Map/MapScene.h"
 #include "Map/TrackGraphicsObject.h"
@@ -50,9 +50,9 @@
 #include "Map/MarkerCommandQueue.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), m_databasePath("../Scorp/DB/ScorpDB.db")
 {
-    m_db = new ScorpDBShell("../Scorp/DB/ScorpDB.db", false);
+    //m_databaseManager = new ScorpDBShell("../Scorp/DB/ScorpDB.db", false);
     //this->setFixedSize(QSize(600, 500));
     QRect desktop_screen = QApplication::desktop()->screen()->rect();
     QPoint center_pos = desktop_screen.center();
@@ -95,8 +95,8 @@ MainWindow::MainWindow(QWidget *parent)
     btnMakeStep->setGeometry(this->width() - 84, frameAuthorization->y()+frameAuthorization->height()+2, 80, 20);
     connect(btnMakeStep, &QPushButton::clicked, this, &MainWindow::makeStep);
 
-    m_currentUser.setUserRights(m_db->getUserRights(UserGroupName::USER));
-    updateUIbyUserGroup();
+    connect(this, &MainWindow::mainWindowCreated, this, &MainWindow::connectToDatabase);
+    emit mainWindowCreated();
 }
 
 MainWindow::~MainWindow()
@@ -923,6 +923,13 @@ void MainWindow::updateTourListEditable(bool status)
     }
 }
 
+void MainWindow::connectToDatabase()
+{
+    m_databaseManager.connectToDatabase(m_databasePath.toStdString());
+    m_currentUser.setUserRights(m_databaseManager.getUserRights(UserGroupName::USER));
+    updateUIbyUserGroup();
+}
+
 void MainWindow::loadFromFile()
 {
     //
@@ -935,12 +942,12 @@ void MainWindow::saveToFile()
 
 void MainWindow::btnEnterLoginOkClicked()
 {
-    bool is_auth = m_db->authenticate(txtEnterLogin->text().toStdString(),
+    bool is_auth = m_databaseManager.authenticate(txtEnterLogin->text().toStdString(),
                                      txtEnterPassword->text().toStdString());
     if (is_auth)
     {
         lbCurrentUserLogin->setText(txtEnterLogin->text());
-        UserGroupName user_group = m_db->getUserGroup(txtEnterLogin->text().toStdString());
+        UserGroupName user_group = m_databaseManager.getUserGroup(txtEnterLogin->text().toStdString());
         if (user_group == UserGroupName::ADMIN)
         {
             lbCurrentUserGroup->setText("Administrator");
@@ -953,7 +960,7 @@ void MainWindow::btnEnterLoginOkClicked()
         {
             lbCurrentUserGroup->setText("User");
         }
-        m_currentUser.setNewUser(txtEnterLogin->text(), user_group, m_db->getUserRights(user_group));
+        m_currentUser.setNewUser(txtEnterLogin->text(), user_group, m_databaseManager.getUserRights(user_group));
         btnAuthLogin->hide();
         btnAuthLogout->show();
         updateUIbyUserGroup();
@@ -968,18 +975,18 @@ void MainWindow::btnEnterLoginOkClicked()
 
 void MainWindow::btnRegistrationOkClicked()
 {
-    try
-    {
-        m_db->addUser(User(txtRegistrationLogin->text().toStdString(),
+    //try
+    //{
+        m_databaseManager.addUser(ScorpDBObject::User(txtRegistrationLogin->text().toStdString(),
                            txtRegistrationPassword->text().toStdString(),
-                           cmbRegistrationGroup->currentText().toStdString())
-                      );
-    }
-    catch(SCORPDBAtMemoryLocationException e)
+                           cmbRegistrationGroup->currentText().toStdString()));
+    /*}
+    catch(ScorpDBException::ItemExistException e)
     {
         QMessageBox::warning(this, tr("Registration Failed"),
                              tr("Registration failed! User with this name already exist!"));
     }
+    */
 }
 
 void MainWindow::btnAuthLoginClicked()
@@ -995,7 +1002,7 @@ void MainWindow::btnAuthLogoutClicked()
     btnAuthLogout->hide();
     lbCurrentUserLogin->setText(tr("guest"));
     lbCurrentUserGroup->setText(tr("User"));
-    m_currentUser.setNewUser(tr("guest"), UserGroupName::USER, m_db->getUserRights(UserGroupName::USER));
+    m_currentUser.setNewUser(tr("guest"), UserGroupName::USER, m_databaseManager.getUserRights(UserGroupName::USER));
     updateUIbyUserGroup();
     emit userChanged();
 }
