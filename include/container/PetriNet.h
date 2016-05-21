@@ -33,11 +33,11 @@ public:
     using MarkerExtractor = typename PetriNetTraits::template MarkerExtractor<Transition, State>;
 
     template <class Marker>
-    using MarkerWrapperType = typename PetriNetStorage<PetriNetTraits>::template SpecializedMarkerWrapper<Marker>::type;
+    using MarkerWrapperType = typename internal::PetriNetStorage<PetriNetTraits>::template SpecializedMarkerWrapper<Marker>::type;
     template <class State>
-    using StateWrapperType = typename PetriNetStorage<PetriNetTraits>::template SpecializedStateWrapper<State>::type;
+    using StateWrapperType = typename internal::PetriNetStorage<PetriNetTraits>::template SpecializedStateWrapper<State>::type;
     template <class Transition>
-    using TransitionWrapperType = typename PetriNetStorage<PetriNetTraits>::template SpecializedTransitionWrapper<Transition>::type;
+    using TransitionWrapperType = typename internal::PetriNetStorage<PetriNetTraits>::template SpecializedTransitionWrapper<Transition>::type;
 
     template <class Marker>
     using MarkerIterator = typename boost::container::flat_map<IdType, MarkerWrapperType<Marker>>::iterator;
@@ -79,7 +79,7 @@ public:
                 )
         );
         //
-        using Functor = MarkerAdder<Marker, decltype(m_petriNetStorage), IdType>;
+        using Functor = internal::MarkerAdder<Marker, decltype(m_petriNetStorage), IdType>;
         Functor functor(m_petriNetStorage, markerId, parentId);
         meta::ForEachLooper<StateList, Functor> eraser(functor);
         if (!eraser())
@@ -106,7 +106,7 @@ public:
                 )
         );
         //
-        using Functor = MarkerAdder<Marker, decltype(m_petriNetStorage), IdType>;
+        using Functor = internal::MarkerAdder<Marker, decltype(m_petriNetStorage), IdType>;
         Functor functor(m_petriNetStorage, markerId, parentId);
         meta::ForEachLooper<StateList, Functor> eraser(functor);
         if (!eraser())
@@ -209,7 +209,7 @@ public:
 
         markerStorage.erase(iterator);
 
-        using Functor = MarkerEraser<Marker, decltype(m_petriNetStorage), IdType>;
+        using Functor = internal::MarkerEraser<Marker, decltype(m_petriNetStorage), IdType>;
         Functor functor(m_petriNetStorage, markerId, stateId);
         meta::ForEachLooper<StateList, Functor> eraser(functor);
         if (!eraser())
@@ -267,12 +267,12 @@ public:
             return false;
         }
         // Remove markers
-        using MarkersEraser = UnnecessaryMarkersEraser<decltype(m_petriNetStorage), StateWrapperType<State>>;
+        using MarkersEraser = internal::UnnecessaryMarkersEraser<decltype(m_petriNetStorage), StateWrapperType<State>>;
         MarkersEraser markersEraserFunctor(m_petriNetStorage, iterator->second);
         meta::ForEachLooper<MarkerList , MarkersEraser> markersEraser(markersEraserFunctor);
         markersEraser();
         //
-        using TransitionLinksEraser = UnnecessaryTransitionLinksEraser<decltype(m_petriNetStorage), StateWrapperType<State>>;
+        using TransitionLinksEraser = internal::UnnecessaryTransitionLinksEraser<decltype(m_petriNetStorage), StateWrapperType<State>>;
         TransitionLinksEraser transitionLinksEraserFunctor(m_petriNetStorage, iterator->second);
         meta::ForEachLooper<TransitionList , TransitionLinksEraser> transitionLinksEraser(transitionLinksEraserFunctor);
         transitionLinksEraser();
@@ -291,7 +291,7 @@ public:
             return false;
         }
         //
-        using StateLinksEraser = UnnecessaryStateLinksEraser<decltype(m_petriNetStorage), TransitionWrapperType<Transition>>;
+        using StateLinksEraser = internal::UnnecessaryStateLinksEraser<decltype(m_petriNetStorage), TransitionWrapperType<Transition>>;
         StateLinksEraser transitionLinksEraserFunctor(m_petriNetStorage, iterator->second);
         meta::ForEachLooper<TransitionList , StateLinksEraser> transitionLinksEraser(transitionLinksEraserFunctor);
         transitionLinksEraser();
@@ -592,7 +592,7 @@ private:
     template <class _Transition>
     class PerStateMarkerCollector;
 
-    PetriNetStorage<PetriNetTraits> m_petriNetStorage;
+    internal::PetriNetStorage<PetriNetTraits> m_petriNetStorage;
     MarkerPropagationExecutor m_propagator;
     IdGenerator m_idGenerator;
 

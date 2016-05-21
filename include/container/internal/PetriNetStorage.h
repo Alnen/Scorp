@@ -12,6 +12,9 @@
 #include <vector>
 #include <utility>
 
+namespace container {
+namespace internal {
+
 template <class _PetriNetTraits>
 class PetriNetStorage
 {
@@ -86,5 +89,7 @@ private:
     meta::TypeListStorage<SpecializedTransitionWrapper, Storage, TransitionList> m_transitionStorage;
 };
 
+}
+}
 
 #endif //PETRINETSTORAGE_H

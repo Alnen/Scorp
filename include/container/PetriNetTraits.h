@@ -20,13 +20,13 @@ struct PetriNetTraits
     using IdGenerator = IntegralIdGenerator<IdType>;
 
     template <class Transition, class State>
-    using MarkerExtractor = MarkerExtractor<
+    using MarkerExtractor = internal::MarkerExtractor<
             PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
             Transition,
             State>;
 
     template <class Transition>
-    using MarkerPropagationSolver = MarkerPropagationSolver<
+    using MarkerPropagationSolver = internal::MarkerPropagationSolver<
             PetriNetTraits<MarkerList, TransitionList, StateList>,
             Transition
     >;
