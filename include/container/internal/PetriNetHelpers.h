@@ -3,6 +3,9 @@
 
 #include <algorithm>
 
+namespace container {
+namespace internal {
+
 template <class Marker, class Storage, class IdType>
 struct MarkerEraser
 {
@@ -186,5 +189,8 @@ struct UnnecessaryStateLinksEraser
     Storage& m_storage;
     TransitionWrapper& m_transition;
 };
+
+}
+}
 
 #endif // PETRINETHELPERS_H

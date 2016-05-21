@@ -14,7 +14,7 @@ namespace container {
 template <class _PetriNetTraits>
 class PetriNet;
 
-}
+namespace internal {
 
 template <class _PetriNetTraits, class Transition>
 class MarkerPropagationSolver
@@ -101,5 +101,8 @@ public:
         return boost::optional<std::pair<IdType, IdType>>();
     }
 };
+
+}
+}
 
 #endif //SCORPCORE_RANDOMMARKERPROPAGATOR_H

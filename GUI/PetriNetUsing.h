@@ -136,10 +136,40 @@ struct RailwayPetriNetTraits {
     >;
 
     template <class Type>
-    using Allocator = allocator::Allocator<Type>;
+    using Allocator = std::allocator<Type>;
+};
+namespace container
+{
+
+template <>
+struct PetriNetTraits<_MarkerList, _TransitionList, _StateList>
+{
+    using MarkerList = _MarkerList;
+    using TransitionList = _TransitionList;
+    using StateList = _StateList;
+    using IdType = int;
+    using IdGenerator = IntegralIdGenerator<IdType>;
+
+    template <class Transition, class State>
+    using MarkerExtractor = MarkerExtractor<
+            RailwayPetriNetTraits,
+            Transition,
+            State>;
+
+    template <class Transition>
+    using MarkerPropagationSolver = RailwayMarkerPropagationSolver<
+            RailwayPetriNetTraits,
+            Transition
+    >;
+
+    template <class Type>
+    using Allocator = std::allocator<Type>;
 };
 
+}
+
 using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
+//using RailwayPetriNet = container::PetriNet<container::PetriNetTraits<_MarkerList, _TransitionList, _StateList>>;
 using IdType = typename RailwayPetriNetTraits::IdType;
 
 #endif // PETRINETUSING
