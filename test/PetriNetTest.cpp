@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "container/PetriNet.h"
+#include "Scorp/container/PetriNet.h"
 
 using TestMarkerList = meta::TypeList<int>;
 using TestStateList = meta::TypeList<int>;

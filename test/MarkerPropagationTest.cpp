@@ -1,9 +1,9 @@
-#include <algorithm/CountReachableMarkers.h>
-#include <manipulator/PositionValidator.h>
+#include <Scorp/algorithm/CountReachableMarkers.h>
+#include <Scorp/manipulator/PositionValidator.h>
 #include "gtest/gtest.h"
-#include "container/PetriNetTraits.h"
-#include "container/PetriNet.h"
-#include "manipulator/PositionValidator.h"
+#include "Scorp/container/PetriNetTraits.h"
+#include "Scorp/container/PetriNet.h"
+#include "Scorp/manipulator/PositionValidator.h"
 
 class Base
 {

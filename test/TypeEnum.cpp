@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include "meta/TypeEnum.h"
-#include "meta/RuntimeTypeSwitch.h"
+#include "Scorp/meta/TypeEnum.h"
+#include "Scorp/meta/RuntimeTypeSwitch.h"
 
 class TypeEnumTest : public testing::Test
 {
