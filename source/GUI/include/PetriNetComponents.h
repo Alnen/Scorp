@@ -3,8 +3,9 @@
 
 #include <string>
 
-namespace PetryNetComponent
+namespace PetriNetComponent
 {
+
 class Station
 {
 private:

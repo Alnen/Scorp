@@ -39,21 +39,21 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
         float angle = main_line.getAngle(sin_alpha, cos_alpha);
 
         // add to container and define id
-        int exit_transition_id = petri_net->addTransition<PetryNetComponent::ExitFromStation>(PetryNetComponent::ExitFromStation());
-        int enter_transition_id = petri_net->addTransition<PetryNetComponent::EnterToStation>(PetryNetComponent::EnterToStation());
-        int inter_state_id = petri_net->addState<PetryNetComponent::InterState>(PetryNetComponent::InterState());
-        int semaphore_id = petri_net->addState<PetryNetComponent::Semaphore>(PetryNetComponent::Semaphore());
+        int exit_transition_id = petri_net->addTransition<PetriNetComponent::ExitFromStation>(PetriNetComponent::ExitFromStation());
+        int enter_transition_id = petri_net->addTransition<PetriNetComponent::EnterToStation>(PetriNetComponent::EnterToStation());
+        int inter_state_id = petri_net->addState<PetriNetComponent::InterState>(PetriNetComponent::InterState());
+        int semaphore_id = petri_net->addState<PetriNetComponent::Semaphore>(PetriNetComponent::Semaphore());
         int track_id[6] = {
-            petri_net->addStateToTransitionConnection<PetryNetComponent::Station, PetryNetComponent::ExitFromStation>(state1->getId(), exit_transition_id),
-            petri_net->addTransitionToStateConnection<PetryNetComponent::EnterToStation, PetryNetComponent::Station>(enter_transition_id, state2->getId()),
-            petri_net->addTransitionToStateConnection<PetryNetComponent::ExitFromStation, PetryNetComponent::InterState>(exit_transition_id, inter_state_id),
-            petri_net->addStateToTransitionConnection<PetryNetComponent::InterState, PetryNetComponent::EnterToStation>(inter_state_id, enter_transition_id),
-            petri_net->addTransitionToStateConnection<PetryNetComponent::ExitFromStation, PetryNetComponent::Semaphore>(exit_transition_id, semaphore_id),
-            petri_net->addStateToTransitionConnection<PetryNetComponent::Semaphore, PetryNetComponent::EnterToStation>(semaphore_id, enter_transition_id)
+            petri_net->addStateToTransitionConnection<PetriNetComponent::Station, PetriNetComponent::ExitFromStation>(state1->getId(), exit_transition_id),
+            petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Station>(enter_transition_id, state2->getId()),
+            petri_net->addTransitionToStateConnection<PetriNetComponent::ExitFromStation, PetriNetComponent::InterState>(exit_transition_id, inter_state_id),
+            petri_net->addStateToTransitionConnection<PetriNetComponent::InterState, PetriNetComponent::EnterToStation>(inter_state_id, enter_transition_id),
+            petri_net->addTransitionToStateConnection<PetriNetComponent::ExitFromStation, PetriNetComponent::Semaphore>(exit_transition_id, semaphore_id),
+            petri_net->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::EnterToStation>(semaphore_id, enter_transition_id)
         };
         ++train_counter;
-        int train_marker_id = petri_net->addMarker<PetryNetComponent::Train>(state1->getId(), PetryNetComponent::Train(train_counter));
-        int access_token_id = petri_net->addMarker<PetryNetComponent::AccessToken>(semaphore_id, PetryNetComponent::AccessToken());
+        int train_marker_id = petri_net->addMarker<PetriNetComponent::Train>(state1->getId(), PetriNetComponent::Train(train_counter));
+        int access_token_id = petri_net->addMarker<PetriNetComponent::AccessToken>(semaphore_id, PetriNetComponent::AccessToken());
 
         // add to details group
         TransitionGraphicsObject* first_transition = new TransitionGraphicsObject(exit_transition_id, quarter_point.x(), quarter_point.y(),

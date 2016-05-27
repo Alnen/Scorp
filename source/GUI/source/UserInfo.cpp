@@ -1,5 +1,5 @@
 #include "../include/UserInfo.h"
-#include "Scorp/DB/ScorpDBInterface.h"
+#include "Scorp/DB/ScorpDBObject.h"
 #include <QObject>
 
 UserInfo::UserInfo()

@@ -525,7 +525,7 @@ void MapScene::updateObjectsPosition()
 StateGraphicsObject* MapScene::createNewState(int x, int y)
 {
     std::string station_name = "Station " + std::to_string(++new_state_id);
-    int state_id = m_petriNet->addState<PetryNetComponent::Station>(PetryNetComponent::Station(station_name, x, y, 2));
+    int state_id = m_petriNet->addState<PetriNetComponent::Station>(PetriNetComponent::Station(station_name, x, y, 2));
     //int state_id = state_id_generator++;
     StateGraphicsObject* state = new StateGraphicsObject(state_id, x, y, 10);
     state->setFillColor(QColor::fromRgb(0, 200, 0));
@@ -558,7 +558,7 @@ void MapScene::createNewMarker(StateGraphicsObject* state)
     if (m_petriNet.get())
     {
         ++marker_id_generator;
-        int marker_id = m_petriNet->addMarker<PetryNetComponent::Train>(state->getId(), PetryNetComponent::Train(marker_id_generator));
+        int marker_id = m_petriNet->addMarker<PetriNetComponent::Train>(state->getId(), PetriNetComponent::Train(marker_id_generator));
         state->addMarker(new MarkerObject(marker_id, TRAIN_COLOR, state));
     }
 }

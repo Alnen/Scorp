@@ -16,7 +16,7 @@ template <class _PetriNetTraits, class Transition>
 class RailwayMarkerPropagationSolver;
 
 template <class _PetriNetTraits>
-class RailwayMarkerPropagationSolver<_PetriNetTraits, PetryNetComponent::EnterToStation>
+class RailwayMarkerPropagationSolver<_PetriNetTraits, PetriNetComponent::EnterToStation>
 {
 public:
     using PetriNetTraits = _PetriNetTraits;
@@ -33,7 +33,7 @@ public:
     template <class Deleter>
     void operator()(
             container::PetriNet<PetriNetTraits>& petriNet,
-            const container::TransitionWrapper<PetryNetComponent::EnterToStation, PetriNetTraits>& transition,
+            const container::TransitionWrapper<PetriNetComponent::EnterToStation, PetriNetTraits>& transition,
             const std::vector<std::reference_wrapper<ResourceHolder<SerializedMarkerInState, Deleter>>>& inMarkers,
             const std::vector<std::reference_wrapper<MarkerFiller>>& outMarkers)
     {
@@ -43,7 +43,7 @@ public:
             switch (serializedMarkerInState.getState().getObjectSerializedType())
             {
 
-            case meta::TypeEnum<StateList, IndexType>::template getValue<PetryNetComponent::Station>():
+            case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Station>():
             {
                 IndexType markerId = serializedMarkerInState.moveState(std::move(inMarkers.front().get()));
                 //log move
@@ -51,9 +51,9 @@ public:
                 break;
             }
 
-            case meta::TypeEnum<StateList, IndexType>::template getValue<PetryNetComponent::Semaphore>():
+            case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Semaphore>():
             {
-                IndexType markerId = serializedMarkerInState.template createState<PetryNetComponent::AccessToken>();
+                IndexType markerId = serializedMarkerInState.template createState<PetriNetComponent::AccessToken>();
                 // log new point
                 MarkerCommandQueue::getInstance().addMarkerCommand(markerId, serializedMarkerInState.getState().getObjectId());
                 break;
@@ -65,7 +65,7 @@ public:
 };
 
 template <class _PetriNetTraits>
-class RailwayMarkerPropagationSolver<_PetriNetTraits, PetryNetComponent::ExitFromStation>
+class RailwayMarkerPropagationSolver<_PetriNetTraits, PetriNetComponent::ExitFromStation>
 {
 public:
     using PetriNetTraits = _PetriNetTraits;
@@ -82,7 +82,7 @@ public:
     template <class Deleter>
     void operator()(
             container::PetriNet<PetriNetTraits>& petriNet,
-            const container::TransitionWrapper<PetryNetComponent::ExitFromStation, PetriNetTraits>& transition,
+            const container::TransitionWrapper<PetriNetComponent::ExitFromStation, PetriNetTraits>& transition,
             const std::vector<std::reference_wrapper<ResourceHolder<SerializedMarkerInState, Deleter>>>& inMarkers,
             const std::vector<std::reference_wrapper<MarkerFiller>>& outMarkers)
     {
@@ -92,7 +92,7 @@ public:
             switch (serializedMarkerInState.getResource().getState().getObjectSerializedType())
             {
 
-            case meta::TypeEnum<StateList, IndexType>::template getValue<PetryNetComponent::Station>():
+            case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Station>():
             {
                 IndexType markerId = outMarkers.front().get().moveState(std::move(serializedMarkerInState));
                 // log move
@@ -100,7 +100,7 @@ public:
                 break;
             }
 
-            case meta::TypeEnum<StateList, IndexType>::template getValue<PetryNetComponent::Semaphore>():
+            case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Semaphore>():
             {
                 // log access point death
                 MarkerCommandQueue::getInstance().deleteMarkerCommand(serializedMarkerInState.getResource().getMarker().getObjectId());
@@ -112,9 +112,9 @@ public:
     }
 };
 
-using _MarkerList = meta::TypeList<PetryNetComponent::Train, PetryNetComponent::AccessToken>;
-using _StateList = meta::TypeList<PetryNetComponent::Station, PetryNetComponent::InterState, PetryNetComponent::Semaphore>;
-using _TransitionList = meta::TypeList<PetryNetComponent::ExitFromStation, PetryNetComponent::EnterToStation>;
+using _MarkerList = meta::TypeList<PetriNetComponent::Train, PetriNetComponent::AccessToken>;
+using _StateList = meta::TypeList<PetriNetComponent::Station, PetriNetComponent::InterState, PetriNetComponent::Semaphore>;
+using _TransitionList = meta::TypeList<PetriNetComponent::ExitFromStation, PetriNetComponent::EnterToStation>;
 
 struct RailwayPetriNetTraits {
     using MarkerList = _MarkerList;
