@@ -10,7 +10,7 @@ namespace ScorpCore
 
 struct RoutePart
 {
-    int Station;
+    int station;
     Time arrivalTime;
     Time departureTime;
 };
@@ -22,10 +22,12 @@ public:
     int getId() const;
 	std::string getName() const;
 	void setName(const std::string& name);
-	void push_back(RoutePart part);
+	void push_back(const RoutePart& part);
 	void pop_back();
-	void insert(int station_id, RoutePart part);
-	void erase(int station_id);
+	void insert(size_t index, const RoutePart& part);
+	void erase(size_t index);
+	void insertAfterStation(int station_id, const RoutePart& part);
+	void eraseStation(int station_id);
 
 private:
     int m_id;

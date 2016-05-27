@@ -23,24 +23,54 @@ void Route::setName(const std::string& name)
     m_name = name;
 }
 
-void Route::push_back(RoutePart part)
+void Route::push_back(const RoutePart& part)
 {
-    //
+    m_parts.push_back(part);
 }
 
 void Route::pop_back()
 {
-    //
+    m_parts.pop_back();
 }
 
-void Route::insert(int station_id, RoutePart part)
+void Route::insert(size_t index, const RoutePart& part)
 {
-    //
+    if (index < m_parts.size())
+    {
+        m_parts.insert(m_parts.begin()+index+1, part);
+    }
 }
 
-void Route::erase(int station_id)
+void Route::erase(size_t index)
 {
-    //
+    if (index < m_parts.size())
+    {
+        m_parts.erase(m_parts.begin()+index);
+    }
+}
+
+void Route::insertAfterStation(int station_id, const RoutePart& part)
+{
+    for (size_t i = 0; i < m_parts.size(); ++i)
+    {
+        if (m_parts[i].station == station_id)
+        {
+            m_parts.insert(m_parts.begin()+i+1, part);
+            return;
+        }
+    }
+}
+
+void Route::eraseStation(int station_id)
+{
+    for (size_t i = 0; i < m_parts.size(); ++i)
+    {
+        if (m_parts[i].station == station_id)
+        {
+            m_parts.erase(m_parts.begin()+i);
+            return;
+        }
+    }
 }
 
 }
