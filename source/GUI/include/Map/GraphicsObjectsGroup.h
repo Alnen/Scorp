@@ -18,8 +18,8 @@ public:
     void removeItem(PointGraphicsObject* item);
     void clear();
     std::vector<PointGraphicsObject*> getItems();
-    void selectItems();
-    void deselectItems();
+    void selectItems(bool graphics_selection);
+    void deselectItems(bool graphics_selection);
     void hideItems();
     void showItems();
 

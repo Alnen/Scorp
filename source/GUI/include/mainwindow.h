@@ -230,6 +230,7 @@ private:
     QAction* actSetMoveMapMode;
     QAction* actSetAddStateMapMode;
     QAction* actSetAddLinkMapMode;
+	QAction* actSetAddMarkerMapMode;
     QAction* actSetDeleteMapMode;
     QAction* actStationsList;
     QAction* actTrainsList;
@@ -244,6 +245,7 @@ private:
     QAction* actSetMoveMode;
     QAction* actSetAddStateMode;
     QAction* actSetAddLinkMode;
+	QAction* actSetAddMarkerMode;
     QAction* actSetDeleteMode;
 
     // StatusBar

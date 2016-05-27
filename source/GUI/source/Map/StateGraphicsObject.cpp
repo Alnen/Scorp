@@ -1,5 +1,5 @@
-#include "../../include/Map/StateGraphicsObject.h"
-#include "../../include/Map/MarkerObject.h"
+#include "Map/StateGraphicsObject.h"
+#include "Map/MarkerObject.h"
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsEllipseItem>
@@ -45,26 +45,47 @@ QRectF StateGraphicsObject::boundingRect() const
     return m_boundingRect;
 }
 
-void StateGraphicsObject::select()
+void StateGraphicsObject::select(bool graphics_selection)
 {
     if (!m_selected)
     {
         float select_radius = m_radius + m_selectionExtrude + 1;
         m_boundingRect.setRect(-select_radius, -select_radius, 2*select_radius, 2*select_radius);
         m_selected = true;
-        this->setSelected(true);
-        this->update();
+        //if ((graphics_selection || m_parentID >=0) && (!this->isSelected()))
+        if (graphics_selection && (!this->isSelected()))
+        {
+            this->setSelected(true);
+        }
+        /*
+        m_selected = true;
+        if (!this->isSelected())
+        {
+            this->setSelected(true);
+        }
+        */
+        //this->update();
     }
 }
 
-void StateGraphicsObject::deselect()
+void StateGraphicsObject::deselect(bool graphics_selection)
 {
     if (m_selected)
     {
         m_boundingRect.setRect(-m_radius, -m_radius, 2*m_radius, 2*m_radius);
         m_selected = false;
-        this->setSelected(false);
-        this->update();
+        //if ((graphics_selection || m_parentID >=0) && (this->isSelected()))
+        if (graphics_selection && (this->isSelected()))
+        {
+            this->setSelected(false);
+        }
+        /*
+        if (this->isSelected())
+        {
+            this->setSelected(false);
+        }
+        */
+        //this->update();
     }
 }
 
@@ -111,15 +132,17 @@ void StateGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
     Q_UNUSED(widget);
     QColor fillColor;
     QColor borderColor;
+    /*
     if ((option->state & QStyle::State_Selected) && (!m_selected))
     {
         m_selected = true;
     }
+    */
     //qDebug() << "StateGraphicsObject (" << this->objectName() << ") paint = " << paintStateCounter
     //         << "; selected = " << (m_selected ? "true" : "false");
 
-    //if (option->state & QStyle::State_Selected)
-    if (m_selected)
+    if (option->state & QStyle::State_Selected)
+    //if (m_selected)
     {
         fillColor = m_fillColor.dark(200);
         borderColor = m_borderColor.dark(200);

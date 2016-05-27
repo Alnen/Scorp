@@ -1,6 +1,6 @@
-#include "../../include/Map/GraphicsObjectsGroup.h"
-#include "../../include/Map/PointGraphicsObject.h"
-#include "../../include/Map/MapScene.h"
+#include "Map/GraphicsObjectsGroup.h"
+#include "Map/PointGraphicsObject.h"
+#include "Map/MapScene.h"
 
 GraphicsObjectsGroup::GraphicsObjectsGroup()
 {
@@ -53,19 +53,19 @@ std::vector<PointGraphicsObject*> GraphicsObjectsGroup::getItems()
     return m_items;
 }
 
-void GraphicsObjectsGroup::selectItems()
+void GraphicsObjectsGroup::selectItems(bool graphics_selection)
 {
     for (size_t i = 0; i < m_items.size(); ++i)
     {
-        m_items[i]->select();
+        m_items[i]->select(graphics_selection);
     }
 }
 
-void GraphicsObjectsGroup::deselectItems()
+void GraphicsObjectsGroup::deselectItems(bool graphics_selection)
 {
     for (size_t i = 0; i < m_items.size(); ++i)
     {
-        m_items[i]->deselect();
+        m_items[i]->deselect(graphics_selection);
     }
 }
 

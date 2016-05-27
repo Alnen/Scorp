@@ -1,4 +1,4 @@
-#include "../../include/Map/TransitionGraphicsObject.h"
+#include "Map/TransitionGraphicsObject.h"
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsEllipseItem>
@@ -115,12 +115,14 @@ void TransitionGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphi
     Q_UNUSED(widget);
     QColor fillColor;
     QColor borderColor;
+    /*
     if ((option->state & QStyle::State_Selected) && (!m_selected))
     {
         m_selected = true;
     }
-    //if (option->state & QStyle::State_Selected)
-    if (m_selected)
+    */
+    if (option->state & QStyle::State_Selected)
+    //if (m_selected)
     {
         fillColor = m_fillColor.dark(200);
         borderColor = m_borderColor.dark(200);
@@ -141,7 +143,7 @@ void TransitionGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphi
     painter->drawRect(-0.5*m_width, -0.5*m_height, m_width, m_height);
 }
 
-void TransitionGraphicsObject::select()
+void TransitionGraphicsObject::select(bool graphics_selection)
 {
     if (!m_selected)
     {
@@ -149,18 +151,25 @@ void TransitionGraphicsObject::select()
         float select_height = m_height + m_selectionExtrude*2;
         m_boundingRect.setRect(-0.5*select_width - 1, -0.5*select_height - 1, select_width + 2, select_height + 2);
         m_selected = true;
-        this->setSelected(true);
-        this->update();
+        if ((graphics_selection || m_parentID >=0) && (!this->isSelected()))
+        {
+            this->setSelected(true);
+        }
+        //this->update();
     }
 }
 
-void TransitionGraphicsObject::deselect()
+void TransitionGraphicsObject::deselect(bool graphics_selection)
 {
     if (m_selected)
     {
         m_boundingRect.setRect(-0.5*m_width, -0.5*m_height, m_width, m_height);
         m_selected = false;
-        this->setSelected(false);
-        this->update();
+        if ((graphics_selection || m_parentID >=0) && (this->isSelected()))
+        {
+            this->setSelected(false);
+        }
+        //this->setSelected(false);
+        //this->update();
     }
 }

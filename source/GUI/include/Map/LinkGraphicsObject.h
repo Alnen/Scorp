@@ -1,9 +1,9 @@
 #ifndef LINK_GRAPHICS_OBJECT_H
 #define LINK_GRAPHICS_OBJECT_H
 
+#include "PetriNetUsing.h"
 #include "GraphicsObjectsGroup.h"
 #include <QObject>
-#include "PetriNetUsing.h"
 
 class StateGraphicsObject;
 
@@ -12,10 +12,15 @@ enum class LinkViewMode { DETAILED, GENERIC, FLEXIBLE };
 class LinkGraphicsObject
 {
 public:
-    LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
-                       RailwayPetriNet* petri_net = nullptr);
-    void select();
-    void deselect();
+    enum DETAILS_INFO { FIRST_TRANSITION = 0, SECOND_TRANSITION, INTERIM_STATE, BLOCKING_STATE,
+                        TRACK_FROM_ST1_TO_TR1, TRACK_FROM_ST2_TO_TR2, TRACK_FROM_TR1_TO_IST,
+                        TRACK_FROM_TR2_TO_IST, TRACK_FROM_TR1_TO_BST, TRACK_FROM_TR2_TO_BST
+                      };
+    enum GENERIC_INFO { TRACK_FROM_ST1_TO_IST, TRACK_FROM_IST_TO_ST2 };
+
+    LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2, RailwayPetriNet* petri_net = nullptr);
+    void select(bool graphics_selection);
+    void deselect(bool graphics_selection);
     bool selectEnable();
     std::vector<PointGraphicsObject*> getLinkParts(bool all_parts = false);
     int getID();
@@ -24,12 +29,6 @@ public:
     QPointF getP2(float r = 0.f) const;
 
 private:
-    enum DETAILS_INFO { FIRST_TRANSITION = 0, SECOND_TRANSITION, INTERIM_STATE, BLOCKING_STATE,
-                        TRACK_FROM_ST1_TO_TR1, TRACK_FROM_ST2_TO_TR2, TRACK_FROM_TR1_TO_IST,
-                        TRACK_FROM_TR2_TO_IST, TRACK_FROM_TR1_TO_BST, TRACK_FROM_TR2_TO_BST
-                      };
-    enum GENERIC_INFO { TRACK_FROM_ST1_TO_IST, TRACK_FROM_IST_TO_ST2 };
-
     GraphicsObjectsGroup m_detailsInfoGroup;
     GraphicsObjectsGroup m_genericInfoGroup;
     float m_middleHalfLength;

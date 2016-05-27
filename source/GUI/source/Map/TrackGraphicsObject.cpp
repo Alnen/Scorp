@@ -1,6 +1,6 @@
-#include "../../include/Map/TrackGraphicsObject.h"
-#include "../../include/Map/StateGraphicsObject.h"
-#include "../../include/Map/TransitionGraphicsObject.h"
+#include "Map/TrackGraphicsObject.h"
+#include "Map/StateGraphicsObject.h"
+#include "Map/TransitionGraphicsObject.h"
 #include <QPen>
 #include <QBrush>
 #include <QPainter>
@@ -82,7 +82,7 @@ void TrackGraphicsObject::setCenter(float x, float y)
     float delta_y = center_y - old_center_y;
     if (this->isSelected())
     {
-        this->select();
+        this->select(false);
     }
     else
     {
@@ -219,7 +219,7 @@ void TrackGraphicsObject::setLine(StateGraphicsObject* state, TransitionGraphics
     setRotation(m_angle);
     if (this->isSelected())
     {
-        this->select();
+        this->select(false);
     }
     else
     {
@@ -263,7 +263,7 @@ void TrackGraphicsObject::setLine(StateGraphicsObject* state1, StateGraphicsObje
     setRotation(m_angle);
     if (this->isSelected())
     {
-        this->select();
+        this->select(false);
     }
     else
     {
@@ -285,11 +285,14 @@ void TrackGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
 {
     Q_UNUSED(widget);
     QColor fillColor;
+    /*
     if ((option->state & QStyle::State_Selected) && (!m_selected))
     {
         m_selected = true;
     }
-    if (m_selected)
+    */
+    //if (m_selected)
+    if (option->state & QStyle::State_Selected)
     {
         fillColor = m_fillColor.dark(200);
         //m_boundingRect.setRect(-1, -0.5*m_arrowWidth - 1, m_length + 2, m_arrowWidth + 2);
@@ -315,25 +318,33 @@ void TrackGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
     }
 }
 
-void TrackGraphicsObject::select()
+void TrackGraphicsObject::select(bool graphics_selection)
 {
     if (!m_selected)
     {
         m_boundingRect.setRect(-1, -0.5*m_arrowWidth - 1, m_length + 2, m_arrowWidth + 2);
         m_selected = true;
-        this->setSelected(true);
-        this->update();
+        //if ((graphics_selection || m_parentID >=0) && (!this->isSelected()))
+        {
+            this->setSelected(true);
+        }
+        //this->setSelected(true);
+        //this->update();
     }
 }
 
-void TrackGraphicsObject::deselect()
+void TrackGraphicsObject::deselect(bool graphics_selection)
 {
     if (m_selected)
     {
         m_boundingRect.setRect(0, -0.5*m_arrowWidth, m_length, m_arrowWidth);
         m_selected = false;
-        this->setSelected(false);
-        this->update();
+        //if ((graphics_selection || m_parentID >=0) && (this->isSelected()))
+        {
+            this->setSelected(false);
+        }
+        //this->setSelected(false);
+        //this->update();
     }
 }
 

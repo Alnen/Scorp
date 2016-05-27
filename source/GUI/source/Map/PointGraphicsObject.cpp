@@ -1,4 +1,4 @@
-#include "../../include/Map/PointGraphicsObject.h"
+#include "Map/PointGraphicsObject.h"
 #include <QPen>
 #include <QBrush>
 #include <QPainter>
@@ -67,23 +67,27 @@ void PointGraphicsObject::setBorderWidth(float width)
     setPen(QPen(QBrush(m_borderColor), m_borderWidth));
 }
 
-void PointGraphicsObject::select()
+void PointGraphicsObject::select(bool graphics_selection)
 {
     if (!m_selected)
     {
         m_selected = true;
-        this->setSelected(true);
-        this->update();
+        if (graphics_selection && (!this->isSelected()))
+        {
+            this->setSelected(true);
+        }
     }
 }
 
-void PointGraphicsObject::deselect()
+void PointGraphicsObject::deselect(bool graphics_selection)
 {
     if (m_selected)
     {
         m_selected = false;
-        this->setSelected(false);
-        this->update();
+        if (graphics_selection && (this->isSelected()))
+        {
+            this->setSelected(false);
+        }
     }
 }
 

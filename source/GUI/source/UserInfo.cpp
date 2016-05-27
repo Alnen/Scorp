@@ -2,8 +2,6 @@
 #include "Scorp/DB/ScorpDBInterface.h"
 #include <QObject>
 
-#include <QDebug>
-
 UserInfo::UserInfo()
     : m_login(QObject::tr("guest")), m_group(UserGroupName::USER)
 {

@@ -35,8 +35,8 @@ public:
     void setLine(StateGraphicsObject* state1, StateGraphicsObject* state2);
     QRectF boundingRect() const Q_DECL_OVERRIDE;
     int type() const Q_DECL_OVERRIDE;
-    void select();
-    void deselect();
+    void select(bool graphics_selection);
+    void deselect(bool graphics_selection);
     QPointF getPointFromScaledLine(float scale_factor);
 
 protected:

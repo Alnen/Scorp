@@ -8,8 +8,6 @@
 #include <QObject>
 #include <vector>
 
-#include "PetriNetUsing.h"
-
 namespace GraphicsObjectType
 {
     enum { PointType = QAbstractGraphicsShapeItem::UserType + 1, StateType, TransitionType, TrackType};
@@ -30,8 +28,8 @@ public:
     void setBorderColor(QColor color);
     float getBorderWidth() const;
     void setBorderWidth(float width);
-    virtual void select();
-    virtual void deselect();
+    virtual void select(bool graphics_selection);
+    virtual void deselect(bool graphics_selection);
     bool selectEnable() const;
     virtual void setParentID(int parent);
     virtual int parentID() const;
@@ -57,7 +55,6 @@ protected:
     bool m_selected;
     int m_id;
     int m_parentID;
-    IdType m_containerId;
 };
 
 #endif // POINT_GRAPHICS_ITEM_H

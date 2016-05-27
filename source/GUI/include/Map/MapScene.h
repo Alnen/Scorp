@@ -14,7 +14,7 @@ class StateGraphicsObject;
 //class LinkGraphicsObject;
 class PointGraphicsObject;
 
-enum class MapMode { View, Move, AddState, AddLink, Delete };
+enum class MapMode { View, Move, AddState, AddLink, AddMarker, Delete };
 enum class MapViewType { Detailed, Generalized, Mixed };
 
 /*
@@ -39,20 +39,24 @@ public:
     explicit MapScene(QObject *parent = 0);
     explicit MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent = 0);
     bool contains(PointGraphicsObject* item) const;
-    /*
+    RailwayPetriNet* getPetriNet();
+	/*
     void addMarkerCommand(int id, int state_id);
     void moveMarkerCommand(int id, int new_state_id);
     void deleteMarkerCommand(int id);
     void makeCommand();
     */
-    StateGraphicsObject* createNewState(int x, int y);
-    void createNewLink(StateGraphicsObject* state1, StateGraphicsObject* state2);
-
+	
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event);
+	
+	StateGraphicsObject* createNewState(int x, int y);
+    void createNewLink(StateGraphicsObject* state1, StateGraphicsObject* state2);
+	void createNewMarker(StateGraphicsObject* state);
+
 
 public slots:
     void setMode(MapMode mode);
@@ -70,9 +74,10 @@ private:
     StateGraphicsObject* getSecondLinkedState(int link_id, StateGraphicsObject* first_state);
     void unlinkStates(int link_id);
     int findLinkIndex(int id);
+    void updateSelectedItems();
     void retainSelectedItems();
     void clearSelectedItems();
-    void unselectItems();
+    void unselectItems(bool graphics_selection);
     template <class T>
     bool contains(const std::vector<T>& container, T value) const;
     void deleteSelectedItems();
@@ -104,7 +109,6 @@ private:
     int new_state_id;
     int new_link_id;
     //std::vector<MarkerCommandStruct> m_markerCommandQueue;
-public:
     std::unique_ptr<RailwayPetriNet> m_petriNet;
 };
 

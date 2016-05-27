@@ -35,6 +35,7 @@
 
 #include <QResizeEvent>
 #include <QDebug>
+#include <array>
 
 //#include "Exceptions/ScorpDBException.h"
 #include "Scorp/DB/ScorpDBShell.h"
@@ -149,6 +150,7 @@ void MainWindow::defineMainMenu()
     actSetMoveMapMode = new QAction(tr("Move"), mnSetMode);
     actSetAddStateMapMode = new QAction(tr("Add State"), mnSetMode);
     actSetAddLinkMapMode = new QAction(tr("Add Link"), mnSetMode);
+    actSetAddMarkerMapMode = new QAction(tr("Add Marker"), mnSetMode);
     actSetDeleteMapMode = new QAction(tr("Delete"), mnSetMode);
     actStationsList = new QAction(tr("Stations List"), mnMap);
     actTrainsList = new QAction(tr("Trains List"), mnMap);
@@ -157,12 +159,14 @@ void MainWindow::defineMainMenu()
     actSetMoveMapMode->setCheckable(true);
     actSetAddStateMapMode->setCheckable(true);
     actSetAddLinkMapMode->setCheckable(true);
+    actSetAddMarkerMapMode->setCheckable(true);
     actSetDeleteMapMode->setCheckable(true);
     QActionGroup* map_modes = new QActionGroup(mnSetMode);
     map_modes->addAction(actSetViewMapMode);
     map_modes->addAction(actSetMoveMapMode);
     map_modes->addAction(actSetAddStateMapMode);
     map_modes->addAction(actSetAddLinkMapMode);
+    map_modes->addAction(actSetAddMarkerMapMode);
     map_modes->addAction(actSetDeleteMapMode);
     mnSetMode->addActions(map_modes->actions());
     actSetViewMapMode->setChecked(true);
@@ -205,6 +209,7 @@ void MainWindow::defineToolBar()
     actSetMoveMode = new QAction(QIcon(QPixmap("images/move.png")), tr("Move"), m_toolBar);
     actSetAddStateMode = new QAction(QIcon(QPixmap("images/state.png")), tr("Add State"), m_toolBar);
     actSetAddLinkMode = new QAction(QIcon(QPixmap("images/link.png")), tr("Add Link"), m_toolBar);
+    actSetAddMarkerMode = new QAction(QIcon(QPixmap("images/marker.png")), tr("Add Marker"), m_toolBar);
     actSetDeleteMode = new QAction(QIcon(QPixmap("images/delete.png")), tr("Delete"), m_toolBar);
 
     QList<QAction*> actions_list;
@@ -212,6 +217,7 @@ void MainWindow::defineToolBar()
                  << actSetMoveMode
                  << actSetAddStateMode
                  << actSetAddLinkMode
+                 << actSetAddMarkerMode
                  << actSetDeleteMode;
     m_toolBar->addActions(actions_list);
     //m_toolbar->addSeparator();
@@ -342,11 +348,6 @@ void MainWindow::defineMap()
     //m_mapScene->makeCommand();
     //m_mapScene->deleteMarkerCommand(0);
     //m_mapScene->makeCommand();
-    /*
-    void moveMarkerCommand(int id, int new_state_id);
-    void deleteMarkerCommand(int id);
-    void makeCommand();
-    */
 
     m_mapView->setScene(m_mapScene);
     m_mapView->setDragMode(QGraphicsView::RubberBandDrag);
@@ -356,12 +357,14 @@ void MainWindow::defineMap()
     connect(actSetMoveMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
     connect(actSetAddStateMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
     connect(actSetAddLinkMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddLink);});
+    connect(actSetAddMarkerMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddMarker);});
     connect(actSetDeleteMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
 
     connect(actSetViewMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
     connect(actSetMoveMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
     connect(actSetAddStateMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
     connect(actSetAddLinkMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddLink);});
+    connect(actSetAddMarkerMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddMarker);});
     connect(actSetDeleteMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
 }
 
@@ -1024,6 +1027,9 @@ void MainWindow::changeMode(MapMode mode)
     case MapMode::AddLink:
         lbCurrentOperation->setText(tr("Current Operation: Add Link"));
         break;
+    case MapMode::AddMarker:
+        lbCurrentOperation->setText(tr("Current Operation: Add Marker"));
+        break;
     case MapMode::Delete:
         lbCurrentOperation->setText(tr("Current Operation: Delete"));
         break;
@@ -1374,9 +1380,13 @@ void MainWindow::makeStep()
     //MarkerCommandQueue::getInstance().addMarkerCommand(0, 1);
     //MarkerCommandQueue::getInstance().makeCommand();
 
+    qDebug() << "makeStep: 0";
     MarkerCommandQueue::getInstance().setScene(m_mapScene);
-    m_mapScene->m_petriNet->executeMarkersPropagation();
+    qDebug() << "makeStep: 1";
+    m_mapScene->getPetriNet()->executeMarkersPropagation();
+    qDebug() << "makeStep: 2";
     MarkerCommandQueue::getInstance().makeAllCommands();
-
+    qDebug() << "makeStep: 3";
     m_mapScene->update(m_mapScene->sceneRect());
+    qDebug() << "makeStep: 4";
 }

@@ -7,6 +7,8 @@
 #include "../../include/Map/MapScene.h"
 #include "../../include/Map/MarkerObject.h"
 
+#include <QDebug>
+
 static int train_counter = 0;
 
 LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
@@ -17,133 +19,135 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
     m_middleHalfLength = 0.25f;
     m_prologueLength = 0.25f;
     m_extrude = 40.f;
-    TrackGraphicsObject main_line(0, state1, state2);
-    QPointF quarter_point = main_line.getPointFromScaledLine(m_prologueLength);
-    QPointF half_point = main_line.getPointFromScaledLine(m_prologueLength+m_middleHalfLength);
-    QPointF three_quarters_point = main_line.getPointFromScaledLine(m_prologueLength+2*m_middleHalfLength);
-    float delta_x = half_point.x() - quarter_point.x();
-    float delta_y = half_point.y() - quarter_point.y();
-    float k_a = -delta_x/delta_y;
-    float b_a = half_point.y() - k_a * half_point.x();
-    QPointF interm_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
-        half_point.y(), half_point.x() - 1, k_a, b_a, m_extrude);
-    QPointF mutex_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
-        half_point.y(), half_point.x() + 1, k_a, b_a, m_extrude);
-    float part_length = qSqrt(delta_x * delta_x + delta_y * delta_y);
-    float cos_alpha = delta_x / part_length;
-    float sin_alpha = delta_y / part_length;
-    float angle = main_line.getAngle(sin_alpha, cos_alpha);
-
-    int state_id1 = state1->getId();
-    int state_id2 = state2->getId();
-
-    auto first_tr_id = (petri_net ? petri_net->addTransition<PetryNetComponent::ExitFromStation>(PetryNetComponent::ExitFromStation()) : 0);
-    TransitionGraphicsObject* first_transition = new TransitionGraphicsObject((int)first_tr_id, quarter_point.x(), quarter_point.y(),
-                                                     6, 18, QColor::fromRgb(0, 200, 200));
-    first_transition->setRotation(angle);
-    first_transition->setParentID(m_id);
-    m_detailsInfoGroup.addItem(first_transition);
-
-    auto second_tr_id = (petri_net ? petri_net->addTransition<PetryNetComponent::EnterToStation>(PetryNetComponent::EnterToStation()) : 1);
-    TransitionGraphicsObject* second_transition = new TransitionGraphicsObject((int)second_tr_id, three_quarters_point.x(), three_quarters_point.y(),
-                                                      6, 18, QColor::fromRgb(200, 100, 0));
-    second_transition->setRotation(angle);
-    second_transition->setParentID(m_id);
-    m_detailsInfoGroup.addItem(second_transition);
-
-    auto interm_state_id = (petri_net ? petri_net->addState<PetryNetComponent::InterState>(PetryNetComponent::InterState()) : 2);
-    StateGraphicsObject* interm_state = new StateGraphicsObject((int)interm_state_id, interm_state_point.x(), interm_state_point.y(), 10,
-                                                                QColor::fromRgb(200, 200, 0));
-    interm_state->setParentID(m_id);
-    m_detailsInfoGroup.addItem(interm_state);
-
-    auto blocking_state_id = (petri_net ? petri_net->addState<PetryNetComponent::Semaphore>(PetryNetComponent::Semaphore()) : 3);
-    StateGraphicsObject* blocking_state = new StateGraphicsObject((int)blocking_state_id, mutex_state_point.x(), mutex_state_point.y(), 10,
-                                                                  QColor::fromRgb(200, 200, 200));
-    blocking_state->setParentID(m_id);
-    m_detailsInfoGroup.addItem(blocking_state);
-
-    petri_net->addStateToTransitionConnection<PetryNetComponent::Station, PetryNetComponent::ExitFromStation>(state_id1, first_tr_id);
-    TrackGraphicsObject* track = new TrackGraphicsObject(4, state1, first_transition);
-    track->setParentID(m_id);
-    m_detailsInfoGroup.addItem(track);
-    petri_net->addTransitionToStateConnection<PetryNetComponent::EnterToStation, PetryNetComponent::Station>(second_tr_id, state_id2);
-    track = new TrackGraphicsObject(5, state2, second_transition, TrackDirection::FROM_SECOND_TO_FIRST);
-    track->setParentID(m_id);
-    m_detailsInfoGroup.addItem(track);
-    petri_net->addTransitionToStateConnection<PetryNetComponent::ExitFromStation, PetryNetComponent::InterState>(first_tr_id, interm_state_id);
-    track = new TrackGraphicsObject(6, interm_state, first_transition, TrackDirection::FROM_SECOND_TO_FIRST);
-    track->setParentID(m_id);
-    m_detailsInfoGroup.addItem(track);
-    petri_net->addStateToTransitionConnection<PetryNetComponent::InterState, PetryNetComponent::EnterToStation>(interm_state_id, second_tr_id);
-    track = new TrackGraphicsObject(7, interm_state, second_transition);
-    track->setParentID(m_id);
-    m_detailsInfoGroup.addItem(track);
-    petri_net->addTransitionToStateConnection<PetryNetComponent::ExitFromStation, PetryNetComponent::Semaphore>(first_tr_id, blocking_state_id);
-    track = new TrackGraphicsObject(8, blocking_state, first_transition);
-    track->setParentID(m_id);
-    m_detailsInfoGroup.addItem(track);
-    petri_net->addStateToTransitionConnection<PetryNetComponent::Semaphore, PetryNetComponent::EnterToStation>(blocking_state_id, first_tr_id);
-    track = new TrackGraphicsObject(9, blocking_state, second_transition, TrackDirection::FROM_SECOND_TO_FIRST);
-    track->setParentID(m_id);
-    m_detailsInfoGroup.addItem(track);
-
-    // dispose generic
-    interm_state->setRadius(5.f);
-    interm_state->setCenter(half_point.x(), half_point.y());
-    track = new TrackGraphicsObject(10, state1, interm_state);
-    track->setParentID(m_id);
-    m_genericInfoGroup.addItem(track);
-    TrackGraphicsObject* track2 = new TrackGraphicsObject(11, interm_state, state2);
-    track2->setParentID(m_id);
-    m_genericInfoGroup.addItem(track2);
-    m_genericInfoGroup.addItem(interm_state);
-
-    m_drawDetailsEnable = ((m_viewMode == LinkViewMode::DETAILED) || ((m_viewMode == LinkViewMode::FLEXIBLE) && (main_line.getLength() >= m_minLength)));
-    if (!m_drawDetailsEnable)
+    if (state1 && state2 && petri_net)
     {
-        m_detailsInfoGroup.hideItems();
-    }
-    else
-    {
-        m_genericInfoGroup.hideItems();
-        interm_state->setRadius(10.f);
-        interm_state->setCenter(interm_state_point.x(), interm_state_point.y());
-    }
-    interm_state->show();
+        TrackGraphicsObject main_line(0, state1, state2);
+        QPointF quarter_point = main_line.getPointFromScaledLine(m_prologueLength);
+        QPointF half_point = main_line.getPointFromScaledLine(m_prologueLength+m_middleHalfLength);
+        QPointF three_quarters_point = main_line.getPointFromScaledLine(m_prologueLength+2*m_middleHalfLength);
+        float delta_x = half_point.x() - quarter_point.x();
+        float delta_y = half_point.y() - quarter_point.y();
+        float k_a = -delta_x/delta_y;
+        float b_a = half_point.y() - k_a * half_point.x();
+        QPointF interm_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
+            half_point.y(), half_point.x() - 1, k_a, b_a, m_extrude);
+        QPointF mutex_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
+            half_point.y(), half_point.x() + 1, k_a, b_a, m_extrude);
+        float part_length = qSqrt(delta_x * delta_x + delta_y * delta_y);
+        float cos_alpha = delta_x / part_length;
+        float sin_alpha = delta_y / part_length;
+        float angle = main_line.getAngle(sin_alpha, cos_alpha);
 
-    // create markers
-    auto train_marker_id = petri_net->addMarker<PetryNetComponent::Train>(state_id1, PetryNetComponent::Train(++train_counter));
-    MarkerObject* train_marker = new MarkerObject(train_marker_id, 0);
-    state1->addMarker(train_marker);
-    auto access_token_id = petri_net->addMarker<PetryNetComponent::AccessToken>(blocking_state_id, PetryNetComponent::AccessToken());
-    MarkerObject* access_token = new MarkerObject(access_token_id, 1);
-    blocking_state->addMarker(access_token);
+        // add to container and define id
+        int exit_transition_id = petri_net->addTransition<PetryNetComponent::ExitFromStation>(PetryNetComponent::ExitFromStation());
+        int enter_transition_id = petri_net->addTransition<PetryNetComponent::EnterToStation>(PetryNetComponent::EnterToStation());
+        int inter_state_id = petri_net->addState<PetryNetComponent::InterState>(PetryNetComponent::InterState());
+        int semaphore_id = petri_net->addState<PetryNetComponent::Semaphore>(PetryNetComponent::Semaphore());
+        int track_id[6] = {
+            petri_net->addStateToTransitionConnection<PetryNetComponent::Station, PetryNetComponent::ExitFromStation>(state1->getId(), exit_transition_id),
+            petri_net->addTransitionToStateConnection<PetryNetComponent::EnterToStation, PetryNetComponent::Station>(enter_transition_id, state2->getId()),
+            petri_net->addTransitionToStateConnection<PetryNetComponent::ExitFromStation, PetryNetComponent::InterState>(exit_transition_id, inter_state_id),
+            petri_net->addStateToTransitionConnection<PetryNetComponent::InterState, PetryNetComponent::EnterToStation>(inter_state_id, enter_transition_id),
+            petri_net->addTransitionToStateConnection<PetryNetComponent::ExitFromStation, PetryNetComponent::Semaphore>(exit_transition_id, semaphore_id),
+            petri_net->addStateToTransitionConnection<PetryNetComponent::Semaphore, PetryNetComponent::EnterToStation>(semaphore_id, enter_transition_id)
+        };
+        ++train_counter;
+        int train_marker_id = petri_net->addMarker<PetryNetComponent::Train>(state1->getId(), PetryNetComponent::Train(train_counter));
+        int access_token_id = petri_net->addMarker<PetryNetComponent::AccessToken>(semaphore_id, PetryNetComponent::AccessToken());
+
+        // add to details group
+        TransitionGraphicsObject* first_transition = new TransitionGraphicsObject(exit_transition_id, quarter_point.x(), quarter_point.y(),
+                                                         6, 18, QColor::fromRgb(0, 200, 200));
+        first_transition->setRotation(angle);
+        first_transition->setParentID(m_id);
+        m_detailsInfoGroup.addItem(first_transition);
+        TransitionGraphicsObject* second_transition = new TransitionGraphicsObject(enter_transition_id, three_quarters_point.x(), three_quarters_point.y(),
+                                                          6, 18, QColor::fromRgb(200, 100, 0));
+        second_transition->setRotation(angle);
+        second_transition->setParentID(m_id);
+        m_detailsInfoGroup.addItem(second_transition);
+        StateGraphicsObject* interm_state = new StateGraphicsObject(inter_state_id, interm_state_point.x(), interm_state_point.y(), 10,
+                                                                    QColor::fromRgb(200, 200, 0));
+        interm_state->setParentID(m_id);
+        m_detailsInfoGroup.addItem(interm_state);
+        StateGraphicsObject* blocking_state = new StateGraphicsObject(semaphore_id, mutex_state_point.x(), mutex_state_point.y(), 10,
+                                                                      QColor::fromRgb(200, 200, 200));
+        blocking_state->setParentID(m_id);
+        m_detailsInfoGroup.addItem(blocking_state);
+        TrackGraphicsObject* track = new TrackGraphicsObject(track_id[0], state1, first_transition);
+        track->setParentID(m_id);
+        m_detailsInfoGroup.addItem(track);
+        track = new TrackGraphicsObject(track_id[1], state2, second_transition, TrackDirection::FROM_SECOND_TO_FIRST);
+        track->setParentID(m_id);
+        m_detailsInfoGroup.addItem(track);
+        track = new TrackGraphicsObject(track_id[2], interm_state, first_transition, TrackDirection::FROM_SECOND_TO_FIRST);
+        track->setParentID(m_id);
+        m_detailsInfoGroup.addItem(track);
+        track = new TrackGraphicsObject(track_id[3], interm_state, second_transition);
+        track->setParentID(m_id);
+        m_detailsInfoGroup.addItem(track);
+        track = new TrackGraphicsObject(track_id[4], blocking_state, first_transition);
+        track->setParentID(m_id);
+        m_detailsInfoGroup.addItem(track);
+        track = new TrackGraphicsObject(track_id[5], blocking_state, second_transition, TrackDirection::FROM_SECOND_TO_FIRST);
+        track->setParentID(m_id);
+        m_detailsInfoGroup.addItem(track);
+
+        // dispose generic
+        interm_state->setRadius(5.f);
+        interm_state->setCenter(half_point.x(), half_point.y());
+        track = new TrackGraphicsObject(10, state1, interm_state);
+        track->setParentID(m_id);
+        m_genericInfoGroup.addItem(track);
+        TrackGraphicsObject* track2 = new TrackGraphicsObject(11, interm_state, state2);
+        track2->setParentID(m_id);
+        m_genericInfoGroup.addItem(track2);
+        m_genericInfoGroup.addItem(interm_state);
+
+        m_drawDetailsEnable = ((m_viewMode == LinkViewMode::DETAILED) || ((m_viewMode == LinkViewMode::FLEXIBLE) && (main_line.getLength() >= m_minLength)));
+        if (!m_drawDetailsEnable)
+        {
+            m_detailsInfoGroup.hideItems();
+        }
+        else
+        {
+            m_genericInfoGroup.hideItems();
+            interm_state->setRadius(10.f);
+            interm_state->setCenter(interm_state_point.x(), interm_state_point.y());
+        }
+        interm_state->show();
+
+        // create markers
+        MarkerObject* train_marker = new MarkerObject(train_marker_id, 0);
+        state1->addMarker(train_marker);
+        MarkerObject* access_token = new MarkerObject(access_token_id, 1);
+        blocking_state->addMarker(access_token);
+    }
 }
 
-void LinkGraphicsObject::select()
+void LinkGraphicsObject::select(bool graphics_selection)
 {
     if (m_drawDetailsEnable)
     {
-        m_detailsInfoGroup.selectItems();
+        m_detailsInfoGroup.selectItems(graphics_selection);
     }
     else
     {
-        m_genericInfoGroup.selectItems();
+        m_genericInfoGroup.selectItems(graphics_selection);
     }
     m_selected = true;
     //this->update();
 }
 
-void LinkGraphicsObject::deselect()
+void LinkGraphicsObject::deselect(bool graphics_selection)
 {
     if (m_drawDetailsEnable)
     {
-        m_detailsInfoGroup.deselectItems();
+        m_detailsInfoGroup.deselectItems(graphics_selection);
     }
     else
     {
-        m_genericInfoGroup.deselectItems();
+        m_genericInfoGroup.deselectItems(graphics_selection);
     }
     m_selected = false;
     //this->update();
