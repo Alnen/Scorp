@@ -688,3 +688,184 @@ std::vector<RailwayNetDBObject::Route> RailwayNetDBShell::getRoutes()
     }
     return route_list;
 }
+
+std::vector<std::string> RailwayNetDBShell::getRoutsFromAtoB(std::string stA, std::string stB)
+{
+    std::vector<std::vector<std::string>> routs= getAllRowsFromTable(TableName::ROUTE);
+    std::vector<std::vector<std::string>> routParts= getAllRowsFromTable(TableName::ROUTE_PART);
+    std::vector<std::vector<std::string>> transitions= getAllRowsFromTable(TableName::TRANSITION);
+    std::set<std::string> validTrasitionsA;
+    std::set<std::string> validTrasitionsB;
+    std::vector<std::string> resultRouts;
+    for(std::vector<std::string> tr: transitions)
+    {
+        if(tr[1]==stA) validTrasitionsA.insert(tr[0]);
+        if(tr[1]==stB) validTrasitionsB.insert(tr[0]);
+
+    }
+    bool aCheck, bCheck;
+   for(std::vector<std::string> rout: routs)
+    {
+        aCheck=false;
+        bCheck=false;
+        for(std::vector<std::string> routPart: routParts)
+        if((rout[0])==routPart[0])
+        {
+           if(validTrasitionsA.find(routPart[1])!=validTrasitionsA.end()) aCheck=true;
+            if(validTrasitionsB.find(routPart[1])!=validTrasitionsB.end()) bCheck=true;
+            if(aCheck&&bCheck)
+            {
+                resultRouts.push_back(rout[0]);
+                aCheck=false;
+                bCheck=false;
+            }
+
+        }
+    }
+    return resultRouts;
+
+}
+
+std::vector<std::string> RailwayNetDBShell::getAllStations()
+{
+
+        const char* table_name="Station";
+        std::vector<std::string> table_rows;
+        try
+            {
+                SQLite::Statement query(*m_database, "SELECT Name FROM Station");
+                std::string curr_row;
+                while (query.executeStep())
+                {
+                    curr_row = query.getColumn(0).getText();
+                    table_rows.push_back(curr_row);
+                }
+            }
+            catch(SQLite::Exception)
+            {
+                throw ScorpDBException::BadMemoryLocationException(TableName::STATION, "");
+            }
+
+        return table_rows;
+
+
+}
+
+bool RailwayNetDBShell::deleteAllStations()
+{
+    try
+    {
+            SQLite::Statement query(*m_database, "DELETE FROM Station");
+            query.exec();
+
+    }
+    catch(SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException(TableName::STATION, "");
+        return false;
+    }
+    return true;
+}
+
+bool RailwayNetDBShell::deleteStation(std::string id)
+{
+    try
+    {
+        deleteFromTable(TableName::STATION, id);
+    }
+    catch(SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException(TableName::STATION, "");
+        return false;
+    }
+    return true;
+}
+
+bool RailwayNetDBShell::deleteAllTrains()
+{
+    try
+    {
+            SQLite::Statement query(*m_database, "DELETE FROM Train");
+            query.exec();
+
+    }
+    catch(SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException(TableName::TRAIN, "");
+        return false;
+    }
+    return true;
+}
+
+bool RailwayNetDBShell::deleteTrain(std::string number)
+{
+    try
+    {
+        deleteFromTable(TableName::TRAIN, number);
+    }
+    catch(SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException(TableName::TRAIN, "");
+        return false;
+    }
+    return true;
+}
+
+RailwayNetDBObject::Route RailwayNetDBShell::getRoute(std::string name)
+{
+
+    std::vector<std::string> data_row;
+    try
+    {
+        SQLite::Statement query(*m_database, "SELECT * FROM Route WHERE Name LIKE :key");
+        query.bind(":key", name);
+        int row_size = query.getColumnCount();
+        query.executeStep();
+        std::string col = "";
+        for(int i = 0; i < row_size; ++i)
+        {
+            col = query.getColumn(i).getText();
+            data_row.push_back(col);
+        }
+    }
+    catch(SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException(TableName::ROUTE, name);
+        RailwayNetDBObject::Route route(0,name);
+        return route;
+    }
+    RailwayNetDBObject::Route route(std::stoi(data_row[0]), data_row[1]);
+    return route;
+}
+
+bool RailwayNetDBShell::deleteRout(std::string name)
+{
+    RailwayNetDBObject::Route rt=getRoute(name);
+    try
+    {
+        deleteFromTable(TableName::ROUTE, std::to_string(rt.id));
+    }
+    catch(SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException(TableName::ROUTE, "");
+        return false;
+    }
+    return true;
+}
+
+bool RailwayNetDBShell::deleteAllRouts()
+{
+    try
+    {
+            SQLite::Statement query(*m_database, "DELETE FROM Route");
+            query.exec();
+
+    }
+    catch(SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException(TableName::ROUTE, "");
+        return false;
+    }
+    return true;
+}
+

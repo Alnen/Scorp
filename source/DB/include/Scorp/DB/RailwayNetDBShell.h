@@ -5,7 +5,9 @@
 #include "Scorp/Core/ScorpTime.h"
 #include "Scorp/DB/ScorpDBShell.h"
 #include "Scorp/DB/RailwayNetDBObject.h"
-
+enum class TableName { USER, USER_GROUPS, ROUTE_PART,
+                       TRANSITION, TRAIN, ROUTE, STATION
+                     };
 class RailwayNetDBShell : public ScorpDBShell
 {
 public:
@@ -48,6 +50,16 @@ public:
     std::vector<RailwayNetDBObject::Station> getStations();
     std::vector<RailwayNetDBObject::RoutePart> getRouteParts();
     std::vector<RailwayNetDBObject::Route> getRoutes();
+	
+	std::vector<std::string> getRoutsFromAtoB(std::string stA, std::string stB);
+    std::vector<std::string> getAllStations();
+    bool deleteAllStations();
+    bool deleteStation(std::string id);
+    bool deleteAllTrains();
+    bool deleteTrain(std::string number);
+    ScorpDBObject::Route getRoute(std::string name);
+    bool deleteRout(std::string name);
+    bool deleteAllRouts();
 };
 
 #endif // RAILWAY_NET_DB_SHELL_H
