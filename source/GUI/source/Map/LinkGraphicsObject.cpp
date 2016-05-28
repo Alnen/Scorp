@@ -48,8 +48,8 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
             petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Station>(enter_transition_id, state2->getId()),
             petri_net->addTransitionToStateConnection<PetriNetComponent::ExitFromStation, PetriNetComponent::InterState>(exit_transition_id, inter_state_id),
             petri_net->addStateToTransitionConnection<PetriNetComponent::InterState, PetriNetComponent::EnterToStation>(inter_state_id, enter_transition_id),
-            petri_net->addTransitionToStateConnection<PetriNetComponent::ExitFromStation, PetriNetComponent::Semaphore>(exit_transition_id, semaphore_id),
-            petri_net->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::EnterToStation>(semaphore_id, enter_transition_id)
+            petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Semaphore>(enter_transition_id, semaphore_id),
+            petri_net->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::ExitFromStation>(semaphore_id, exit_transition_id)
         };
         ++train_counter;
         int train_marker_id = petri_net->addMarker<PetriNetComponent::Train>(state1->getId(), PetriNetComponent::Train(train_counter));

@@ -12,6 +12,8 @@
 #include "Map/MarkerCommandQueue.h"
 #include <utility>
 
+#include <iostream>
+
 template <class _PetriNetTraits, class Transition>
 class RailwayMarkerPropagationSolver;
 
@@ -45,15 +47,18 @@ public:
 
             case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Station>():
             {
-                IndexType markerId = serializedMarkerInState.moveState(std::move(inMarkers.front().get()));
+                std::cout << "PropagationSolver(Enter)::getValue<PetriNetComponent::Station> run" << std::endl;
+				//IndexType markerId = serializedMarkerInState.template createState<PetriNetComponent::AccessToken>();
+				IndexType markerId = serializedMarkerInState.moveState(std::move(inMarkers.front().get()));
                 //log move
                 MarkerCommandQueue::getInstance().moveMarkerCommand(markerId, serializedMarkerInState.getState().getObjectId());
-                break;
+				break;
             }
 
             case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Semaphore>():
             {
-                IndexType markerId = serializedMarkerInState.template createState<PetriNetComponent::AccessToken>();
+                std::cout << "PropagationSolver(Enter)::getValue<PetriNetComponent::Semaphore> run" << std::endl;
+				IndexType markerId = serializedMarkerInState.template createState<PetriNetComponent::AccessToken>();
                 // log new point
                 MarkerCommandQueue::getInstance().addMarkerCommand(markerId, serializedMarkerInState.getState().getObjectId());
                 break;
@@ -94,7 +99,8 @@ public:
 
             case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Station>():
             {
-                IndexType markerId = outMarkers.front().get().moveState(std::move(serializedMarkerInState));
+                std::cout << "PropagationSolver(Exit)::getValue<PetriNetComponent::Station> run" << std::endl;
+				IndexType markerId = outMarkers.front().get().moveState(std::move(serializedMarkerInState));
                 // log move
                 MarkerCommandQueue::getInstance().moveMarkerCommand(markerId, outMarkers.front().get().getState().getObjectId());
                 break;
@@ -102,7 +108,8 @@ public:
 
             case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Semaphore>():
             {
-                // log access point death
+                std::cout << "PropagationSolver(Exit)::getValue<PetriNetComponent::Semaphore> run" << std::endl;
+				// log access point death
                 MarkerCommandQueue::getInstance().deleteMarkerCommand(serializedMarkerInState.getResource().getMarker().getObjectId());
                 break;
             }

@@ -19,17 +19,16 @@ int main(int argc, char *argv[])
     petriNet->addStateToTransitionConnection<PetriNetComponent::Station, PetriNetComponent::ExitFromStation>(state_1, transition_1);
     petriNet->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Station>(transition_2, state_2);
     petriNet->addTransitionToStateConnection<PetriNetComponent::ExitFromStation, PetriNetComponent::InterState>(transition_1, inter_state);
-    petriNet->addTransitionToStateConnection<PetriNetComponent::ExitFromStation, PetriNetComponent::Semaphore>(transition_1, blocking_state);
+    petriNet->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Semaphore>(transition_2, blocking_state);
     petriNet->addStateToTransitionConnection<PetriNetComponent::InterState, PetriNetComponent::EnterToStation>(inter_state, transition_2);
-    petriNet->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::EnterToStation>(blocking_state, transition_2);
-
+    petriNet->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::ExitFromStation>(blocking_state, transition_1);
     int train_marker = petriNet->addMarker<PetriNetComponent::Train>(state_1, PetriNetComponent::Train(1001));
     int access_token = petriNet->addMarker<PetriNetComponent::AccessToken>(blocking_state, PetriNetComponent::AccessToken());
 
     petriNet->executeMarkersPropagation();
     */
 
-    qDebug() << "Normal start";
+    //qDebug() << "Normal start";
     MainWindow w;
     w.show();
 

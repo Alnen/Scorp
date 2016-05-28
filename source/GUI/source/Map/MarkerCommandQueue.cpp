@@ -4,6 +4,8 @@
 #include "../../include/Map/PointGraphicsObject.h"
 #include "../../include/Map/MarkerObject.h"
 
+#include <QDebug>
+
 MarkerCommandQueue::MarkerCommandQueue() : m_scene(nullptr)
 {
 }
@@ -31,7 +33,6 @@ MarkerCommandQueue& MarkerCommandQueue::getInstance()
     return *p_instance;
 }
 
-
 void MarkerCommandQueue::addMarkerCommand(int id, int state_id)
 {
     m_commands.push_back(MarkerCommandStruct(MarkerCommand::ADD, id, state_id));
@@ -50,11 +51,13 @@ void MarkerCommandQueue::deleteMarkerCommand(int id)
 void MarkerCommandQueue::makeCommand()
 {
     if (!m_scene) return;
+    qDebug() << "makeCommand: size=" << m_commands.size();
     if (m_commands.size() > 0)
     {
         StateGraphicsObject* curr_state = nullptr;
         if (m_commands[0].command == MarkerCommand::ADD)
         {
+            qDebug() << "makeCommand: ADD (" << m_commands[0].param1 << ")";
             for (auto item : m_scene->items())
             {
                 if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
@@ -71,6 +74,7 @@ void MarkerCommandQueue::makeCommand()
         }
         else if (m_commands[0].command == MarkerCommand::DELETE)
         {
+            qDebug() << "makeCommand: DELETE (" << m_commands[0].param1 << ")";
             MarkerObject* found_marker = nullptr;
             for (auto item : m_scene->items())
             {
@@ -89,6 +93,8 @@ void MarkerCommandQueue::makeCommand()
         }
         else if (m_commands[0].command == MarkerCommand::MOVE)
         {
+            qDebug() << "makeCommand: MOVE (" << m_commands[0].param1
+                     << ", " << m_commands[0].param2 << ")";
             MarkerObject* found_marker = nullptr;
             StateGraphicsObject* old_state = nullptr;
             StateGraphicsObject* new_state = nullptr;

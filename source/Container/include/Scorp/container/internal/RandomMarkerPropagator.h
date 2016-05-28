@@ -93,11 +93,14 @@ public:
             const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
             const container::StateWrapper<State, PetriNetTraits>& state) const
     {
-        MarkerExtractor1<PetriNetTraits, State> extractor(state);
+        std::cout << "MarkerExtractor: stateId = " << state.getId() << std::endl;
+		MarkerExtractor1<PetriNetTraits, State> extractor(state);
         meta::ForEachLooper<MarkerList, decltype(extractor)> looper(extractor);
         if (looper()) {
+			std::cout << "MarkerExtractor: stateId marker found: id=" << state.getId() << std::endl;
             return boost::optional<std::pair<IdType, IdType>>(extractor.serializedMarker);
         }
+		std::cout << "MarkerExtractor: stateId marker not found: id=" << state.getId() << std::endl;
         return boost::optional<std::pair<IdType, IdType>>();
     }
 };

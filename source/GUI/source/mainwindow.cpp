@@ -50,6 +50,8 @@
 
 #include "../include/Map/MarkerCommandQueue.h"
 
+#include "PetriNetComponents.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_databasePath("ScorpDB.db")
 {
@@ -1380,13 +1382,49 @@ void MainWindow::makeStep()
     //MarkerCommandQueue::getInstance().addMarkerCommand(0, 1);
     //MarkerCommandQueue::getInstance().makeCommand();
 
-    qDebug() << "makeStep: 0";
+    //qDebug() << "makeStep: 0";
     MarkerCommandQueue::getInstance().setScene(m_mapScene);
-    qDebug() << "makeStep: 1";
+    //qDebug() << "makeStep: 1";
+    int value = 0;
+    qDebug() << "------------- makeStep: Before ----------";
+    for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::Train>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::Train>(); ++it)
+    {
+        value = it->first;
+        qDebug() << "Train id = " << value;
+        auto& temp = it->second;
+        value = temp.getStateId();
+        qDebug() << "Train parent = " << value;
+    }
+    for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::AccessToken>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::AccessToken>(); ++it)
+    {
+        value = it->first;
+        qDebug() << "Access id = " << value;
+        auto& temp = it->second;
+        value = temp.getStateId();
+        qDebug() << "Access parent = " << value;
+    }
     m_mapScene->getPetriNet()->executeMarkersPropagation();
-    qDebug() << "makeStep: 2";
+    qDebug() << "------------- makeStep: After ----------";
+    for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::Train>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::Train>(); ++it)
+    {
+        value = it->first;
+        qDebug() << "Train id = " << value;
+        auto& temp = it->second;
+        value = temp.getStateId();
+        qDebug() << "Train parent = " << value;
+    }
+    for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::AccessToken>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::AccessToken>(); ++it)
+    {
+        value = it->first;
+        qDebug() << "Access id = " << value;
+        auto& temp = it->second;
+        value = temp.getStateId();
+        qDebug() << "Access parent = " << value;
+    }
+    qDebug() << "--------------------------";
+    //qDebug() << "makeStep: 2";
     MarkerCommandQueue::getInstance().makeAllCommands();
-    qDebug() << "makeStep: 3";
+    //qDebug() << "makeStep: 3";
     m_mapScene->update(m_mapScene->sceneRect());
-    qDebug() << "makeStep: 4";
+    //qDebug() << "makeStep: 4";
 }
