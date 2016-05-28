@@ -1,4 +1,4 @@
-#include "ScorpCore.h"
+#include "Scorp/Core/ScorpCore.h"
 
 namespace ScorpCore
 {

@@ -53,10 +53,8 @@
 #include "PetriNetComponents.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_databasePath("ScorpDB.db")
+    : QMainWindow(parent), m_databasePath("ScorpUserDB.db")
 {
-    //m_databaseManager = new ScorpDBShell("../Scorp/DB/ScorpDB.db", false);
-    //this->setFixedSize(QSize(600, 500));
     QRect desktop_screen = QApplication::desktop()->screen()->rect();
     QPoint center_pos = desktop_screen.center();
     int window_width = 0.992 * desktop_screen.width();
@@ -930,8 +928,8 @@ void MainWindow::updateTourListEditable(bool status)
 
 void MainWindow::connectToDatabase()
 {
-    m_databaseManager.connectToDatabase(m_databasePath.toStdString());
-    m_currentUser.setUserRights(m_databaseManager.getUserRights(UserGroupName::USER));
+    m_userDBManager.connectToDatabase(m_databasePath.toStdString());
+    m_currentUser.setUserRights(m_userDBManager.getUserRights(UserGroupName::User));
     updateUIbyUserGroup();
 }
 
@@ -947,17 +945,17 @@ void MainWindow::saveToFile()
 
 void MainWindow::btnEnterLoginOkClicked()
 {
-    bool is_auth = m_databaseManager.authenticate(txtEnterLogin->text().toStdString(),
+    bool is_auth = m_userDBManager.authenticate(txtEnterLogin->text().toStdString(),
                                      txtEnterPassword->text().toStdString());
     if (is_auth)
     {
         lbCurrentUserLogin->setText(txtEnterLogin->text());
-        UserGroupName user_group = m_databaseManager.getUserGroup(txtEnterLogin->text().toStdString());
-        if (user_group == UserGroupName::ADMIN)
+        UserGroupName user_group = m_userDBManager.getUserGroup(txtEnterLogin->text().toStdString());
+        if (user_group == UserGroupName::Admin)
         {
             lbCurrentUserGroup->setText("Administrator");
         }
-        else if (user_group == UserGroupName::OPERATOR)
+        else if (user_group == UserGroupName::Operator)
         {
             lbCurrentUserGroup->setText("Operator");
         }
@@ -965,7 +963,7 @@ void MainWindow::btnEnterLoginOkClicked()
         {
             lbCurrentUserGroup->setText("User");
         }
-        m_currentUser.setNewUser(txtEnterLogin->text(), user_group, m_databaseManager.getUserRights(user_group));
+        m_currentUser.setNewUser(txtEnterLogin->text(), user_group, m_userDBManager.getUserRights(user_group));
         btnAuthLogin->hide();
         btnAuthLogout->show();
         updateUIbyUserGroup();
@@ -982,9 +980,9 @@ void MainWindow::btnRegistrationOkClicked()
 {
     //try
     //{
-        m_databaseManager.addUser(ScorpDBObject::User(txtRegistrationLogin->text().toStdString(),
+        m_userDBManager.addUser(UserDBObject::User(txtRegistrationLogin->text().toStdString(),
                            txtRegistrationPassword->text().toStdString(),
-                           cmbRegistrationGroup->currentText().toStdString()));
+                           userGroupFromString(cmbRegistrationGroup->currentText().toStdString())));
     /*}
     catch(ScorpDBException::ItemExistException e)
     {
@@ -1007,7 +1005,7 @@ void MainWindow::btnAuthLogoutClicked()
     btnAuthLogout->hide();
     lbCurrentUserLogin->setText(tr("guest"));
     lbCurrentUserGroup->setText(tr("User"));
-    m_currentUser.setNewUser(tr("guest"), UserGroupName::USER, m_databaseManager.getUserRights(UserGroupName::USER));
+    m_currentUser.setNewUser(tr("guest"), UserGroupName::User, m_userDBManager.getUserRights(UserGroupName::User));
     updateUIbyUserGroup();
     emit userChanged();
 }

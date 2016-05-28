@@ -4,11 +4,7 @@
 #include <vector>
 #include <array>
 #include <QString>
-
-enum class UserRight { ViewMap, EditMap, Authorization, AccountManagement, EditStationInfo,
-       EditSchedule, EditTrainsList, FindTrips };
-
-enum class UserGroupName;
+#include "Scorp/DB/UserDBObject.h"
 
 class UserInfo
 {

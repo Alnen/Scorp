@@ -2,7 +2,6 @@
 #define SCORP_DB_EXCEPTION_H
 
 #include "ScorpException.h"
-#include "Scorp/DB/ScorpDBObject.h"
 
 namespace ScorpDBException
 {
@@ -21,14 +20,14 @@ private:
 class BadMemoryLocationException : public ScorpDBBaseException
 {
 public:
-    BadMemoryLocationException(TableName table, const std::string& key);
+    BadMemoryLocationException(const std::string& table, const std::string& itemId);
     virtual std::string getErrorCode() const;
-    TableName getTableName() const;
-    std::string getKeyColumn() const;
+    std::string getTableName() const;
+    std::string getItemId() const;
 
 private:
-    std::string m_keyColumn;
-    TableName m_tableName;
+    std::string m_itemId;
+    std::string m_tableName;
 };
 
 class TableNotFoundException : public ScorpDBBaseException
@@ -45,42 +44,42 @@ private:
 class ColumnNotFoundException : public ScorpDBBaseException
 {
 public:
-    ColumnNotFoundException(const std::string& column, TableName table);
+    ColumnNotFoundException(const std::string& column, const std::string& table);
     virtual std::string getErrorCode() const;
-    TableName getTableName() const;
+    std::string getTableName() const;
     std::string getColumnName() const;
 
 private:
-    TableName m_tableName;
+    std::string m_tableName;
     std::string m_columnName;
 };
 
 class ItemNotFoundException : public ScorpDBBaseException
 {
 public:
-    ItemNotFoundException(const std::string& item_id, TableName table);
+    ItemNotFoundException(const std::string& item_id, const std::string& table);
     virtual std::string getErrorCode() const;
     std::string getItemId() const;
-    TableName getTableName() const;
+    std::string getTableName() const;
 
 private:
     std::string m_itemId;
-    TableName m_tableName;
+    std::string m_tableName;
 };
 
 class ItemExistException : public ScorpDBBaseException
 {
 public:
-    ItemExistException(int row, const std::string& column, TableName table);
+    ItemExistException(int row, const std::string& column, const std::string& table);
     virtual std::string getErrorCode() const;
     int getRowNumber() const;
     std::string getColumnName() const;
-    TableName getTableName() const;
+    std::string getTableName() const;
 
 private:
     int m_rowNumber;
     std::string m_columnName;
-    TableName m_tableName;
+    std::string m_tableName;
 };
 
 }

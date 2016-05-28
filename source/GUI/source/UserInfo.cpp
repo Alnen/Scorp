@@ -1,9 +1,10 @@
 #include "../include/UserInfo.h"
-#include "Scorp/DB/ScorpDBObject.h"
 #include <QObject>
 
+#include <QDebug>
+
 UserInfo::UserInfo()
-    : m_login(QObject::tr("guest")), m_group(UserGroupName::USER)
+    : m_login(QObject::tr("guest")), m_group(UserGroupName::User)
 {
 }
 

@@ -4,7 +4,7 @@
 #include <memory>
 #include "ScorpRoute.h"
 #include "PetriNetUsing.h"
-#include "Scorp/DB/ScorpDBShell.h"
+#include "Scorp/DB/RailwayNetDBShell.h"
 
 namespace ScorpCore
 {
@@ -18,7 +18,7 @@ private:
     std::vector<int> m_stationList;
 	std::vector<int> m_trainList;
 	std::vector<Route> m_routeList;
-	ScorpDBShell m_databaseManager;
+        RailwayNetDBShell m_databaseManager;
 	std::unique_ptr<RailwayPetriNet> m_petriNet;
 };
 

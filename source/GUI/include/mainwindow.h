@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <memory>
 #include "UserInfo.h"
-#include "Scorp/DB/ScorpDBShell.h"
+#include "Scorp/DB/UserDBShell.h"
 
 class QTreeView;
 class QGraphicsView;
@@ -135,7 +135,8 @@ private:
     QString m_databasePath;
     QPushButton* btnMakeStep;
     UserInfo m_currentUser;
-    ScorpDBShell m_databaseManager;
+    //ScorpDBShell m_databaseManager;
+    UserDBShell m_userDBManager;
 
     QDialog* dlgEnterLogin;
     QDialog* dlgUsersList;

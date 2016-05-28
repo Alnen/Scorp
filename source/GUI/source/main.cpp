@@ -1,8 +1,7 @@
 #include "../include/mainwindow.h"
 #include <QApplication>
 #include <QDebug>
-
-#include "PetriNetUsing.h"
+//#include "PetriNetUsing.h"
 
 int main(int argc, char *argv[])
 {

@@ -1,13 +1,14 @@
-#include "ScorpTime.h"
+#include "Scorp/Core/ScorpTime.h"
 
 namespace ScorpCore
 {
 
-Time::Time(size_t s)
+Time::Time(size_t s) : m_hours(0), m_minutes(0), m_seconds(s >= 60 ? 59 : s)
 {
 }
 
 Time::Time(size_t m, size_t s)
+    : m_hours(0), m_minutes(m >= 60 ? 59 : m), m_seconds(s >= 60 ? 59 : s)
 {
 }
 

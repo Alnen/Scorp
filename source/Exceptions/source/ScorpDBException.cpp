@@ -1,5 +1,4 @@
 #include "../include/Scorp/Exceptions/ScorpDBException.h"
-//#include "DB/ScorpDBInterface.h"
 
 namespace ScorpDBException
 {
@@ -20,8 +19,8 @@ std::string OpenFailedException::getDatabasePath() const
 }
 
 // class BadMemoryLocationException
-BadMemoryLocationException::BadMemoryLocationException(TableName table, const std::string& key)
-   : m_tableName(table), m_keyColumn(key)
+BadMemoryLocationException::BadMemoryLocationException(const std::string& table, const std::string& itemId)
+    : m_tableName(itemId), m_itemId(table)
 {
 }
 
@@ -30,19 +29,18 @@ std::string BadMemoryLocationException::getErrorCode() const
     return "SCORPDB03";
 }
 
-TableName BadMemoryLocationException::getTableName() const
+std::string BadMemoryLocationException::getTableName() const
 {
     return m_tableName;
 }
 
-std::string BadMemoryLocationException::getKeyColumn() const
+std::string BadMemoryLocationException::getItemId() const
 {
-    return m_keyColumn;
+    return m_itemId;
 }
 
 // class TableNotFoundException
-TableNotFoundException::TableNotFoundException(const std::string& table)
-    : m_tableName(table)
+TableNotFoundException::TableNotFoundException(const std::string& table) : m_tableName(table)
 {
 }
 
@@ -57,8 +55,8 @@ std::string TableNotFoundException::getTableName() const
 }
 
 // class ColumnNotFoundException
-ColumnNotFoundException::ColumnNotFoundException(const std::string& column, TableName table)
-    : m_columnName(column), m_tableName(table)
+ColumnNotFoundException::ColumnNotFoundException(const std::string& column, const std::string& table)
+    : m_tableName(table), m_columnName(column)
 {
 }
 
@@ -67,7 +65,7 @@ std::string ColumnNotFoundException::getErrorCode() const
     return "SCORPDB05";
 }
 
-TableName ColumnNotFoundException::getTableName() const
+std::string ColumnNotFoundException::getTableName() const
 {
     return m_tableName;
 }
@@ -78,7 +76,7 @@ std::string ColumnNotFoundException::getColumnName() const
 }
 
 // class ItemNotFoundException
-ItemNotFoundException::ItemNotFoundException(const std::string& item_id, TableName table)
+ItemNotFoundException::ItemNotFoundException(const std::string& item_id, const std::string& table)
     : m_itemId(item_id), m_tableName(table)
 {
 }
@@ -93,14 +91,14 @@ std::string ItemNotFoundException::getItemId() const
     return m_itemId;
 }
 
-TableName ItemNotFoundException::getTableName() const
+std::string ItemNotFoundException::getTableName() const
 {
     return m_tableName;
 }
 
 // class ItemExistException
-ItemExistException::ItemExistException(int row, const std::string& column, TableName table)
-    : m_tableName(table), m_columnName(column), m_rowNumber(row)
+ItemExistException::ItemExistException(int row, const std::string& column, const std::string& table)
+    : m_rowNumber(row), m_columnName(column), m_tableName(table)
 {
 }
 
@@ -119,7 +117,7 @@ std::string ItemExistException::getColumnName() const
     return m_columnName;
 }
 
-TableName ItemExistException::getTableName() const
+std::string ItemExistException::getTableName() const
 {
     return m_tableName;
 }
