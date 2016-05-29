@@ -53,8 +53,8 @@
 #include "PetriNetComponents.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_userDBPath("../Scorp/resource/ScorpUserDB.db"),
-      m_railwayNetDBPath("../Scorp/resource/ScorpRailwayNetDB.db")
+    : QMainWindow(parent), m_userDBPath("ScorpUserDB.db"),
+      m_railwayNetDBPath("ScorpRailwayNetDB.db")
 {
     QRect desktop_screen = QApplication::desktop()->screen()->rect();
     QPoint center_pos = desktop_screen.center();
@@ -435,8 +435,8 @@ void MainWindow::defineUsersListForm()
     cmbUserShowMode->setGeometry(lbShowMode->x() + lbShowMode->width() + 5, lbShowMode->y(), 100, 20);
 
     connect(btnBack, &QPushButton::clicked, dlgUsersList, &QDialog::close);
-    connect(btnAdd, &QPushButton::clicked, [this](){this->openEditUserForm(true);});
-    connect(btnEdit, &QPushButton::clicked, [this](){this->openEditUserForm(false);});
+    connect(btnAdd, &QPushButton::clicked, this, &MainWindow::openUserAddForm);
+    connect(btnEdit, &QPushButton::clicked, this, &MainWindow::openUserEditForm);
     connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeUserFromList);
     connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearUsersList);
     connect(cmbUserShowMode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeUserGroupShowMode(int)));
@@ -1167,14 +1167,57 @@ void MainWindow::openEditUserForm(bool is_add_mode)
     dlgEditUser->open();
 }
 
+void MainWindow::openUserEditForm()
+{
+    /*QModelIndexList selection = tableUsers->selectionModel()->selectedRows();
+    QString user_login, group;
+    openEditUserForm(false);
+    for (int i = 0; i < selection.size(); ++i)
+    {
+        user_login = tableUsers->item(selection[i].row(), 0)->text();
+        group = tableUsers->item(selection[i].row(), 1)->text();
+        txtUserLogin->setText(user_login);
+        cmbUserGroup->setCurrentText(group);
+    }
+    */
+    QModelIndex index = tableUsers->currentIndex();
+    QString user_login, group;
+    openEditUserForm(false);
+    user_login = tableUsers->item(index.row(), 0)->text();
+    group = tableUsers->item(index.row(), 1)->text();
+    txtUserLogin->setText(user_login);
+    cmbUserGroup->setCurrentText(group);
+    if (lbCurrentUserLogin->text() == user_login)
+    {
+        cmbUserGroup->setEnabled(false);
+    }
+    else
+    {
+        cmbUserGroup->setEnabled(true);
+    }
+}
+
+void MainWindow::openUserAddForm()
+{
+    txtUserLogin->setText("");
+    cmbUserGroup->setCurrentIndex(1);
+    openEditUserForm(true);
+}
+
 void MainWindow::addUser()
 {
-    //
+    m_userDBManager.addUser(UserDBObject::User(txtUserLogin->text().toStdString(),
+                            txtUserPassword->text().toStdString(),
+                            userGroupFromString(cmbUserGroup->currentText().toStdString())
+                            ));
+    dlgEditUser->close();
 }
 
 void MainWindow::acceptUserChanges()
 {
-    //
+    m_userDBManager.changeUser(txtUserLogin->text().toStdString(), txtUserPassword->text().toStdString(),
+        userGroupFromString(cmbUserGroup->currentText().toStdString()));
+    dlgEditUser->close();
 }
 
 void MainWindow::clearUsersList()
@@ -1199,7 +1242,7 @@ void MainWindow::removeUserFromList()
 {
     QModelIndexList selection = tableUsers->selectionModel()->selectedRows();
     QString user_login;
-    for (int i = 0; selection.size(); ++i)
+    for (int i = 0; i < selection.size(); ++i)
     {
         user_login = tableUsers->item(selection[i].row(), 0)->text();
         if (user_login != lbCurrentUserLogin->text())

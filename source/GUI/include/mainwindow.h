@@ -102,6 +102,8 @@ private slots:
 
     void changeUserGroupShowMode(int mode);
     void openEditUserForm(bool is_add_mode);
+    void openUserEditForm();
+    void openUserAddForm();
     void addUser();
     void acceptUserChanges();
     void clearUsersList();

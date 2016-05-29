@@ -141,6 +141,8 @@ void TransitionGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphi
     painter->setPen(QPen(QBrush(m_borderColor), m_borderWidth));
     painter->setBrush(m_fillColor);
     painter->drawRect(-0.5*m_width, -0.5*m_height, m_width, m_height);
+    painter->setPen(QPen(QBrush(QColor::fromRgb(0, 0, 0)), 1.f));
+    painter->drawText(10, -10, QString::number(m_id));
 }
 
 void TransitionGraphicsObject::select(bool graphics_selection)

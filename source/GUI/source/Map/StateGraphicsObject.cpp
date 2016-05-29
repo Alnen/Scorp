@@ -165,15 +165,17 @@ void StateGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
     if (m_markerList.size() > 0)
     {
         int marker_r = 3;
-        QColor marker_border_color = QColor::fromRgb(0, 0, 0);
+        QColor marker_border_color = (m_markerList[0]->getColor() == 0 ? QColor::fromRgb(255, 0, 0) : QColor::fromRgb(255, 255, 0));
         //m_markerList[0]->getBorderColor();
         float marker_border_width = 1.f;//m_markerList[0]->getBorderWidth();
-        QColor marker_fill_color = QColor::fromRgb(0, 0, 0);
+        QColor marker_fill_color = (m_markerList[0]->getColor() == 0 ? QColor::fromRgb(255, 0, 0) : QColor::fromRgb(255, 255, 0));
         //m_markerList[0]->getFillColor();
         painter->setPen(QPen(QBrush(marker_border_color), marker_border_width));
         painter->setBrush(QBrush(marker_fill_color));
         painter->drawEllipse(-marker_r, -marker_r, 2*marker_r, 2*marker_r);
-        painter->drawText(-3, 4, QString::number(m_markerList.size()));
+        painter->setPen(QPen(QBrush(QColor::fromRgb(0, 0, 0)), 1.f));
+        painter->drawText(-15, 15, QString::number(m_markerList[0]->getId()));
+        painter->drawText(15, -5, QString::number(m_id));
     }
     //m_markerList[i]
     /*
