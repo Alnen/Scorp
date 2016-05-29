@@ -46,7 +46,7 @@ bool UserDBShell::addUser(UserDBObject::User user)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER, user.login);
+        throw ScorpDBException::BadMemoryLocationException("User", user.login);
         return false;
     }
     return true;
@@ -72,7 +72,7 @@ bool UserDBShell::addUserGroup(UserDBObject::UserGroup user_group)
     }
     catch(SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::BadMemoryLocationException("UserGroup", user_group.name);
         return false;
     }
     return true;
@@ -90,8 +90,7 @@ bool UserDBShell::changeUser(const std::string& login, const std::string& passwo
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(login, "User");
         return false;
     }
     return true;
@@ -108,8 +107,7 @@ bool UserDBShell::changeUserGroup(const std::string& login, UserGroupName group)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(login, "User");
         return false;
     }
     return true;
@@ -126,8 +124,7 @@ bool UserDBShell::changeUserPassword(const std::string& login, const std::string
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(login, "User");
         return false;
     }
     return true;
@@ -137,7 +134,7 @@ bool UserDBShell::changeUserRight(UserGroupName group, UserRight right, bool val
 {
     try
     {
-        SQLite::Statement query(*m_database, "UPDATE User SET :right = :value WHERE Group = :group");
+        SQLite::Statement query(*m_database, "UPDATE UserGroup SET :right = :value WHERE Group = :group");
         query.bind(":right", userRightToString(right));
         query.bind(":value", value);
         query.bind(":group", userGroupToString(group));
@@ -145,8 +142,7 @@ bool UserDBShell::changeUserRight(UserGroupName group, UserRight right, bool val
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(userGroupToString(group), "UserGroup");
         return false;
     }
     return true;
@@ -156,10 +152,10 @@ bool UserDBShell::changeUserRights(UserGroupName group, const std::array<bool, 8
 {
     try
     {
-        SQLite::Statement query(*m_database, std::string("UPDATE User SET ViewMap = :viewMap,")
+        SQLite::Statement query(*m_database, std::string("UPDATE UserGroup SET ViewMap = :viewMap,")
             + " EditMap = :editMap, Autorization = :autorization, AccountManagment = :accountManagment,"
             + " EditStationInfo = :editStationInfo, EditSchedule = :editSchedule,"
-            + " EditTrainsList = :editTrainsList, FindTrips = :findTrips WHERE Group = :group");
+            + " EditTrainsList = :editTrainsList, FindTrips = :findTrips WHERE Name = :group");
         query.bind(":viewMap", rights[0]);
         query.bind(":editMap", rights[1]);
         query.bind(":autorization", rights[2]);
@@ -173,8 +169,7 @@ bool UserDBShell::changeUserRights(UserGroupName group, const std::array<bool, 8
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(userGroupToString(group), "UserGroup");
         return false;
     }
     return true;
@@ -190,8 +185,7 @@ bool UserDBShell::removeUser(const std::string& login)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(login, "User");
         return false;
     }
     return true;
@@ -207,8 +201,7 @@ bool UserDBShell::removeUserGroup(UserGroupName group)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(userGroupToString(group), "UserGroup");
         return false;
     }
     return true;
@@ -231,7 +224,7 @@ std::array<bool, 8> UserDBShell::getUserRights(UserGroupName group)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(userGroupToString(group), "UserGroup");
     }
     return user_rights;
 }
@@ -250,7 +243,7 @@ UserGroupName UserDBShell::getUserGroup(const std::string& login)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(login, "User");
     }
     return group;
 }
@@ -300,7 +293,7 @@ std::vector<std::pair<std::string, UserGroupName>> UserDBShell::getAllUsers()
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::BadMemoryLocationException("User", login);
         return std::vector<std::pair<std::string, UserGroupName>>();
     }
     return user_list;
@@ -309,17 +302,19 @@ std::vector<std::pair<std::string, UserGroupName>> UserDBShell::getAllUsers()
 std::vector<std::string> UserDBShell::getAllOperators()
 {
     std::vector<std::string> operator_list;
+    std::string login;
     try
     {
         SQLite::Statement query(*m_database, "SELECT Login FROM User WHERE Group = Operator");
         while (query.executeStep())
         {
-            operator_list.push_back(query.getColumn(0).getText());
+            login = query.getColumn(0).getText();
+            operator_list.push_back(login);
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::BadMemoryLocationException("User", login);
         return std::vector<std::string>();
     }
     return operator_list;
@@ -328,17 +323,19 @@ std::vector<std::string> UserDBShell::getAllOperators()
 std::vector<std::string> UserDBShell::getAllAdmins()
 {
     std::vector<std::string> admin_list;
+    std::string login;
     try
     {
         SQLite::Statement query(*m_database, "SELECT Login FROM User WHERE Group = Admin");
         while (query.executeStep())
         {
-            admin_list.push_back(query.getColumn(0).getText());
+            login = query.getColumn(0).getText();
+            admin_list.push_back(login);
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::BadMemoryLocationException("User", login);
         return std::vector<std::string>();
     }
     return admin_list;

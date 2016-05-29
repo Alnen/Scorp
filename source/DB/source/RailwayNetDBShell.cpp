@@ -22,8 +22,8 @@ bool RailwayNetDBShell::createDatabase(const std::string& path)
     (*m_database).exec(std::string("CREATE TABLE RoutePart (Id INTEGER (1, 30) PRIMARY KEY NOT NULL UNIQUE,")
         + " Route INTEGER (1, 30) NOT NULL REFERENCES Route (Id) ON DELETE NO ACTION ON UPDATE NO ACTION"
         + " MATCH SIMPLE, Transition INTEGER (1, 30) NOT NULL REFERENCES Transition (Id) ON DELETE"
-        + " NO ACTION ON UPDATE NO ACTION MATCH SIMPLE, TimeOffsetFrom TIME NOT NULL,"
-        + " TimeOffsetTo TIME NOT NULL)");
+        + " NO ACTION ON UPDATE NO ACTION MATCH SIMPLE, TimeOffsetFrom DATETIME NOT NULL,"
+        + " TimeOffsetTo DATETIME NOT NULL)");
     (*m_database).exec(std::string("CREATE TABLE Station (Id INTEGER (1, 30) UNIQUE PRIMARY KEY NOT NULL,")
         + " Name STRING (1, 50) NOT NULL UNIQUE, X INTEGER (1, 30) NOT NULL, Y INTEGER (1, 30) NOT NULL,"
         + " Capasity INTEGER (1, 30) NOT NULL)");
@@ -55,7 +55,7 @@ bool RailwayNetDBShell::addTransition(RailwayNetDBObject::Transition transition)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(TableName::TRANSITION, std::to_string(transition.id));
+        throw ScorpDBException::BadMemoryLocationException("Transition", std::to_string(transition.id));
         return false;
     }
     return true;
@@ -72,7 +72,7 @@ bool RailwayNetDBShell::addTrain(RailwayNetDBObject::Train train)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(TableName::TRAIN, std::to_string(train.number));
+        throw ScorpDBException::BadMemoryLocationException("Train", std::to_string(train.number));
         return false;
     }
     return true;
@@ -92,7 +92,7 @@ bool RailwayNetDBShell::addStation(RailwayNetDBObject::Station station)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(TableName::STATION, std::to_string(station.id));
+        throw ScorpDBException::BadMemoryLocationException("Station", std::to_string(station.id));
         return false;
     }
     return true;
@@ -107,17 +107,13 @@ bool RailwayNetDBShell::addRoutePart(RailwayNetDBObject::RoutePart route_part)
         query.bind(":id", route_part.id);
         query.bind(":route", route_part.route);
         query.bind(":transition", route_part.transition);
-        std::string str_time_from = "01:01:01";
-        std::string str_time_to = "01:01:01";
-        query.bind(":timeOffsetFrom", str_time_from);
-        query.bind(":timeOffsetTo", str_time_to);
-        //query.bind(":timeOffsetFrom", route_part.timeOffsetFrom);
-        //query.bind(":timeOffsetTo", route_part.timeOffsetTo);
+        query.bind(":timeOffsetFrom", ScorpCore::Time::toString(route_part.timeOffsetFrom));
+        query.bind(":timeOffsetTo", ScorpCore::Time::toString(route_part.timeOffsetTo));
         query.exec();
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(TableName::ROUTE_PART, std::to_string(route_part.id));
+        throw ScorpDBException::BadMemoryLocationException("RoutePart", std::to_string(route_part.id));
         return false;
     }
     return true;
@@ -134,7 +130,7 @@ bool RailwayNetDBShell::addRoute(RailwayNetDBObject::Route route)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(TableName::ROUTE, std::to_string(route.id));
+        throw ScorpDBException::BadMemoryLocationException("Route", std::to_string(route.id));
         return false;
     }
     return true;
@@ -153,8 +149,7 @@ bool RailwayNetDBShell::changeTransition(int id, int station_from, int station_t
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Transition");
         return false;
     }
     return true;
@@ -172,8 +167,7 @@ bool RailwayNetDBShell::changeTransitionStationFrom(int id, int value)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Transition");
         return false;
     }
     return true;
@@ -191,8 +185,7 @@ bool RailwayNetDBShell::changeTransitionStationTo(int id, int value)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Transition");
         return false;
     }
     return true;
@@ -210,8 +203,7 @@ bool RailwayNetDBShell::changeTrainRoute(int number, int value)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(number), "Train");
         return false;
     }
     return true;
@@ -232,8 +224,7 @@ bool RailwayNetDBShell::changeStation(int id, const std::string& name, int x, in
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Station");
         return false;
     }
     return true;
@@ -251,8 +242,7 @@ bool RailwayNetDBShell::changeStationName(int id, const std::string& name)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Station");
         return false;
     }
     return true;
@@ -271,8 +261,7 @@ bool RailwayNetDBShell::changeStationCoord(int id, int x, int y)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Station");
         return false;
     }
     return true;
@@ -290,8 +279,7 @@ bool RailwayNetDBShell::changeStationCapasity(int id, int value)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Station");
         return false;
     }
     return true;
@@ -304,18 +292,13 @@ bool RailwayNetDBShell::changeRoutePartTime(int id, const ScorpCore::Time& time_
         SQLite::Statement query(*m_database, std::string("UPDATE RoutePart SET TimeOffsetFrom = :timeFrom,")
             + " TimeOffsetTo = :timeTo WHERE Id = :id");
         query.bind(":id", id);
-        std::string str_time_from = "01:01:01";
-        std::string str_time_to = "01:01:01";
-        query.bind(":timeFrom", str_time_from);
-        query.bind(":timeTo", str_time_to);
-        //query.bind(":timeFrom", time_from);
-        //query.bind(":timeTo", time_to);
+        query.bind(":timeFrom", ScorpCore::Time::toString(time_from));
+        query.bind(":timeTo", ScorpCore::Time::toString(time_to));
         query.exec();
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "RoutePart");
         return false;
     }
     return true;
@@ -328,15 +311,12 @@ bool RailwayNetDBShell::changeRoutePartTimeFrom(int id, const ScorpCore::Time& t
         SQLite::Statement query(*m_database, std::string("UPDATE RoutePart SET TimeOffsetFrom = :timeFrom")
             + " WHERE Id = :id");
         query.bind(":id", id);
-        std::string str_time = "01:01:01";
-        query.bind(":timeFrom", str_time);
-        //query.bind(":timeFrom", time);
+        query.bind(":timeFrom", ScorpCore::Time::toString(time));
         query.exec();
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "RoutePart");
         return false;
     }
     return true;
@@ -349,15 +329,12 @@ bool RailwayNetDBShell::changeRoutePartTimeTo(int id, const ScorpCore::Time& tim
         SQLite::Statement query(*m_database, std::string("UPDATE RoutePart SET TimeOffsetTo = :timeTo")
             + " WHERE Id = :id");
         query.bind(":id", id);
-        std::string str_time = "01:01:01";
-        query.bind(":timeFrom", str_time);
-        //query.bind(":timeTo", time);
+        query.bind(":timeTo", ScorpCore::Time::toString(time));
         query.exec();
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "RoutePart");
         return false;
     }
     return true;
@@ -374,8 +351,7 @@ bool RailwayNetDBShell::changeRouteName(int id, const std::string& name)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Route");
         return false;
     }
     return true;
@@ -391,8 +367,7 @@ bool RailwayNetDBShell::removeTransition(int id)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::BadMemoryLocationException(std::to_string(id), "Transition");
         return false;
     }
     return true;
@@ -408,8 +383,7 @@ bool RailwayNetDBShell::removeTrain(int number)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::BadMemoryLocationException(std::to_string(number), "Train");
         return false;
     }
     return true;
@@ -425,8 +399,7 @@ bool RailwayNetDBShell::removeStation(int id)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::BadMemoryLocationException(std::to_string(id), "Station");
         return false;
     }
     return true;
@@ -442,8 +415,7 @@ bool RailwayNetDBShell::removeRoutePart(int id)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::BadMemoryLocationException(std::to_string(id), "RoutePart");
         return false;
     }
     return true;
@@ -459,8 +431,7 @@ bool RailwayNetDBShell::removeRoute(int id)
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::ItemNotFoundException(key, table_name);
-        //throw ScorpDBException::BadMemoryLocationException(TableName::USER_GROUPS, user_group.name);
+        throw ScorpDBException::BadMemoryLocationException(std::to_string(id), "Route");
         return false;
     }
     return true;
@@ -473,17 +444,16 @@ RailwayNetDBObject::Transition RailwayNetDBShell::getTransition(int id)
     {
         SQLite::Statement query(*m_database, "SELECT StationFrom, StationTo FROM Transition WHERE Id = :id");
         query.bind(":id", id);
-        while (query.executeStep())
+        if (query.executeStep())
         {
             transition.id = id;
             transition.stationFrom = query.getColumn(0).getInt();
             transition.stationTo = query.getColumn(1).getInt();
-            break;
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Transition");
     }
     return transition;
 }
@@ -495,16 +465,15 @@ RailwayNetDBObject::Train RailwayNetDBShell::getTrain(int number)
     {
         SQLite::Statement query(*m_database, "SELECT Route FROM Train WHERE Number = :number");
         query.bind(":number", number);
-        while (query.executeStep())
+        if (query.executeStep())
         {
             train.number = number;
             train.route = query.getColumn(0).getInt();
-            break;
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(number), "Train");
     }
     return train;
 }
@@ -516,19 +485,18 @@ RailwayNetDBObject::Station RailwayNetDBShell::getStation(int id)
     {
         SQLite::Statement query(*m_database, "SELECT Name, X, Y, Capasity FROM Station WHERE Id = :id");
         query.bind(":id", id);
-        while (query.executeStep())
+        if (query.executeStep())
         {
             station.id = id;
             station.name = query.getColumn(0).getText();
             station.x = query.getColumn(1).getInt();
             station.y = query.getColumn(2).getInt();
             station.capasity = query.getColumn(3).getInt();
-            break;
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Station");
     }
     return station;
 }
@@ -541,23 +509,18 @@ RailwayNetDBObject::RoutePart RailwayNetDBShell::getRoutePart(int id)
         SQLite::Statement query(*m_database, std::string("SELECT Route, Transition, TimeOffsetFrom,")
             + " TimeOffsetTo FROM RoutePart WHERE Id = :id");
         query.bind(":id", id);
-        std::string str_time_from;
-        std::string str_time_to;
-        while (query.executeStep())
+        if (query.executeStep())
         {
             route_part.id = id;
             route_part.route = query.getColumn(0).getInt();
             route_part.transition = query.getColumn(1).getInt();
-            str_time_from = query.getColumn(2).getText();
-            str_time_to = query.getColumn(3).getText();
-            //route_part.timeOffsetFrom = query.getColumn(2).getText();
-            //route_part.timeOffsetTo = query.getColumn(3).getText();
-            break;
+            route_part.timeOffsetFrom = ScorpCore::Time::fromString(query.getColumn(2).getText());
+            route_part.timeOffsetTo = ScorpCore::Time::fromString(query.getColumn(3).getText());
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "RoutePart");
     }
     return route_part;
 }
@@ -569,16 +532,15 @@ RailwayNetDBObject::Route RailwayNetDBShell::getRoute(int id)
     {
         SQLite::Statement query(*m_database, "SELECT Name FROM Route WHERE Id = :id");
         query.bind(":id", id);
-        while (query.executeStep())
+        if (query.executeStep())
         {
             route.id = id;
             route.name = query.getColumn(0).getText();
-            break;
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(id), "Route");
     }
     return route;
 }
@@ -586,18 +548,20 @@ RailwayNetDBObject::Route RailwayNetDBShell::getRoute(int id)
 std::vector<RailwayNetDBObject::Transition> RailwayNetDBShell::getTransitions()
 {
     std::vector<RailwayNetDBObject::Transition> transition_list;
+    int curr_id = -1;
     try
     {
         SQLite::Statement query(*m_database, "SELECT * FROM Transition");
         while (query.executeStep())
         {
-            transition_list.push_back(RailwayNetDBObject::Transition(query.getColumn(0).getInt(),
+            curr_id = query.getColumn(0).getInt();
+            transition_list.push_back(RailwayNetDBObject::Transition(curr_id,
                 query.getColumn(1).getInt(), query.getColumn(2).getInt()));
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(curr_id), "Transition");
         return std::vector<RailwayNetDBObject::Transition>();
     }
     return transition_list;
@@ -606,18 +570,20 @@ std::vector<RailwayNetDBObject::Transition> RailwayNetDBShell::getTransitions()
 std::vector<RailwayNetDBObject::Train> RailwayNetDBShell::getTrains()
 {
     std::vector<RailwayNetDBObject::Train> train_list;
+    int curr_number = -1;
     try
     {
         SQLite::Statement query(*m_database, "SELECT * FROM Train");
         while (query.executeStep())
         {
-            train_list.push_back(RailwayNetDBObject::Train(query.getColumn(0).getInt(),
+            curr_number = query.getColumn(0).getInt();
+            train_list.push_back(RailwayNetDBObject::Train(curr_number,
                 query.getColumn(1).getInt()));
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(curr_number), "Train");
         return std::vector<RailwayNetDBObject::Train>();
     }
     return train_list;
@@ -626,19 +592,21 @@ std::vector<RailwayNetDBObject::Train> RailwayNetDBShell::getTrains()
 std::vector<RailwayNetDBObject::Station> RailwayNetDBShell::getStations()
 {
     std::vector<RailwayNetDBObject::Station> station_list;
+    int curr_id = -1;
     try
     {
         SQLite::Statement query(*m_database, "SELECT * FROM Station");
         while (query.executeStep())
         {
-            station_list.push_back(RailwayNetDBObject::Station(query.getColumn(0).getInt(),
+            curr_id = query.getColumn(0).getInt();
+            station_list.push_back(RailwayNetDBObject::Station(curr_id,
                 query.getColumn(1).getText(), query.getColumn(2).getInt(), query.getColumn(3).getInt(),
                 query.getColumn(4).getInt()));
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(curr_id), "Station");
         return std::vector<RailwayNetDBObject::Station>();
     }
     return station_list;
@@ -647,6 +615,7 @@ std::vector<RailwayNetDBObject::Station> RailwayNetDBShell::getStations()
 std::vector<RailwayNetDBObject::RoutePart> RailwayNetDBShell::getRouteParts()
 {
     std::vector<RailwayNetDBObject::RoutePart> route_part_list;
+    int curr_id = -1;
     try
     {
         SQLite::Statement query(*m_database, "SELECT * FROM RoutePart");
@@ -654,16 +623,17 @@ std::vector<RailwayNetDBObject::RoutePart> RailwayNetDBShell::getRouteParts()
         std::string time_to;
         while (query.executeStep())
         {
+            curr_id = query.getColumn(0).getInt();
             time_from = query.getColumn(3).getText();
             time_to = query.getColumn(4).getText();
-            //route_part_list.push_back(RailwayNetDBObject::RoutePart(query.getColumn(0).getInt(),
-            //    query.getColumn(1).getText(), query.getColumn(2).getInt(), query.getColumn(3).getInt(),
-            //    query.getColumn(4).getInt()));
+            route_part_list.push_back(RailwayNetDBObject::RoutePart(curr_id, query.getColumn(1).getInt(),
+                query.getColumn(2).getInt(), ScorpCore::Time::fromString(time_from),
+                ScorpCore::Time::fromString(time_to)));
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(curr_id), "RoutePart");
         return std::vector<RailwayNetDBObject::RoutePart>();
     }
     return route_part_list;
@@ -672,35 +642,142 @@ std::vector<RailwayNetDBObject::RoutePart> RailwayNetDBShell::getRouteParts()
 std::vector<RailwayNetDBObject::Route> RailwayNetDBShell::getRoutes()
 {
     std::vector<RailwayNetDBObject::Route> route_list;
+    int curr_id = -1;
     try
     {
         SQLite::Statement query(*m_database, "SELECT * FROM Route");
         while (query.executeStep())
         {
-            route_list.push_back(RailwayNetDBObject::Route(query.getColumn(0).getInt(),
+            curr_id = query.getColumn(0).getInt();
+            route_list.push_back(RailwayNetDBObject::Route(curr_id,
                 query.getColumn(1).getText()));
         }
     }
     catch (SQLite::Exception)
     {
-        //throw ScorpDBException::BadMemoryLocationException(table_name, key);
+        throw ScorpDBException::ItemNotFoundException(std::to_string(curr_id), "Route");
         return std::vector<RailwayNetDBObject::Route>();
     }
     return route_list;
 }
 
+bool RailwayNetDBShell::removeAllTransitions()
+{
+    try
+    {
+        SQLite::Statement query(*m_database, "DELETE FROM Transition");
+        query.exec();
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException("", "Transition");
+        return false;
+    }
+    return true;
+}
+
+bool RailwayNetDBShell::removeAllTrains()
+{
+    try
+    {
+        SQLite::Statement query(*m_database, "DELETE FROM Train");
+        query.exec();
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException("", "Train");
+        return false;
+    }
+    return true;
+}
+
+bool RailwayNetDBShell::removeAllStations()
+{
+    try
+    {
+        SQLite::Statement query(*m_database, "DELETE FROM Station");
+        query.exec();
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException("", "Station");
+        return false;
+    }
+    return true;
+}
+
+bool RailwayNetDBShell::removeAllRouteParts()
+{
+    try
+    {
+        SQLite::Statement query(*m_database, "DELETE FROM RoutePart");
+        query.exec();
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException("", "RoutePart");
+        return false;
+    }
+    return true;
+}
+
+bool RailwayNetDBShell::removeAllRoutes()
+{
+    try
+    {
+        SQLite::Statement query(*m_database, "DELETE FROM Route");
+        query.exec();
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException("", "Route");
+        return false;
+    }
+    return true;
+}
+
+std::vector<std::pair<int, std::string>> RailwayNetDBShell::getStationNameList()
+{
+    std::vector<std::pair<int, std::string>> station_list;
+    int curr_id = -1;
+    try
+    {
+        SQLite::Statement query(*m_database, "SELECT Id, Name FROM Station");
+        while (query.executeStep())
+        {
+            curr_id = query.getColumn(0).getInt();
+            station_list.push_back(std::pair<int, std::string>(curr_id,
+                query.getColumn(1).getText()));
+        }
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::ItemNotFoundException(std::to_string(curr_id), "Station");
+        return std::vector<std::pair<int, std::string>>();
+    }
+    return station_list;
+}
+
+//=================================================================
+/*
 std::vector<std::string> RailwayNetDBShell::getRoutsFromAtoB(std::string stA, std::string stB)
 {
-    std::vector<std::vector<std::string>> routs= getAllRowsFromTable(TableName::ROUTE);
-    std::vector<std::vector<std::string>> routParts= getAllRowsFromTable(TableName::ROUTE_PART);
-    std::vector<std::vector<std::string>> transitions= getAllRowsFromTable(TableName::TRANSITION);
+    std::vector<std::vector<std::string>> routs = getRoutes();
+    std::vector<RailwayNetDBObject::RoutePart> routParts = getRouteParts();// getAllRowsFromTable(TableName::ROUTE_PART);
+    std::vector<std::vector<std::string>> transitions = getAllRowsFromTable(TableName::TRANSITION);
     std::set<std::string> validTrasitionsA;
     std::set<std::string> validTrasitionsB;
     std::vector<std::string> resultRouts;
-    for(std::vector<std::string> tr: transitions)
+    for(std::vector<std::string> tr : transitions)
     {
-        if(tr[1]==stA) validTrasitionsA.insert(tr[0]);
-        if(tr[1]==stB) validTrasitionsB.insert(tr[0]);
+        if (tr[1]==stA)
+        {
+            validTrasitionsA.insert(tr[0]);
+        }
+        if (tr[1]==stB)
+        {
+            validTrasitionsB.insert(tr[0]);
+        }
 
     }
     bool aCheck, bCheck;
@@ -716,8 +793,8 @@ std::vector<std::string> RailwayNetDBShell::getRoutsFromAtoB(std::string stA, st
             if(aCheck&&bCheck)
             {
                 resultRouts.push_back(rout[0]);
-                aCheck=false;
-                bCheck=false;
+                aCheck = false;
+                bCheck = false;
             }
 
         }
@@ -725,147 +802,4 @@ std::vector<std::string> RailwayNetDBShell::getRoutsFromAtoB(std::string stA, st
     return resultRouts;
 
 }
-
-std::vector<std::string> RailwayNetDBShell::getAllStations()
-{
-
-        const char* table_name="Station";
-        std::vector<std::string> table_rows;
-        try
-            {
-                SQLite::Statement query(*m_database, "SELECT Name FROM Station");
-                std::string curr_row;
-                while (query.executeStep())
-                {
-                    curr_row = query.getColumn(0).getText();
-                    table_rows.push_back(curr_row);
-                }
-            }
-            catch(SQLite::Exception)
-            {
-                throw ScorpDBException::BadMemoryLocationException(TableName::STATION, "");
-            }
-
-        return table_rows;
-
-
-}
-
-bool RailwayNetDBShell::deleteAllStations()
-{
-    try
-    {
-            SQLite::Statement query(*m_database, "DELETE FROM Station");
-            query.exec();
-
-    }
-    catch(SQLite::Exception)
-    {
-        throw ScorpDBException::BadMemoryLocationException(TableName::STATION, "");
-        return false;
-    }
-    return true;
-}
-
-bool RailwayNetDBShell::deleteStation(std::string id)
-{
-    try
-    {
-        deleteFromTable(TableName::STATION, id);
-    }
-    catch(SQLite::Exception)
-    {
-        throw ScorpDBException::BadMemoryLocationException(TableName::STATION, "");
-        return false;
-    }
-    return true;
-}
-
-bool RailwayNetDBShell::deleteAllTrains()
-{
-    try
-    {
-            SQLite::Statement query(*m_database, "DELETE FROM Train");
-            query.exec();
-
-    }
-    catch(SQLite::Exception)
-    {
-        throw ScorpDBException::BadMemoryLocationException(TableName::TRAIN, "");
-        return false;
-    }
-    return true;
-}
-
-bool RailwayNetDBShell::deleteTrain(std::string number)
-{
-    try
-    {
-        deleteFromTable(TableName::TRAIN, number);
-    }
-    catch(SQLite::Exception)
-    {
-        throw ScorpDBException::BadMemoryLocationException(TableName::TRAIN, "");
-        return false;
-    }
-    return true;
-}
-
-RailwayNetDBObject::Route RailwayNetDBShell::getRoute(std::string name)
-{
-
-    std::vector<std::string> data_row;
-    try
-    {
-        SQLite::Statement query(*m_database, "SELECT * FROM Route WHERE Name LIKE :key");
-        query.bind(":key", name);
-        int row_size = query.getColumnCount();
-        query.executeStep();
-        std::string col = "";
-        for(int i = 0; i < row_size; ++i)
-        {
-            col = query.getColumn(i).getText();
-            data_row.push_back(col);
-        }
-    }
-    catch(SQLite::Exception)
-    {
-        throw ScorpDBException::BadMemoryLocationException(TableName::ROUTE, name);
-        RailwayNetDBObject::Route route(0,name);
-        return route;
-    }
-    RailwayNetDBObject::Route route(std::stoi(data_row[0]), data_row[1]);
-    return route;
-}
-
-bool RailwayNetDBShell::deleteRout(std::string name)
-{
-    RailwayNetDBObject::Route rt=getRoute(name);
-    try
-    {
-        deleteFromTable(TableName::ROUTE, std::to_string(rt.id));
-    }
-    catch(SQLite::Exception)
-    {
-        throw ScorpDBException::BadMemoryLocationException(TableName::ROUTE, "");
-        return false;
-    }
-    return true;
-}
-
-bool RailwayNetDBShell::deleteAllRouts()
-{
-    try
-    {
-            SQLite::Statement query(*m_database, "DELETE FROM Route");
-            query.exec();
-
-    }
-    catch(SQLite::Exception)
-    {
-        throw ScorpDBException::BadMemoryLocationException(TableName::ROUTE, "");
-        return false;
-    }
-    return true;
-}
-
+*/
