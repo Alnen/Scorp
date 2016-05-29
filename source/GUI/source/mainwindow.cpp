@@ -54,7 +54,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_userDBPath("../Scorp/resource/ScorpUserDB.db"),
-      m_railwayNetDBPath("../Scorp/resource/RailwayNetDB.db")
+      m_railwayNetDBPath("../Scorp/resource/ScorpRailwayNetDB.db")
 {
     QRect desktop_screen = QApplication::desktop()->screen()->rect();
     QPoint center_pos = desktop_screen.center();

@@ -1,7 +1,10 @@
 #include "../include/mainwindow.h"
 #include <QApplication>
 #include <QDebug>
+#include <iostream>
+#include <fstream>
 //#include "PetriNetUsing.h"
+#include "PetriNetComponents.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,7 +15,6 @@ int main(int argc, char *argv[])
     int state_2 = petriNet->addState<PetriNetComponent::Station>(PetriNetComponent::Station("Station 2", 200, 200, 2));
     int blocking_state = petriNet->addState<PetriNetComponent::Semaphore>(PetriNetComponent::Semaphore());
     int inter_state = petriNet->addState<PetriNetComponent::InterState>(PetriNetComponent::InterState());
-
     int transition_1 = petriNet->addTransition<PetriNetComponent::ExitFromStation>(PetriNetComponent::ExitFromStation());
     int transition_2 = petriNet->addTransition<PetriNetComponent::EnterToStation>(PetriNetComponent::EnterToStation());
     petriNet->addStateToTransitionConnection<PetriNetComponent::Station, PetriNetComponent::ExitFromStation>(state_1, transition_1);
@@ -23,7 +25,6 @@ int main(int argc, char *argv[])
     petriNet->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::ExitFromStation>(blocking_state, transition_1);
     int train_marker = petriNet->addMarker<PetriNetComponent::Train>(state_1, PetriNetComponent::Train(1001));
     int access_token = petriNet->addMarker<PetriNetComponent::AccessToken>(blocking_state, PetriNetComponent::AccessToken());
-
     petriNet->executeMarkersPropagation();
     */
 

@@ -24,6 +24,7 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/source/Map/TrackGraphicsObject.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/source/Map/MarkerCommandQueue.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/source/UserInfo.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/PetriNetComponents.cpp
         # icon.rc
         PARENT_SCOPE)
 
