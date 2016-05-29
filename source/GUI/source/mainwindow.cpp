@@ -53,7 +53,8 @@
 #include "PetriNetComponents.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_databasePath("ScorpUserDB.db")
+    : QMainWindow(parent), m_userDBPath("../Scorp/resource/ScorpUserDB.db"),
+      m_railwayNetDBPath("../Scorp/resource/RailwayNetDB.db")
 {
     QRect desktop_screen = QApplication::desktop()->screen()->rect();
     QPoint center_pos = desktop_screen.center();
@@ -191,10 +192,10 @@ void MainWindow::defineMainMenu()
     connect(actLoad, &QAction::triggered, this, &MainWindow::loadFromFile);
     connect(actSave, &QAction::triggered, this, &MainWindow::saveToFile);
     connect(actExit, &QAction::triggered, this, &MainWindow::close);
-    connect(actUsersList, &QAction::triggered, dlgUsersList, &QDialog::open);
+    connect(actUsersList, &QAction::triggered, this, &MainWindow::openUsersListForm);
     connect(actStationsList, &QAction::triggered, this, &MainWindow::openStationsListForm);
-    connect(actTrainsList, &QAction::triggered, dlgTrainsList, &QDialog::open);
-    connect(actToursList, &QAction::triggered, dlgToursList, &QDialog::open);
+    connect(actTrainsList, &QAction::triggered, this, &MainWindow::openTrainsListForm);
+    connect(actToursList, &QAction::triggered, this, &MainWindow::openToursListForm);
     connect(actEditProfile, &QAction::triggered, this, &MainWindow::openEditProfileDialog);
     connect(actFindTour, &QAction::triggered, dlgFindTour, &QDialog::open);
     connect(actAbout, &QAction::triggered, dlgAboutProgram, &QDialog::open);
@@ -394,7 +395,6 @@ void MainWindow::defineStationsList()
     m_stationsListView->setGeometry(list_x, m_mapView->y() + 2, list_width, list_height);
     m_stationsListView->setHeaderHidden(true);
     m_stationsListView->setIndentation(20);
-
     m_completer->setModel(modelFromStationList());
 }
 
@@ -423,22 +423,23 @@ void MainWindow::defineUsersListForm()
     tableUsers->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
     tableUsers->horizontalHeader()->setStretchLastSection(true);
     tableUsers->setGeometry(10, 10, dlgUsersList->width()-20, btnBack->y() - 45);
+    tableUsers->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tableUsers->setSelectionMode(QAbstractItemView::SingleSelection);
 
     QLabel* lbShowMode = new QLabel(tr("Show:"), dlgUsersList);
     lbShowMode->setGeometry(tableUsers->x(), tableUsers->y() + tableUsers->height() + 5, 40, 20);
-    QComboBox* cmbShowMode = new QComboBox(dlgUsersList);
-    cmbShowMode->addItem(tr("All"));
-    cmbShowMode->addItem(tr("Only Operators"));
-    cmbShowMode->addItem(tr("Only Admins"));
-    cmbShowMode->setGeometry(lbShowMode->x() + lbShowMode->width() + 5, lbShowMode->y(), 100, 20);
+    cmbUserShowMode = new QComboBox(dlgUsersList);
+    cmbUserShowMode->addItem(tr("All"));
+    cmbUserShowMode->addItem(tr("Only Operators"));
+    cmbUserShowMode->addItem(tr("Only Admins"));
+    cmbUserShowMode->setGeometry(lbShowMode->x() + lbShowMode->width() + 5, lbShowMode->y(), 100, 20);
 
     connect(btnBack, &QPushButton::clicked, dlgUsersList, &QDialog::close);
     connect(btnAdd, &QPushButton::clicked, [this](){this->openEditUserForm(true);});
     connect(btnEdit, &QPushButton::clicked, [this](){this->openEditUserForm(false);});
     connect(btnRemove, &QPushButton::clicked, this, &MainWindow::removeUserFromList);
     connect(btnClear, &QPushButton::clicked, this, &MainWindow::clearUsersList);
-    connect(cmbShowMode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeUserGroupShowMode(int)));
-    //connect(cmbShowMode, &QComboBox::currentIndexChanged, this, &MainWindow::changeUserGroupShowMode);
+    connect(cmbUserShowMode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeUserGroupShowMode(int)));
 }
 
 void MainWindow::defineStationsListForm()
@@ -928,8 +929,10 @@ void MainWindow::updateTourListEditable(bool status)
 
 void MainWindow::connectToDatabase()
 {
-    m_userDBManager.connectToDatabase(m_databasePath.toStdString());
-    m_currentUser.setUserRights(m_userDBManager.getUserRights(UserGroupName::User));
+    m_railwayNetDBManager.connectToDatabase(m_railwayNetDBPath.toStdString());
+    m_userDBManager.connectToDatabase(m_userDBPath.toStdString());
+    //m_currentUser.setUserRights(m_userDBManager.getUserRights(UserGroupName::User));
+    m_currentUser.setUserRights(m_userDBManager.getUserRights(UserGroupName::Operator));
     updateUIbyUserGroup();
 }
 
@@ -1051,28 +1054,36 @@ void MainWindow::showAllOperators()
 
 void MainWindow::openUsersListForm()
 {
+    cmbUserShowMode->setCurrentIndex(0);
+    changeUserGroupShowMode(0);
     dlgUsersList->open();
 }
 
 void MainWindow::openEditProfileDialog()
 {
+    txtUserLogin->setText(lbCurrentUserLogin->text());
+    //
+    //txtUserPassword->setText();
     openEditUserForm(false);
+    cmbUserGroup->setCurrentIndex(1);
+    cmbUserGroup->setEnabled(false);
     dlgEditUser->setWindowTitle(tr("Edit Profile"));
 }
 
 void MainWindow::openStationsListForm()
 {
+    //
     dlgStationsList->open();
 }
 
 void MainWindow::openTrainsListForm()
 {
-    //
+    dlgTrainsList->open();
 }
 
 void MainWindow::openToursListForm()
 {
-    //
+    dlgToursList->open();
 }
 
 void MainWindow::openTrainScheduleForm()
@@ -1097,22 +1108,48 @@ void MainWindow::showAboutProgramInfo()
 
 void MainWindow::changeUserGroupShowMode(int mode)
 {
+    tableUsers->setRowCount(0);
     if (mode == 0)
     {
-        //
+        std::vector<std::pair<std::string, UserGroupName>> user_list = m_userDBManager.getAllUsers();
+        for (size_t i = 0; i < user_list.size(); ++i)
+        {
+            tableUsers->insertRow(tableUsers->rowCount());
+            tableUsers->setItem(tableUsers->rowCount() - 1, 0,
+                new QTableWidgetItem(QString::fromStdString(user_list[i].first)));
+            tableUsers->setItem(tableUsers->rowCount() - 1, 1,
+                new QTableWidgetItem(QString::fromStdString(userGroupToString(user_list[i].second))));
+        }
     }
     else if (mode == 1)
     {
-        //
+        std::vector<std::string> operator_list = m_userDBManager.getAllOperators();
+        for (size_t i = 0; i < operator_list.size(); ++i)
+        {
+            tableUsers->insertRow(tableUsers->rowCount());
+            tableUsers->setItem(tableUsers->rowCount() - 1, 0,
+                new QTableWidgetItem(QString::fromStdString(operator_list[i])));
+            tableUsers->setItem(tableUsers->rowCount() - 1, 1,
+                new QTableWidgetItem("Operator"));
+        }
     }
     else
     {
-        //
+        std::vector<std::string> admin_list = m_userDBManager.getAllAdmins();
+        for (size_t i = 0; i < admin_list.size(); ++i)
+        {
+            tableUsers->insertRow(tableUsers->rowCount());
+            tableUsers->setItem(tableUsers->rowCount() - 1, 0,
+                new QTableWidgetItem(QString::fromStdString(admin_list[i])));
+            tableUsers->setItem(tableUsers->rowCount() - 1, 1,
+                new QTableWidgetItem("Admin"));
+        }
     }
 }
 
 void MainWindow::openEditUserForm(bool is_add_mode)
 {
+    cmbUserGroup->setEnabled(true);
     if (is_add_mode)
     {
         dlgEditUser->setWindowTitle(tr("Add User"));
@@ -1142,12 +1179,35 @@ void MainWindow::acceptUserChanges()
 
 void MainWindow::clearUsersList()
 {
-    //
+    tableUsers->setRowCount(0);
+    switch(cmbUserShowMode->currentIndex())
+    {
+    case 0:
+        m_userDBManager.removeAllUsersExceptOne(lbCurrentUserLogin->text().toStdString());
+        break;
+    case 1:
+        m_userDBManager.removeAllOperators();
+        break;
+    default:
+        m_userDBManager.removeAllAdminsExceptOne(lbCurrentUserLogin->text().toStdString());
+        break;
+    }
+    changeUserGroupShowMode(cmbUserShowMode->currentIndex());
 }
 
 void MainWindow::removeUserFromList()
 {
-    //
+    QModelIndexList selection = tableUsers->selectionModel()->selectedRows();
+    QString user_login;
+    for (int i = 0; selection.size(); ++i)
+    {
+        user_login = tableUsers->item(selection[i].row(), 0)->text();
+        if (user_login != lbCurrentUserLogin->text())
+        {
+            m_userDBManager.removeUser(user_login.toStdString());
+            tableUsers->removeRow(selection[i].row());
+        }
+    }
 }
 
 void MainWindow::openEditStationForm(bool is_add_mode)

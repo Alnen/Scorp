@@ -5,6 +5,7 @@
 #include <memory>
 #include "UserInfo.h"
 #include "Scorp/DB/UserDBShell.h"
+#include "Scorp/DB/RailwayNetDBShell.h"
 
 class QTreeView;
 class QGraphicsView;
@@ -132,10 +133,11 @@ private slots:
     void makeStep();
 
 private:
-    QString m_databasePath;
+    QString m_userDBPath;
+    QString m_railwayNetDBPath;
     QPushButton* btnMakeStep;
     UserInfo m_currentUser;
-    //ScorpDBShell m_databaseManager;
+    RailwayNetDBShell m_railwayNetDBManager;
     UserDBShell m_userDBManager;
 
     QDialog* dlgEnterLogin;
@@ -201,6 +203,7 @@ private:
     QCompleter* m_completer;
     QDateTimeEdit* dateDeparture;
     QDateTimeEdit* dateArrival;
+    QComboBox* cmbUserShowMode;
 
     QPushButton* btnAcceptDepartureTime;
     QPushButton* btnAcceptArrivalTime;

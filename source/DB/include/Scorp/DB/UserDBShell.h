@@ -20,6 +20,7 @@ public:
 	bool changeUserRights(UserGroupName group, const std::array<bool, 8>& rights);
 	bool removeUser(const std::string& login);
 	bool removeUserGroup(UserGroupName group);
+    //
 	std::array<bool, 8> getUserRights(UserGroupName group);
 	UserGroupName getUserGroup(const std::string& login);
 	bool isUserExist(const std::string& login);
@@ -27,6 +28,9 @@ public:
 	std::vector<std::pair<std::string, UserGroupName>> getAllUsers();
 	std::vector<std::string> getAllOperators();
 	std::vector<std::string> getAllAdmins();
+    bool removeAllUsersExceptOne(const std::string& login);
+	bool removeAllOperators();
+	bool removeAllAdminsExceptOne(const std::string& login);
 };
 
 #endif // USER_DB_SHELL_H

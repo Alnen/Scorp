@@ -6,7 +6,14 @@
 namespace PetriNetComponent
 {
 
-class Station
+class ISerializable
+{
+public:
+    virtual void serialize(std::ostream& str) const = 0;
+    virtual void deserialize(std::istream& str) const = 0;
+};
+
+class Station : public ISerializable
 {
 private:
     std::string m_name;
@@ -43,33 +50,73 @@ public:
     {
         return m_capacity;
     }
+    
+    void serialize(std::ostream& str) const
+    {
+        //
+    }
+    
+    void deserialize(std::istream& str) const
+    {
+        //
+    }
 };
 
-class InterState
+class InterState : public ISerializable
 {
 public:
     InterState()
     {
     }
+    
+    void serialize(std::ostream& str) const
+    {
+        //
+    }
+    
+    void deserialize(std::istream& str) const
+    {
+        //
+    }
 };
 
-class Semaphore
+class Semaphore : public ISerializable
 {
 public:
     Semaphore()
     {
     }
+    
+    void serialize(std::ostream& str) const
+    {
+        //
+    }
+    
+    void deserialize(std::istream& str) const
+    {
+        //
+    }
 };
 
-class AccessToken
+class AccessToken : public ISerializable
 {
 public:
     AccessToken()
     {
     }
+    
+    void serialize(std::ostream& str) const
+    {
+        //
+    }
+    
+    void deserialize(std::istream& str) const
+    {
+        //
+    }
 };
 
-class Train
+class Train : public ISerializable
 {
 private:
     int m_number;
@@ -83,21 +130,51 @@ public:
     {
         return m_number;
     }
+    
+    void serialize(std::ostream& str) const
+    {
+        //
+    }
+    
+    void deserialize(std::istream& str) const
+    {
+        //
+    }
 };
 
-class ExitFromStation
+class ExitFromStation : public ISerializable
 {
 public:
     ExitFromStation()
     {
     }
+    
+    void serialize(std::ostream& str) const
+    {
+        //
+    }
+    
+    void deserialize(std::istream& str) const
+    {
+        //
+    }
 };
 
-class EnterToStation
+class EnterToStation : public ISerializable
 {
 public:
     EnterToStation()
     {
+    }
+    
+    void serialize(std::ostream& str) const
+    {
+        //
+    }
+    
+    void deserialize(std::istream& str) const
+    {
+        //
     }
 };
 

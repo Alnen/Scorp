@@ -82,7 +82,7 @@ bool UserDBShell::changeUser(const std::string& login, const std::string& passwo
 {
     try
     {
-        SQLite::Statement query(*m_database, "UPDATE User SET Password = :password, Group = :group WHERE Login = :login");
+        SQLite::Statement query(*m_database, "UPDATE User SET Password = :password, \"Group\" = :group WHERE Login = :login");
         query.bind(":password", password);
         query.bind(":group", userGroupToString(group));
         query.bind(":login", login);
@@ -100,7 +100,7 @@ bool UserDBShell::changeUserGroup(const std::string& login, UserGroupName group)
 {
     try
     {
-        SQLite::Statement query(*m_database, "UPDATE User SET Group = :group WHERE Login = :login");
+        SQLite::Statement query(*m_database, "UPDATE User SET \"Group\" = :group WHERE Login = :login");
         query.bind(":group", userGroupToString(group));
         query.bind(":login", login);
         query.exec();
@@ -134,7 +134,7 @@ bool UserDBShell::changeUserRight(UserGroupName group, UserRight right, bool val
 {
     try
     {
-        SQLite::Statement query(*m_database, "UPDATE UserGroup SET :right = :value WHERE Group = :group");
+        SQLite::Statement query(*m_database, "UPDATE UserGroup SET :right = :value WHERE \"Group\" = :group");
         query.bind(":right", userRightToString(right));
         query.bind(":value", value);
         query.bind(":group", userGroupToString(group));
@@ -283,7 +283,7 @@ std::vector<std::pair<std::string, UserGroupName>> UserDBShell::getAllUsers()
     UserGroupName group;
     try
     {
-        SQLite::Statement query(*m_database, "SELECT Login, Group FROM User");
+        SQLite::Statement query(*m_database, "SELECT Login, \"Group\" FROM User");
         while (query.executeStep())
         {
             login = query.getColumn(0).getText();
@@ -305,7 +305,7 @@ std::vector<std::string> UserDBShell::getAllOperators()
     std::string login;
     try
     {
-        SQLite::Statement query(*m_database, "SELECT Login FROM User WHERE Group = Operator");
+        SQLite::Statement query(*m_database, "SELECT Login FROM User WHERE \"Group\" = \"Operator\"");
         while (query.executeStep())
         {
             login = query.getColumn(0).getText();
@@ -326,7 +326,7 @@ std::vector<std::string> UserDBShell::getAllAdmins()
     std::string login;
     try
     {
-        SQLite::Statement query(*m_database, "SELECT Login FROM User WHERE Group = Admin");
+        SQLite::Statement query(*m_database, "SELECT Login FROM User WHERE \"Group\" = \"Admin\"");
         while (query.executeStep())
         {
             login = query.getColumn(0).getText();
@@ -339,4 +339,51 @@ std::vector<std::string> UserDBShell::getAllAdmins()
         return std::vector<std::string>();
     }
     return admin_list;
+}
+
+bool UserDBShell::removeAllUsersExceptOne(const std::string& login)
+{
+    try
+    {
+        SQLite::Statement query(*m_database, "DELETE FROM User WHERE Login <> :login");
+        query.bind(":login", login);
+        query.exec();
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException("UserGroup", "");
+        return false;
+    }
+    return true;
+}
+
+bool UserDBShell::removeAllOperators()
+{
+    try
+    {
+        SQLite::Statement query(*m_database, "DELETE FROM User WHERE \"Group\" = \"Operator\"");
+        query.exec();
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException("UserGroup", "");
+        return false;
+    }
+    return true;
+}
+
+bool UserDBShell::removeAllAdminsExceptOne(const std::string& login)
+{
+    try
+    {
+        SQLite::Statement query(*m_database, "DELETE FROM User WHERE (Login <> :login)  AND (\"Group\" = \"Admin\")");
+        query.bind(":login", login);
+        query.exec();
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::BadMemoryLocationException("UserGroup", "");
+        return false;
+    }
+    return true;
 }
