@@ -27,6 +27,7 @@ public:
     void setPosition(StateGraphicsObject* state1, StateGraphicsObject* state2);
     QPointF getP1(float r = 0.f) const;
     QPointF getP2(float r = 0.f) const;
+    bool isSemaphore(StateGraphicsObject* state);
 
 private:
     GraphicsObjectsGroup m_detailsInfoGroup;

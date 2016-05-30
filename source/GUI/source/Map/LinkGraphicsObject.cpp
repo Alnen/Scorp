@@ -258,28 +258,12 @@ QPointF LinkGraphicsObject::getP2(float r) const
     return QPointF(-qCos(qDegreesToRadians(track->rotation())) * r, -qSin(qDegreesToRadians(track->rotation())) * r) + track->pos();
 }
 
-/*
-void LinkGraphicsObject::makeStep()
+bool LinkGraphicsObject::isSemaphore(StateGraphicsObject* state)
 {
-    StateGraphicsObject* state1;
-    StateGraphicsObject* state2;
-    TransitionGraphicsObject* first_transition;
-    StateGraphicsObject* blocking_state;
-    StateGraphicsObject* interm_state;
-    if (state1->getMarkers().size() > 0)
+    StateGraphicsObject* mutex_state = (StateGraphicsObject*)(m_detailsInfoGroup.getItems()[BLOCKING_STATE]);
+    if (state == mutex_state)
     {
-        if (blocking_state->getMarkers().size() > 0)
-        {
-            //deleteMarkerCommand(blocking_state->getMarkers()[0])
-            //moveMarkerCommand(state1->getMarkers()[0], interm_state->getId())
-        }
+        return true;
     }
-    if (interm_state->getMarkers().size() > 0)
-    {
-        // moveMarkerCommand(interm_state->getMarkers()[0], state2->getId())
-        // int access_token_id = petri_net->addMarker<PetriNetComponent::AccessToken>(blocking_state->getId(), PetriNetComponent::AccessToken());
-        // addMarkerCommand(markerId, blocking_state->getId())
-    }
-    //LinkGraphicsObject::makeStep();
+    return false;
 }
-*/

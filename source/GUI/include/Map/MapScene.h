@@ -14,7 +14,7 @@ class StateGraphicsObject;
 //class LinkGraphicsObject;
 class PointGraphicsObject;
 
-enum class MapMode { View, Move, AddState, AddLink, AddMarker, Delete };
+enum class MapMode { View, Move, AddState, AddLink, AddTrain, AddAccessToken, Delete };
 enum class MapViewType { Detailed, Generalized, Mixed };
 
 /*
@@ -55,7 +55,7 @@ protected:
 	
 	StateGraphicsObject* createNewState(int x, int y);
     void createNewLink(StateGraphicsObject* state1, StateGraphicsObject* state2);
-	void createNewMarker(StateGraphicsObject* state);
+	void createNewMarker(StateGraphicsObject* state, int color);
 
 
 public slots:

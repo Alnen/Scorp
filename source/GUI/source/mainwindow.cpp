@@ -151,7 +151,8 @@ void MainWindow::defineMainMenu()
     actSetMoveMapMode = new QAction(tr("Move"), mnSetMode);
     actSetAddStateMapMode = new QAction(tr("Add State"), mnSetMode);
     actSetAddLinkMapMode = new QAction(tr("Add Link"), mnSetMode);
-    actSetAddMarkerMapMode = new QAction(tr("Add Marker"), mnSetMode);
+    actSetAddTrainMapMode = new QAction(tr("Add Train"), mnSetMode);
+    actSetAddAccessTokenMapMode = new QAction(tr("Add Access Token"), mnSetMode);
     actSetDeleteMapMode = new QAction(tr("Delete"), mnSetMode);
     actStationsList = new QAction(tr("Stations List"), mnMap);
     actTrainsList = new QAction(tr("Trains List"), mnMap);
@@ -160,14 +161,16 @@ void MainWindow::defineMainMenu()
     actSetMoveMapMode->setCheckable(true);
     actSetAddStateMapMode->setCheckable(true);
     actSetAddLinkMapMode->setCheckable(true);
-    actSetAddMarkerMapMode->setCheckable(true);
+    actSetAddTrainMapMode->setCheckable(true);
+    actSetAddAccessTokenMapMode->setCheckable(true);
     actSetDeleteMapMode->setCheckable(true);
     QActionGroup* map_modes = new QActionGroup(mnSetMode);
     map_modes->addAction(actSetViewMapMode);
     map_modes->addAction(actSetMoveMapMode);
     map_modes->addAction(actSetAddStateMapMode);
     map_modes->addAction(actSetAddLinkMapMode);
-    map_modes->addAction(actSetAddMarkerMapMode);
+    map_modes->addAction(actSetAddTrainMapMode);
+    map_modes->addAction(actSetAddAccessTokenMapMode);
     map_modes->addAction(actSetDeleteMapMode);
     mnSetMode->addActions(map_modes->actions());
     actSetViewMapMode->setChecked(true);
@@ -210,7 +213,8 @@ void MainWindow::defineToolBar()
     actSetMoveMode = new QAction(QIcon(QPixmap("images/move.png")), tr("Move"), m_toolBar);
     actSetAddStateMode = new QAction(QIcon(QPixmap("images/state.png")), tr("Add State"), m_toolBar);
     actSetAddLinkMode = new QAction(QIcon(QPixmap("images/link.png")), tr("Add Link"), m_toolBar);
-    actSetAddMarkerMode = new QAction(QIcon(QPixmap("images/train2.png")), tr("Add Train"), m_toolBar);
+    actSetAddTrainMode = new QAction(QIcon(QPixmap("images/train2.png")), tr("Add Train"), m_toolBar);
+    actSetAddAccessTokenMode = new QAction(QIcon(QPixmap("images/marker.png")), tr("Add Access Token"), m_toolBar);
     actSetDeleteMode = new QAction(QIcon(QPixmap("images/delete.png")), tr("Delete"), m_toolBar);
 
     QList<QAction*> actions_list;
@@ -218,7 +222,8 @@ void MainWindow::defineToolBar()
                  << actSetMoveMode
                  << actSetAddStateMode
                  << actSetAddLinkMode
-                 << actSetAddMarkerMode
+                 << actSetAddTrainMode
+                 << actSetAddAccessTokenMode
                  << actSetDeleteMode;
     m_toolBar->addActions(actions_list);
     //m_toolbar->addSeparator();
@@ -358,14 +363,16 @@ void MainWindow::defineMap()
     connect(actSetMoveMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
     connect(actSetAddStateMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
     connect(actSetAddLinkMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddLink);});
-    connect(actSetAddMarkerMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddMarker);});
+    connect(actSetAddTrainMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrain);});
+    connect(actSetAddAccessTokenMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddAccessToken);});
     connect(actSetDeleteMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
 
     connect(actSetViewMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
     connect(actSetMoveMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
     connect(actSetAddStateMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
     connect(actSetAddLinkMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddLink);});
-    connect(actSetAddMarkerMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddMarker);});
+    connect(actSetAddTrainMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrain);});
+    connect(actSetAddAccessTokenMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddAccessToken);});
     connect(actSetDeleteMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
 }
 
@@ -1034,8 +1041,11 @@ void MainWindow::changeMode(MapMode mode)
     case MapMode::AddLink:
         lbCurrentOperation->setText(tr("Current Operation: Add Link"));
         break;
-    case MapMode::AddMarker:
-        lbCurrentOperation->setText(tr("Current Operation: Add Marker"));
+    case MapMode::AddTrain:
+        lbCurrentOperation->setText(tr("Current Operation: Add Train"));
+        break;
+    case MapMode::AddAccessToken:
+        lbCurrentOperation->setText(tr("Current Operation: Add Access Token"));
         break;
     case MapMode::Delete:
         lbCurrentOperation->setText(tr("Current Operation: Delete"));

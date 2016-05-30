@@ -357,12 +357,23 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
             }
         }
     }
-    else if (m_mode == MapMode::AddMarker)
+    else if (m_mode == MapMode::AddTrain)
     {
         if ((choosen_items.size() == 1) && (choosen_items[0]->type() == GraphicsObjectType::StateType)
              && (((StateGraphicsObject*)choosen_items[0])->parentID() < 0))
         {
-            createNewMarker((StateGraphicsObject*)choosen_items[0]);
+            createNewMarker((StateGraphicsObject*)choosen_items[0], TRAIN_COLOR);
+        }
+    }
+    else if (m_mode == MapMode::AddAccessToken)
+    {
+        if ((choosen_items.size() == 1) && (choosen_items[0]->type() == GraphicsObjectType::StateType))
+        {
+            int link_id = ((StateGraphicsObject*)choosen_items[0])->parentID();
+            if ((link_id >= 0) && m_links[findLinkIndex(link_id)].isSemaphore((StateGraphicsObject*)choosen_items[0]))
+            {
+                createNewMarker((StateGraphicsObject*)choosen_items[0], MUTEX_COLOR);
+            }
         }
     }
     QGraphicsScene::mousePressEvent(mouseEvent);
@@ -554,13 +565,21 @@ void MapScene::createNewLink(StateGraphicsObject* state1, StateGraphicsObject* s
     m_links[m_links.size()-1].select(true);
 }
 
-void MapScene::createNewMarker(StateGraphicsObject* state)
+void MapScene::createNewMarker(StateGraphicsObject* state, int color)
 {
     if (m_petriNet.get())
     {
         ++marker_id_generator;
-        int marker_id = m_petriNet->addMarker<PetriNetComponent::Train>(state->getId(), PetriNetComponent::Train(marker_id_generator));
-        state->addMarker(new MarkerObject(marker_id, TRAIN_COLOR, state));
+        if (color == TRAIN_COLOR)
+        {
+            int train_id = m_petriNet->addMarker<PetriNetComponent::Train>(state->getId(), PetriNetComponent::Train(marker_id_generator));
+            state->addMarker(new MarkerObject(train_id, color, state));
+        }
+        else
+        {
+            int marker_id = m_petriNet->addMarker<PetriNetComponent::AccessToken>(state->getId(), PetriNetComponent::AccessToken());
+            state->addMarker(new MarkerObject(marker_id, color, state));
+        }
         this->update(this->sceneRect());
     }
 }
