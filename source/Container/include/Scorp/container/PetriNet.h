@@ -946,7 +946,7 @@ private:
             auto& markerStorage = m_petriNet.m_petriNetStorage.template getMarkerStorage<Marker>();
             auto& markerWrapper = markerStorage.find(m_markerId)->second;
 
-            markerWrapper.setId(m_parentId);
+            markerWrapper.setStateId(m_parentId);
         }
 
     private:
@@ -996,17 +996,18 @@ public:
             auto& markerStorage = getMarkerStorage(
                     serializedMarker.getState(),
                     serializedMarker.getMarker().getObjectSerializedType());
-            std::remove(markerStorage.begin(), markerStorage.end(), serializedMarker.getMarker().getObjectId());
+            auto pos = std::find(markerStorage.begin(), markerStorage.end(), serializedMarker.getMarker().getObjectId());
+            markerStorage.erase(pos);
             // add to new parent
-            markerStorage = getMarkerStorage(
+            auto& newMarkerStorage = getMarkerStorage(
                     m_state,
                     serializedMarker.getMarker().getObjectSerializedType());
-            markerStorage.emplace_back(serializedMarker.getMarker().getObjectId());
+            newMarkerStorage.emplace_back(serializedMarker.getMarker().getObjectId());
             // Correct marker's parent id
             meta::calculateBasedOnRealtime<MarkerParentChanger, MarkerList>(
-                    serializedMarker.getState().getObjectSerializedType(),
-                    m_petriNet,
                     serializedMarker.getMarker().getObjectSerializedType(),
+                    m_petriNet,
+                    serializedMarker.getMarker().getObjectId(),
                     m_state.getObjectId());
 
             m_filled = true;

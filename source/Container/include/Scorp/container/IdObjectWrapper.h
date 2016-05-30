@@ -23,12 +23,6 @@ public:
         return m_id;
     }
 
-protected:
-    void setId(IdType id)
-    {
-        m_id = id;
-    }
-
 private:
     IdType m_id;
 };

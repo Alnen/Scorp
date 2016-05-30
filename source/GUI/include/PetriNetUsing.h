@@ -123,7 +123,7 @@ using _MarkerList = meta::TypeList<PetriNetComponent::Train, PetriNetComponent::
 using _StateList = meta::TypeList<PetriNetComponent::Station, PetriNetComponent::InterState, PetriNetComponent::Semaphore>;
 using _TransitionList = meta::TypeList<PetriNetComponent::ExitFromStation, PetriNetComponent::EnterToStation>;
 
-struct RailwayPetriNetTraits {
+/*struct RailwayPetriNetTraits {
     using MarkerList = _MarkerList;
     using TransitionList = _TransitionList;
     using StateList = _StateList;
@@ -144,7 +144,8 @@ struct RailwayPetriNetTraits {
 
     template <class Type>
     using Allocator = std::allocator<Type>;
-};
+};*/
+
 namespace container
 {
 
@@ -159,13 +160,13 @@ struct PetriNetTraits<_MarkerList, _TransitionList, _StateList>
 
     template <class Transition, class State>
     using MarkerExtractor = container::internal::MarkerExtractor<
-            RailwayPetriNetTraits,
+            PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
             Transition,
             State>;
 
     template <class Transition>
     using MarkerPropagationSolver = RailwayMarkerPropagationSolver<
-            RailwayPetriNetTraits,
+            PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
             Transition
     >;
 
@@ -175,9 +176,9 @@ struct PetriNetTraits<_MarkerList, _TransitionList, _StateList>
 
 }
 
-using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
-//using RailwayPetriNet = container::PetriNet<container::PetriNetTraits<_MarkerList, _TransitionList, _StateList>>;
-using IdType = typename RailwayPetriNetTraits::IdType;
+//using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
+using RailwayPetriNet = container::PetriNet<container::PetriNetTraits<_MarkerList, _TransitionList, _StateList>>;
+using IdType = typename RailwayPetriNet::IdType;
 
 #endif // PETRINETUSING
 

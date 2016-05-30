@@ -51,6 +51,12 @@ public:
         return m_stateId;
     }
 
+    // TODO: fix
+    void setStateId(IdType parentId)
+    {
+        m_stateId = parentId;
+    }
+
 private:
     IdType m_stateId;
 };
