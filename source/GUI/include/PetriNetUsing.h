@@ -11,8 +11,11 @@
 #include "Scorp/container/StateWrapper.h"
 #include "Map/MarkerCommandQueue.h"
 #include <utility>
+#include <random>
 
 #include <iostream>
+
+double getRandom();
 
 template <class _PetriNetTraits, class Transition>
 class RailwayMarkerPropagationSolver;
@@ -119,32 +122,91 @@ public:
     }
 };
 
+template <class _PetriNetTraits, class _Transition, class _State>
+class RailwayMarkerMarkerExtractor
+{
+public:
+    using PetriNetTraits = _PetriNetTraits;
+    using Transition = _Transition;
+    using State = _State;
+    using IdType = typename PetriNetTraits::IdType;
+    using MarkerList = typename PetriNetTraits::MarkerList;
+
+    boost::optional<std::pair<IdType, IdType>> operator()(
+            const container::PetriNet<PetriNetTraits>& petriNet,
+            const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
+            const container::StateWrapper<State, PetriNetTraits>& state) const
+    {
+        container::internal::MarkerExtractor1<PetriNetTraits, State> extractor(state);
+        meta::ForEachLooper<MarkerList, decltype(extractor)> looper(extractor);
+        if (looper()) {
+            return boost::optional<std::pair<IdType, IdType>>(extractor.serializedMarker);
+        }
+        return boost::optional<std::pair<IdType, IdType>>();
+    }
+};
+
+template <class _PetriNetTraits, class _Transition>
+class RailwayMarkerMarkerExtractor<_PetriNetTraits, _Transition, PetriNetComponent::Station>
+{
+public:
+    using PetriNetTraits = _PetriNetTraits;
+    using Transition = _Transition;
+    using State = PetriNetComponent::Station;
+    using IdType = typename PetriNetTraits::IdType;
+    using MarkerList = typename PetriNetTraits::MarkerList;
+    using MarkerEnum = typename meta::TypeEnum<MarkerList, IdType>;
+
+    boost::optional<std::pair<IdType, IdType>> operator()(
+            const container::PetriNet<PetriNetTraits>& petriNet,
+            const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
+            const container::StateWrapper<State, PetriNetTraits>& state) const
+    {
+        auto& markerStorage = state.template getMarkerStorage<PetriNetComponent::Train>();
+        if (!markerStorage.empty() && getRandom() < 0.5)
+        {
+            return boost::optional<std::pair<IdType, IdType>>(
+                    std::make_pair(markerStorage.front(), MarkerEnum::template getValue<PetriNetComponent::Train>()));
+        }
+        else
+        {
+            return boost::optional<std::pair<IdType, IdType>>();
+        }
+    }
+};
+
+template <class _PetriNetTraits, class _Transition>
+class RailwayMarkerMarkerExtractor<_PetriNetTraits, _Transition, PetriNetComponent::InterState>
+{
+public:
+    using PetriNetTraits = _PetriNetTraits;
+    using Transition = _Transition;
+    using State = PetriNetComponent::InterState;
+    using IdType = typename PetriNetTraits::IdType;
+    using MarkerList = typename PetriNetTraits::MarkerList;
+    using MarkerEnum = typename meta::TypeEnum<MarkerList, IdType>;
+
+    boost::optional<std::pair<IdType, IdType>> operator()(
+            const container::PetriNet<PetriNetTraits>& petriNet,
+            const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
+            const container::StateWrapper<State, PetriNetTraits>& state) const
+    {
+        auto& markerStorage = state.template getMarkerStorage<PetriNetComponent::Train>();
+        if (!markerStorage.empty() && getRandom() < 0.5)
+        {
+            return boost::optional<std::pair<IdType, IdType>>(
+                    std::make_pair(markerStorage.front(), MarkerEnum::template getValue<PetriNetComponent::Train>()));
+        }
+        else
+        {
+            return boost::optional<std::pair<IdType, IdType>>();
+        }
+    }
+};
+
 using _MarkerList = meta::TypeList<PetriNetComponent::Train, PetriNetComponent::AccessToken>;
 using _StateList = meta::TypeList<PetriNetComponent::Station, PetriNetComponent::InterState, PetriNetComponent::Semaphore>;
 using _TransitionList = meta::TypeList<PetriNetComponent::ExitFromStation, PetriNetComponent::EnterToStation>;
-
-/*struct RailwayPetriNetTraits {
-    using MarkerList = _MarkerList;
-    using TransitionList = _TransitionList;
-    using StateList = _StateList;
-    using IdType = int;
-    using IdGenerator = IntegralIdGenerator<IdType>;
-
-    template <class Transition, class State>
-    using MarkerExtractor = container::internal::MarkerExtractor<
-            RailwayPetriNetTraits,
-            Transition,
-            State>;
-
-    template <class Transition>
-    using MarkerPropagationSolver = RailwayMarkerPropagationSolver<
-            RailwayPetriNetTraits,
-            Transition
-    >;
-
-    template <class Type>
-    using Allocator = std::allocator<Type>;
-};*/
 
 namespace container
 {
@@ -159,7 +221,7 @@ struct PetriNetTraits<_MarkerList, _TransitionList, _StateList>
     using IdGenerator = IntegralIdGenerator<IdType>;
 
     template <class Transition, class State>
-    using MarkerExtractor = container::internal::MarkerExtractor<
+    using MarkerExtractor = RailwayMarkerMarkerExtractor<
             PetriNetTraits<_MarkerList, _TransitionList, _StateList>,
             Transition,
             State>;
@@ -171,12 +233,11 @@ struct PetriNetTraits<_MarkerList, _TransitionList, _StateList>
     >;
 
     template <class Type>
-    using Allocator = std::allocator<Type>;
+    using Allocator = allocator::Allocator<Type>;
 };
 
 }
 
-//using RailwayPetriNet = container::PetriNet<RailwayPetriNetTraits>;
 using RailwayPetriNet = container::PetriNet<container::PetriNetTraits<_MarkerList, _TransitionList, _StateList>>;
 using IdType = typename RailwayPetriNet::IdType;
 
