@@ -396,6 +396,7 @@ void MainWindow::defineStationsList()
     m_stationsListView->setHeaderHidden(true);
     m_stationsListView->setIndentation(20);
     m_completer->setModel(modelFromStationList());
+    m_stationsListView->hide();
 }
 
 void MainWindow::defineUsersListForm()
@@ -462,6 +463,7 @@ void MainWindow::defineStationsListForm()
 
     QPushButton* btnShowSchedule = new QPushButton(tr("Schedule"), dlgStationsList);
     btnShowSchedule->setGeometry(10, btnStationsListClear->y() - 25, dlgStationsList->width()-20, 20);
+    btnShowSchedule->hide();
 
     tableStations = new QTableWidget(dlgStationsList);
     tableStations->setColumnCount(2);
@@ -499,6 +501,7 @@ void MainWindow::defineTrainsListForm()
 
     QPushButton* btnShowSchedule = new QPushButton(tr("Schedule"), dlgTrainsList);
     btnShowSchedule->setGeometry(10, btnTrainsListClear->y() - 25, dlgTrainsList->width()-20, 20);
+    btnShowSchedule->hide();
 
     tableTrains = new QTableWidget(dlgTrainsList);
     tableTrains->setColumnCount(2);
@@ -933,8 +936,7 @@ void MainWindow::connectToDatabase()
 {
     m_railwayNetDBManager.connectToDatabase(m_railwayNetDBPath.toStdString());
     m_userDBManager.connectToDatabase(m_userDBPath.toStdString());
-    //m_currentUser.setUserRights(m_userDBManager.getUserRights(UserGroupName::User));
-    m_currentUser.setUserRights(m_userDBManager.getUserRights(UserGroupName::Operator));
+    m_currentUser.setUserRights(m_userDBManager.getUserRights(UserGroupName::User));
     updateUIbyUserGroup();
 }
 
@@ -1500,16 +1502,18 @@ void MainWindow::updateUIbyUserGroup()
     if (m_currentUser.getRightStatus(UserRight::EditMap))
     {
         mnSetMode->menuAction()->setVisible(true);
-        mnFile->menuAction()->setVisible(true);
+        //mnFile->menuAction()->setVisible(true);
         m_toolBar->show();
     }
     else
     {
         mnSetMode->menuAction()->setVisible(false);
-        mnFile->menuAction()->setVisible(false);
+        //mnFile->menuAction()->setVisible(false);
         m_toolBar->hide();
     }
+    mnFile->menuAction()->setVisible(false);
     // Tours Editable
+    /*
     if (m_currentUser.getRightStatus(UserRight::EditSchedule))
     {
         updateTourListEditable(true);
@@ -1518,7 +1522,10 @@ void MainWindow::updateUIbyUserGroup()
     {
         updateTourListEditable(false);
     }
+    */
+    updateTourListEditable(false);
     // Trains Editable
+    /*
     if (m_currentUser.getRightStatus(UserRight::EditTrainsList))
     {
         updateTrainListEditable(true);
@@ -1527,7 +1534,10 @@ void MainWindow::updateUIbyUserGroup()
     {
         updateTrainListEditable(false);
     }
+    */
+    updateTrainListEditable(false);
     // Stations Editable
+    /*
     if (m_currentUser.getRightStatus(UserRight::EditStationInfo))
     {
         updateStationListEditable(true);
@@ -1536,7 +1546,10 @@ void MainWindow::updateUIbyUserGroup()
     {
         updateStationListEditable(false);
     }
+    */
+    updateStationListEditable(false);
     // Show/Hide find Trips menu
+    /*
     if (m_currentUser.getRightStatus(UserRight::FindTrips))
     {
         actFindTour->setVisible(true);
@@ -1545,6 +1558,9 @@ void MainWindow::updateUIbyUserGroup()
     {
         actFindTour->setVisible(false);
     }
+    */
+    actFindTour->setVisible(false);
+    actAbout->setVisible(false);
 }
 
 void MainWindow::makeStep()
