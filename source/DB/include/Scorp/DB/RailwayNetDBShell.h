@@ -56,8 +56,9 @@ public:
     bool removeAllRoutes();
     
     std::vector<std::pair<int, std::string>> getStationNameList();
-    //std::vector<RailwayNetDBObject::Route> getRoutes(int station_1, int station_2);
-    //std::vector<std::string> getRoutsFromAtoB(std::string stA, std::string stB);
+    //std::vector<RailwayNetDBObject::Route> getRoutes(int station_1, int station_2);    
+    std::vector<std::string> getRoutsFromAtoB(std::string stA, std::string stB);
+    std::vector<std::vector<std::string>> getStationSchedule(std::string idStation);
 };
 
 #endif // RAILWAY_NET_DB_SHELL_H

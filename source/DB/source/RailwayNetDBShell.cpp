@@ -1,6 +1,6 @@
 #include "Scorp/DB/RailwayNetDBShell.h"
 #include "Scorp/Exceptions/ScorpDBException.h"
-
+#include "set"
 RailwayNetDBShell::RailwayNetDBShell()
     : ScorpDBShell()
 {
@@ -759,40 +759,39 @@ std::vector<std::pair<int, std::string>> RailwayNetDBShell::getStationNameList()
 }
 
 //=================================================================
-/*
 std::vector<std::string> RailwayNetDBShell::getRoutsFromAtoB(std::string stA, std::string stB)
 {
-    std::vector<std::vector<std::string>> routs = getRoutes();
+    std::vector<RailwayNetDBObject::Route> routs = getRoutes();
     std::vector<RailwayNetDBObject::RoutePart> routParts = getRouteParts();// getAllRowsFromTable(TableName::ROUTE_PART);
-    std::vector<std::vector<std::string>> transitions = getAllRowsFromTable(TableName::TRANSITION);
+    std::vector<RailwayNetDBObject::Transition> transitions = getTransitions();
     std::set<std::string> validTrasitionsA;
     std::set<std::string> validTrasitionsB;
     std::vector<std::string> resultRouts;
-    for(std::vector<std::string> tr : transitions)
+    for(RailwayNetDBObject::Transition tr : transitions)
     {
-        if (tr[1]==stA)
+        if (std::to_string(tr.stationFrom)==stA)
         {
-            validTrasitionsA.insert(tr[0]);
+            validTrasitionsA.insert(std::to_string(tr.id));
         }
-        if (tr[1]==stB)
+        if (std::to_string(tr.stationTo)==stB)
         {
-            validTrasitionsB.insert(tr[0]);
+            validTrasitionsB.insert(std::to_string(tr.id));
         }
 
     }
     bool aCheck, bCheck;
-   for(std::vector<std::string> rout: routs)
+   for(RailwayNetDBObject::Route rout: routs)
     {
         aCheck=false;
         bCheck=false;
-        for(std::vector<std::string> routPart: routParts)
-        if((rout[0])==routPart[0])
+        for(RailwayNetDBObject::RoutePart routPart: routParts)
+        if((rout.id)==routPart.route)
         {
-           if(validTrasitionsA.find(routPart[1])!=validTrasitionsA.end()) aCheck=true;
-            if(validTrasitionsB.find(routPart[1])!=validTrasitionsB.end()) bCheck=true;
+            if(validTrasitionsA.find(std::to_string(routPart.transition))!=validTrasitionsA.end()) aCheck=true;
+            if(validTrasitionsB.find(std::to_string(routPart.transition))!=validTrasitionsB.end()) bCheck=true;
             if(aCheck&&bCheck)
             {
-                resultRouts.push_back(rout[0]);
+                resultRouts.push_back(std::to_string(rout.id));
                 aCheck = false;
                 bCheck = false;
             }
@@ -802,4 +801,147 @@ std::vector<std::string> RailwayNetDBShell::getRoutsFromAtoB(std::string stA, st
     return resultRouts;
 
 }
-*/
+
+std::vector<std::vector<std::string>> RailwayNetDBShell::getStationSchedule(std::string idStation)
+{
+    std::vector<std::vector<std::string>> stationSchedule;
+    std::vector<std::vector<std::string>> stationScheduleResult;
+    std::vector<RailwayNetDBObject::Transition> transition_list;
+    std::vector<RailwayNetDBObject::RoutePart> route_part=getRouteParts();
+    std::vector<RailwayNetDBObject::Train> trains=getTrains();
+    int curr_id = -1;
+    try
+    {
+        SQLite::Statement query(*m_database, "SELECT * FROM Transition where (StationFrom=:id or StationTo=:id)");
+        query.bind(":id", idStation);
+        while (query.executeStep())
+        {
+            curr_id = query.getColumn(0).getInt();
+            transition_list.push_back(RailwayNetDBObject::Transition(curr_id,
+                query.getColumn(1).getInt(), query.getColumn(2).getInt()));
+        }
+        for(RailwayNetDBObject::Transition routep: transition_list)
+        {
+            std::cout<<"|"<<routep.id<<" "<<"|"<<std::endl;
+        }
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::ItemNotFoundException(std::to_string(curr_id), "Transition");
+        return std::vector<std::vector<std::string>>();
+    }
+    std::vector<std::string> row; //idTrain, TimeTo, TimeFrom
+    std::string str;
+    for(RailwayNetDBObject::Transition trans: transition_list)
+    {
+        for(RailwayNetDBObject::RoutePart rp: route_part)
+        {
+            if(trans.id==rp.transition)
+            {
+                str=std::to_string(rp.route);
+                row.push_back(str);
+                if(std::to_string(trans.stationTo)==idStation)
+                {
+                    str=ScorpCore::Time::toString(rp.timeOffsetTo);
+                    row.push_back(str);
+                    row.push_back("");
+                    stationSchedule.push_back(row);
+                    row.clear();
+                }
+                else
+                {
+                    row.push_back("");
+                    str=ScorpCore::Time::toString(rp.timeOffsetFrom);
+                    row.push_back(str);
+                    stationSchedule.push_back(row);
+                    row.clear();
+                }
+            }
+        }
+    }
+
+    bool isLastOrFirst= true;
+    int count=0;
+    for(std::vector<std::string> curRoutePart: stationSchedule)
+    {
+        count=0;
+        for(std::vector<std::string> downCurRoutePart: stationSchedule)
+        {
+           if(downCurRoutePart[0]==curRoutePart[0]) count++;
+
+        }
+       if(count>1) isLastOrFirst= false;
+
+    }
+   std::cout<<"chek1"<<std::endl;
+    if(!isLastOrFirst)
+    {
+        std::set<std::vector<std::string>> scheduleSet;
+        for(std::vector<std::string> curRoutePart: stationSchedule)
+        {
+            if((curRoutePart[1]=="")||(curRoutePart[2]==""))
+            {
+                std::cout<<"chek2"<<std::endl;
+                for(std::vector<std::string> downCurRoutePart: stationSchedule)
+                {
+                    if((downCurRoutePart[0]==curRoutePart[0])&&(downCurRoutePart[1]!=curRoutePart[1]))
+                    {
+                      if(!((downCurRoutePart[1]=="")&&(downCurRoutePart[2]=="")))
+                      {
+                                std::cout<<"chek3"<<std::endl;
+                        if(curRoutePart[1]=="")
+                        {
+                            curRoutePart[1]=downCurRoutePart[1];
+                            downCurRoutePart[1]="";
+
+                        }
+                        else
+                        {
+                            curRoutePart[2]=downCurRoutePart[2];
+                            downCurRoutePart[2]="";
+                        }
+                        scheduleSet.insert(curRoutePart);
+                        curRoutePart[1]="";
+                        curRoutePart[2]="";
+                      }
+                    }
+
+                }
+            }
+        }
+        std::string idPredTrain;
+        for(std::vector<std::string> curRoutePart: scheduleSet)
+        {
+            for(RailwayNetDBObject::Train tr: trains)
+            {
+                if(std::to_string(tr.route)==curRoutePart[0])
+                {
+                    curRoutePart[0]=std::to_string(tr.number);
+                    break;
+                }
+            }
+            if(idPredTrain!=curRoutePart[0])
+                stationScheduleResult.push_back(curRoutePart);
+            idPredTrain=curRoutePart[0];
+        }
+        return stationScheduleResult;
+    }
+    else
+    {
+        for(std::vector<std::string> curRoutePart: stationSchedule)
+        {
+            for(RailwayNetDBObject::Train tr: trains)
+            {
+                if(std::to_string(tr.route)==curRoutePart[0])
+                {
+                    curRoutePart[0]=std::to_string(tr.number);
+                    stationScheduleResult.push_back(curRoutePart);
+                    break;
+                }
+
+            }
+        }
+        return stationScheduleResult;
+    }
+
+}
