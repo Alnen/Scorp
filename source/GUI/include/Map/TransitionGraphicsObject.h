@@ -17,8 +17,8 @@ public:
     QRectF boundingRect() const Q_DECL_OVERRIDE;
     QPainterPath shape() const Q_DECL_OVERRIDE;
     int type() const Q_DECL_OVERRIDE;
-    void select(bool graphics_selection);
-    void deselect(bool graphics_selection);
+    void select(bool graphics_selection) override;
+    void deselect(bool graphics_selection) override;
     QPolygonF getVerteciesCoord();
     QPolygonF getVerteciesOffset();
     float getTilt() const;

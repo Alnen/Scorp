@@ -26,8 +26,8 @@ public:
     float getX2() const;
     float getY2() const;
     float getLength() const;
-    void setCenter(float x, float y);
-    QPointF getCenter() const;
+    void setCenter(float x, float y) override;
+    QPointF getCenter() const override;
     void setFillColor(QColor color);
     float getWidth() const;
     void setWidth(float width);
@@ -35,8 +35,8 @@ public:
     void setLine(StateGraphicsObject* state1, StateGraphicsObject* state2);
     QRectF boundingRect() const Q_DECL_OVERRIDE;
     int type() const Q_DECL_OVERRIDE;
-    void select(bool graphics_selection);
-    void deselect(bool graphics_selection);
+    void select(bool graphics_selection) override;
+    void deselect(bool graphics_selection) override;
     QPointF getPointFromScaledLine(float scale_factor);
 
 protected:

@@ -9,7 +9,7 @@
 
 #include <QDebug>
 
-static int train_counter = 0;
+//static int train_counter = 0;
 
 LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
                                        RailwayPetriNet* petri_net)
@@ -51,8 +51,8 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
             petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Semaphore>(enter_transition_id, semaphore_id),
             petri_net->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::ExitFromStation>(semaphore_id, exit_transition_id)
         };
-        ++train_counter;
-        int train_marker_id = petri_net->addMarker<PetriNetComponent::Train>(state1->getId(), PetriNetComponent::Train(train_counter));
+        //++train_counter;
+        //int train_marker_id = petri_net->addMarker<PetriNetComponent::Train>(state1->getId(), PetriNetComponent::Train(train_counter));
         int access_token_id = petri_net->addMarker<PetriNetComponent::AccessToken>(semaphore_id, PetriNetComponent::AccessToken());
 
         // add to details group
@@ -118,8 +118,8 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
         interm_state->show();
 
         // create markers
-        MarkerObject* train_marker = new MarkerObject(train_marker_id, 0);
-        state1->addMarker(train_marker);
+        //MarkerObject* train_marker = new MarkerObject(train_marker_id, 0);
+        //state1->addMarker(train_marker);
         MarkerObject* access_token = new MarkerObject(access_token_id, 1);
         blocking_state->addMarker(access_token);
     }
@@ -257,3 +257,29 @@ QPointF LinkGraphicsObject::getP2(float r) const
     TrackGraphicsObject* track = (TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_ST2_TO_TR2];
     return QPointF(-qCos(qDegreesToRadians(track->rotation())) * r, -qSin(qDegreesToRadians(track->rotation())) * r) + track->pos();
 }
+
+/*
+void LinkGraphicsObject::makeStep()
+{
+    StateGraphicsObject* state1;
+    StateGraphicsObject* state2;
+    TransitionGraphicsObject* first_transition;
+    StateGraphicsObject* blocking_state;
+    StateGraphicsObject* interm_state;
+    if (state1->getMarkers().size() > 0)
+    {
+        if (blocking_state->getMarkers().size() > 0)
+        {
+            //deleteMarkerCommand(blocking_state->getMarkers()[0])
+            //moveMarkerCommand(state1->getMarkers()[0], interm_state->getId())
+        }
+    }
+    if (interm_state->getMarkers().size() > 0)
+    {
+        // moveMarkerCommand(interm_state->getMarkers()[0], state2->getId())
+        // int access_token_id = petri_net->addMarker<PetriNetComponent::AccessToken>(blocking_state->getId(), PetriNetComponent::AccessToken());
+        // addMarkerCommand(markerId, blocking_state->getId())
+    }
+    //LinkGraphicsObject::makeStep();
+}
+*/

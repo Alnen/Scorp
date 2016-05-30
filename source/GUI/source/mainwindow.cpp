@@ -210,7 +210,7 @@ void MainWindow::defineToolBar()
     actSetMoveMode = new QAction(QIcon(QPixmap("images/move.png")), tr("Move"), m_toolBar);
     actSetAddStateMode = new QAction(QIcon(QPixmap("images/state.png")), tr("Add State"), m_toolBar);
     actSetAddLinkMode = new QAction(QIcon(QPixmap("images/link.png")), tr("Add Link"), m_toolBar);
-    actSetAddMarkerMode = new QAction(QIcon(QPixmap("images/marker.png")), tr("Add Marker"), m_toolBar);
+    actSetAddMarkerMode = new QAction(QIcon(QPixmap("images/train2.png")), tr("Add Train"), m_toolBar);
     actSetDeleteMode = new QAction(QIcon(QPixmap("images/delete.png")), tr("Delete"), m_toolBar);
 
     QList<QAction*> actions_list;
@@ -464,11 +464,12 @@ void MainWindow::defineStationsListForm()
     btnShowSchedule->setGeometry(10, btnStationsListClear->y() - 25, dlgStationsList->width()-20, 20);
 
     tableStations = new QTableWidget(dlgStationsList);
-    tableStations->setColumnCount(1);
-    tableStations->setHorizontalHeaderLabels(QStringList() << tr("Station"));
-    tableStations->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    tableStations->setColumnCount(2);
+    tableStations->setHorizontalHeaderLabels(QStringList() << tr("Id") << tr("Station"));
+    tableStations->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     tableStations->setGeometry(10, 10, dlgStationsList->width()-20, btnShowSchedule->y() - 15);
     tableStations->setEditTriggers(QTableWidget::NoEditTriggers);
+    tableStations->hideColumn(0);
 
     connect(btnBack, &QPushButton::clicked, dlgStationsList, &QDialog::close);
     connect(btnStationsListAdd, &QPushButton::clicked, [this](){this->openEditStationForm(true);});
@@ -535,11 +536,12 @@ void MainWindow::defineToursListForm()
     btnToursListClear->setGeometry(btnToursListRemove->x() - button_width - 2, btnBack->y(), button_width, 20);
 
     tableTours = new QTableWidget(dlgToursList);
-    tableTours->setColumnCount(1);
-    tableTours->setHorizontalHeaderLabels(QStringList() << tr("Tour"));
-    tableTours->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    tableTours->setColumnCount(2);
+    tableTours->setHorizontalHeaderLabels(QStringList() << tr("Id") << tr("Tour"));
+    tableTours->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     tableTours->setGeometry(10, 10, dlgToursList->width()-20, btnBack->y() - 15);
     tableTours->setEditTriggers(QTableWidget::NoEditTriggers);
+    tableTours->hideColumn(0);
 
     connect(btnBack, &QPushButton::clicked, dlgToursList, &QDialog::close);
     connect(btnToursListAdd, &QPushButton::clicked, [this](){this->openEditTourForm(true);});
@@ -1072,17 +1074,46 @@ void MainWindow::openEditProfileDialog()
 
 void MainWindow::openStationsListForm()
 {
-    //
+    tableStations->setRowCount(0);
+    std::vector<std::pair<int, std::string>> station_list = m_railwayNetDBManager.getStationNameList();
+    for (size_t i = 0; i < station_list.size(); ++i)
+    {
+        tableStations->insertRow(tableStations->rowCount());
+        tableStations->setItem(tableStations->rowCount() - 1, 0,
+            new QTableWidgetItem(QString::number(station_list[i].first)));
+        tableStations->setItem(tableStations->rowCount() - 1, 1,
+            new QTableWidgetItem(QString::fromStdString(station_list[i].second)));
+    }
     dlgStationsList->open();
 }
 
 void MainWindow::openTrainsListForm()
 {
+    tableTrains->setRowCount(0);
+    std::vector<std::pair<int, std::string>> train_list = m_railwayNetDBManager.getTrainTableList();
+    for (size_t i = 0; i < train_list.size(); ++i)
+    {
+        tableTrains->insertRow(tableTrains->rowCount());
+        tableTrains->setItem(tableTrains->rowCount() - 1, 0,
+            new QTableWidgetItem(QString::number(train_list[i].first)));
+        tableTrains->setItem(tableTrains->rowCount() - 1, 1,
+            new QTableWidgetItem(QString::fromStdString(train_list[i].second)));
+    }
     dlgTrainsList->open();
 }
 
 void MainWindow::openToursListForm()
 {
+    tableTours->setRowCount(0);
+    std::vector<RailwayNetDBObject::Route> tour_list = m_railwayNetDBManager.getRoutes();
+    for (size_t i = 0; i < tour_list.size(); ++i)
+    {
+        tableTours->insertRow(tableTours->rowCount());
+        tableTours->setItem(tableTours->rowCount() - 1, 0,
+            new QTableWidgetItem(QString::number(tour_list[i].id)));
+        tableTours->setItem(tableTours->rowCount() - 1, 1,
+            new QTableWidgetItem(QString::fromStdString(tour_list[i].name)));
+    }
     dlgToursList->open();
 }
 
@@ -1240,17 +1271,28 @@ void MainWindow::clearUsersList()
 
 void MainWindow::removeUserFromList()
 {
-    QModelIndexList selection = tableUsers->selectionModel()->selectedRows();
+    QModelIndex index = tableUsers->currentIndex();
     QString user_login;
-    for (int i = 0; i < selection.size(); ++i)
+    user_login = tableUsers->item(index.row(), 0)->text();
+    if (user_login != lbCurrentUserLogin->text())
     {
-        user_login = tableUsers->item(selection[i].row(), 0)->text();
-        if (user_login != lbCurrentUserLogin->text())
-        {
-            m_userDBManager.removeUser(user_login.toStdString());
-            tableUsers->removeRow(selection[i].row());
-        }
+        m_userDBManager.removeUser(user_login.toStdString());
+        tableUsers->removeRow(index.row());
     }
+}
+
+void MainWindow::openStationAddForm()
+{
+    txtEditedStationName->setText("");
+    txtEditedStationX->setText("");
+    txtEditedStationY->setText("");
+    openEditStationForm(true);
+}
+
+void MainWindow::openStationEditForm()
+{
+    //
+    openEditStationForm(false);
 }
 
 void MainWindow::openEditStationForm(bool is_add_mode)
@@ -1272,6 +1314,10 @@ void MainWindow::openEditStationForm(bool is_add_mode)
 
 void MainWindow::addStation()
 {
+    int station = m_mapScene->getPetriNet()->addState<PetriNetComponent::Station>(PetriNetComponent::Station(txtEditedStationName->text().toStdString(),
+        txtEditedStationX->text().toInt(), txtEditedStationY->text().toInt(), 2));
+    m_railwayNetDBManager.addStation(RailwayNetDBObject::Station(station, txtEditedStationName->text().toStdString(),
+        txtEditedStationX->text().toInt(), txtEditedStationY->text().toInt()));
     dlgEditStation->close();
 }
 
@@ -1282,10 +1328,24 @@ void MainWindow::acceptStationChanges()
 
 void MainWindow::clearStationsList()
 {
-    //
+    tableStations->setRowCount(0);
+    m_railwayNetDBManager.removeAllStations();
 }
 
 void MainWindow::removeStationFromList()
+{
+    QModelIndex index = tableStations->currentIndex();
+    int station_id = tableStations->item(index.row(), 0)->text().toInt();
+    m_railwayNetDBManager.removeStation(station_id);
+    tableStations->removeRow(index.row());
+}
+
+void MainWindow::openTrainAddForm()
+{
+    //
+}
+
+void MainWindow::openTrainEditForm()
 {
     //
 }
@@ -1319,10 +1379,24 @@ void MainWindow::acceptTrainChanges()
 
 void MainWindow::clearTrainsList()
 {
-    //
+    tableTrains->setRowCount(0);
+    m_railwayNetDBManager.removeAllTrains();
 }
 
 void MainWindow::removeTrainFromList()
+{
+    QModelIndex index = tableTrains->currentIndex();
+    int train_number = tableTrains->item(index.row(), 0)->text().toInt();
+    m_railwayNetDBManager.removeTrain(train_number);
+    tableTrains->removeRow(index.row());
+}
+
+void MainWindow::openTourAddForm()
+{
+    //
+}
+
+void MainWindow::openTourEditForm()
 {
     //
 }
@@ -1356,12 +1430,16 @@ void MainWindow::acceptTourChanges()
 
 void MainWindow::clearToursList()
 {
-    //
+    tableTours->setRowCount(0);
+    m_railwayNetDBManager.removeAllRoutes();
 }
 
 void MainWindow::removeTourFromList()
 {
-    //
+    QModelIndex index = tableTours->currentIndex();
+    int tour_id = tableTours->item(index.row(), 0)->text().toInt();
+    m_railwayNetDBManager.removeRoute(tour_id);
+    tableTours->removeRow(index.row());
 }
 
 void MainWindow::openEditDateTimeForm(bool is_arrival)

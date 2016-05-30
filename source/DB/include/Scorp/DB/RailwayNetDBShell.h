@@ -56,7 +56,7 @@ public:
     bool removeAllRoutes();
     
     std::vector<std::pair<int, std::string>> getStationNameList();
-    //std::vector<RailwayNetDBObject::Route> getRoutes(int station_1, int station_2);    
+    std::vector<std::pair<int, std::string>> getTrainTableList();  
     std::vector<std::string> getRoutsFromAtoB(std::string stA, std::string stB);
     std::vector<std::vector<std::string>> getStationSchedule(std::string idStation);
 };

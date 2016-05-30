@@ -46,7 +46,7 @@ signals:
     void userChanged();
 
 private:
-    void resizeEvent(QResizeEvent * event);
+    void resizeEvent(QResizeEvent * event) override;
 
     void defineMainMenu();
     void defineToolBar();
@@ -109,18 +109,24 @@ private slots:
     void clearUsersList();
     void removeUserFromList();
 
+    void openStationAddForm();
+    void openStationEditForm();
     void openEditStationForm(bool is_add_mode);
     void addStation();
     void acceptStationChanges();
     void clearStationsList();
     void removeStationFromList();
 
+    void openTrainAddForm();
+    void openTrainEditForm();
     void openEditTrainForm(bool is_add_mode);
     void addTrain();
     void acceptTrainChanges();
     void clearTrainsList();
     void removeTrainFromList();
 
+    void openTourAddForm();
+    void openTourEditForm();
     void openEditTourForm(bool is_add_mode);
     void addTour();
     void acceptTourChanges();

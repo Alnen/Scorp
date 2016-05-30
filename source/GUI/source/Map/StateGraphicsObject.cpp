@@ -126,6 +126,11 @@ MarkerObject* StateGraphicsObject::getMarker(int marker_id)
     return nullptr;
 }
 
+std::vector<MarkerObject*> StateGraphicsObject::getMarkers()
+{
+    return m_markerList;
+}
+
 void StateGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     //++paintStateCounter;
@@ -165,17 +170,24 @@ void StateGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
     if (m_markerList.size() > 0)
     {
         int marker_r = 3;
+        int image_width = 10;
         QColor marker_border_color = (m_markerList[0]->getColor() == 0 ? QColor::fromRgb(255, 0, 0) : QColor::fromRgb(255, 255, 0));
         //m_markerList[0]->getBorderColor();
         float marker_border_width = 1.f;//m_markerList[0]->getBorderWidth();
         QColor marker_fill_color = (m_markerList[0]->getColor() == 0 ? QColor::fromRgb(255, 0, 0) : QColor::fromRgb(255, 255, 0));
         //m_markerList[0]->getFillColor();
-        painter->setPen(QPen(QBrush(marker_border_color), marker_border_width));
-        painter->setBrush(QBrush(marker_fill_color));
-        painter->drawEllipse(-marker_r, -marker_r, 2*marker_r, 2*marker_r);
+        if (m_markerList[0]->getColor() == 0)
+        {
+            painter->drawImage(QRect(-image_width, -image_width, 2*image_width, 2*image_width), QPixmap("images/train2.png").toImage());
+        }
+        else
+        {
+            painter->setPen(QPen(QBrush(marker_border_color), marker_border_width));
+            painter->setBrush(QBrush(marker_fill_color));
+            painter->drawEllipse(-marker_r, -marker_r, 2*marker_r, 2*marker_r);
+        }
         painter->setPen(QPen(QBrush(QColor::fromRgb(0, 0, 0)), 1.f));
-        painter->drawText(-15, 15, QString::number(m_markerList[0]->getId()));
-        painter->drawText(15, -5, QString::number(m_id));
+        painter->drawText(-15, 15, QString::number(m_markerList.size()));
     }
     //m_markerList[i]
     /*

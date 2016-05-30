@@ -359,7 +359,8 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
     }
     else if (m_mode == MapMode::AddMarker)
     {
-        if ((choosen_items.size() == 1) && (choosen_items[0]->type() == GraphicsObjectType::StateType))
+        if ((choosen_items.size() == 1) && (choosen_items[0]->type() == GraphicsObjectType::StateType)
+             && (((StateGraphicsObject*)choosen_items[0])->parentID() < 0))
         {
             createNewMarker((StateGraphicsObject*)choosen_items[0]);
         }
@@ -560,5 +561,6 @@ void MapScene::createNewMarker(StateGraphicsObject* state)
         ++marker_id_generator;
         int marker_id = m_petriNet->addMarker<PetriNetComponent::Train>(state->getId(), PetriNetComponent::Train(marker_id_generator));
         state->addMarker(new MarkerObject(marker_id, TRAIN_COLOR, state));
+        this->update(this->sceneRect());
     }
 }
