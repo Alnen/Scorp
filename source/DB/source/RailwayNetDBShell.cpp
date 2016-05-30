@@ -780,7 +780,6 @@ std::vector<std::pair<int, std::string>> RailwayNetDBShell::getTrainTableList()
     return train_list;
 }
 
-//=================================================================
 std::vector<std::string> RailwayNetDBShell::getRoutsFromAtoB(std::string stA, std::string stB)
 {
     std::vector<RailwayNetDBObject::Route> routs = getRoutes();
