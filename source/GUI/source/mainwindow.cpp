@@ -210,7 +210,7 @@ void MainWindow::defineToolBar()
     actSetMoveMode = new QAction(QIcon(QPixmap("images/move.png")), tr("Move"), m_toolBar);
     actSetAddStateMode = new QAction(QIcon(QPixmap("images/state.png")), tr("Add State"), m_toolBar);
     actSetAddLinkMode = new QAction(QIcon(QPixmap("images/link.png")), tr("Add Link"), m_toolBar);
-    actSetAddMarkerMode = new QAction(QIcon(QPixmap("images/marker.png")), tr("Add Marker"), m_toolBar);
+    actSetAddMarkerMode = new QAction(QIcon(QPixmap("images/train2.png")), tr("Add Train"), m_toolBar);
     actSetDeleteMode = new QAction(QIcon(QPixmap("images/delete.png")), tr("Delete"), m_toolBar);
 
     QList<QAction*> actions_list;

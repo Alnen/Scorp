@@ -9,7 +9,7 @@
 
 #include <QDebug>
 
-static int train_counter = 0;
+//static int train_counter = 0;
 
 LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
                                        RailwayPetriNet* petri_net)
@@ -51,8 +51,8 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
             petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Semaphore>(enter_transition_id, semaphore_id),
             petri_net->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::ExitFromStation>(semaphore_id, exit_transition_id)
         };
-        ++train_counter;
-        int train_marker_id = petri_net->addMarker<PetriNetComponent::Train>(state1->getId(), PetriNetComponent::Train(train_counter));
+        //++train_counter;
+        //int train_marker_id = petri_net->addMarker<PetriNetComponent::Train>(state1->getId(), PetriNetComponent::Train(train_counter));
         int access_token_id = petri_net->addMarker<PetriNetComponent::AccessToken>(semaphore_id, PetriNetComponent::AccessToken());
 
         // add to details group
@@ -118,8 +118,8 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
         interm_state->show();
 
         // create markers
-        MarkerObject* train_marker = new MarkerObject(train_marker_id, 0);
-        state1->addMarker(train_marker);
+        //MarkerObject* train_marker = new MarkerObject(train_marker_id, 0);
+        //state1->addMarker(train_marker);
         MarkerObject* access_token = new MarkerObject(access_token_id, 1);
         blocking_state->addMarker(access_token);
     }

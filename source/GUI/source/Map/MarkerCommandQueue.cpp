@@ -65,7 +65,7 @@ void MarkerCommandQueue::makeCommand()
                     curr_state = (StateGraphicsObject*)item;
                     if (curr_state->getId() == m_commands[0].param2)
                     {
-                        curr_state->addMarker(new MarkerObject(m_commands[0].param1, 0, curr_state));
+                        curr_state->addMarker(new MarkerObject(m_commands[0].param1, 1, curr_state));
                         break;
                     }
                 }
