@@ -103,10 +103,13 @@ void MarkerCommandQueue::makeCommand()
                 if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
                 {
                     curr_state = (StateGraphicsObject*)item;
-                    found_marker = curr_state->getMarker(m_commands[0].param1);
-                    if (found_marker)
+                    if (old_state)
                     {
-                        old_state = curr_state;
+                        found_marker = curr_state->getMarker(m_commands[0].param1);
+                        if (found_marker)
+                        {
+                            old_state = curr_state;
+                        }
                     }
                     if (curr_state->getId() == m_commands[0].param2)
                     {

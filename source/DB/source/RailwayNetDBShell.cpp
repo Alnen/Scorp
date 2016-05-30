@@ -758,6 +758,28 @@ std::vector<std::pair<int, std::string>> RailwayNetDBShell::getStationNameList()
     return station_list;
 }
 
+std::vector<std::pair<int, std::string>> RailwayNetDBShell::getTrainTableList()
+{
+    std::vector<std::pair<int, std::string>> train_list;
+    int curr_id = -1;
+    try
+    {
+        SQLite::Statement query(*m_database, "SELECT Train.Number, Route.Name FROM Train, Route WHERE Train.Route = Route.Id");
+        while (query.executeStep())
+        {
+            curr_id = query.getColumn(0).getInt();
+            train_list.push_back(std::pair<int, std::string>(curr_id,
+                query.getColumn(1).getText()));
+        }
+    }
+    catch (SQLite::Exception)
+    {
+        throw ScorpDBException::ItemNotFoundException(std::to_string(curr_id), "Station");
+        return std::vector<std::pair<int, std::string>>();
+    }
+    return train_list;
+}
+
 //=================================================================
 /*
 std::vector<std::string> RailwayNetDBShell::getRoutsFromAtoB(std::string stA, std::string stB)

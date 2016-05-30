@@ -126,6 +126,11 @@ MarkerObject* StateGraphicsObject::getMarker(int marker_id)
     return nullptr;
 }
 
+std::vector<MarkerObject*> StateGraphicsObject::getMarkers()
+{
+    return m_markerList;
+}
+
 void StateGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     //++paintStateCounter;
