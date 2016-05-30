@@ -1582,7 +1582,9 @@ void MainWindow::makeStep()
         value = temp.getStateId();
         qDebug() << "Access parent = " << value;
     }
-    m_mapScene->getPetriNet()->executeMarkersPropagation();
+
+    IdType numberOfJumps = m_mapScene->getPetriNet()->executeMarkersPropagation();
+    std::cout << "NUMBER OF JUMPS " << numberOfJumps << std::endl;
     qDebug() << "------------- makeStep: After ----------";
     for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::Train>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::Train>(); ++it)
     {

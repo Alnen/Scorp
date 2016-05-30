@@ -1,3 +1,4 @@
+#include <array>
 #include "Scorp/DB/UserDBShell.h"
 #include "Scorp/Exceptions/ScorpDBException.h"
 
