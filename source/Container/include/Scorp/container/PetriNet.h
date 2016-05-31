@@ -183,6 +183,14 @@ public:
         return stateWrapper;
     }
 
+    template <class State>
+    StateWrapperType<State>& getStateWrapperById(IdType id)
+    {
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        auto& stateWrapper = stateStorage.find(id)->second;
+        return stateWrapper;
+    }
+
     template <class Transition>
     const TransitionWrapperType<Transition>& getTransitionWrapperById(IdType id) const
     {
@@ -215,6 +223,19 @@ public:
         if (!eraser())
         {
             throw std::runtime_error("Couldn't find father");
+        }
+
+        return true;
+    }
+
+    template <class Marker>
+    bool removeMarkerImpl(IdType id)
+    {
+        auto& markerStorage = m_petriNetStorage.template getMarkerStorage<Marker>();
+        auto iterator = markerStorage.find(id);
+        if (iterator == markerStorage.end())
+        {
+            return false;
         }
 
         return true;
@@ -689,7 +710,7 @@ private:
             MarkerExtractor<Transition, State> markerExtractor;
             for (auto stateId : m_transition.template getInStateStorage<State>())
             {
-                const auto &state = m_petriNet.template getStateWrapperById<State>(stateId);
+                auto &state = m_petriNet.template getStateWrapperById<State>(stateId);
                 if (boost::optional<std::pair<IdType, IdType>> marker = markerExtractor(m_petriNet, m_transition, state))
                 {
                     m_serializedMarkers.emplace_back(
@@ -713,7 +734,7 @@ private:
 
     private:
         std::vector<SerializedMarkerInState<IndexType>> m_serializedMarkers;
-        const PetriNet<PetriNetTraits> &m_petriNet;
+        PetriNet<PetriNetTraits> &m_petriNet;
         const TransitionWrapper<Transition, PetriNetTraits> &m_transition;
     };
 
@@ -851,7 +872,7 @@ private:
         {
             std::cout << "[MarkerDeleter]Called to delete marker " << m_markerId << std::endl;
             std::cout << "[MarkerDeleter] befor " << m_petriNet.sizeMarker<Marker>() << std::endl;
-            m_petriNet.removeMarker<Marker>(m_markerId);
+            m_petriNet.removeMarkerImpl<Marker>(m_markerId);
             std::cout << "[MarkerDeleter] after " << m_petriNet.sizeMarker<Marker>() << std::endl;
         }
 
@@ -992,12 +1013,6 @@ public:
             // save marker from deletion
             SerializedMarkerInState<IndexType> serializedMarker = serializedMarkerHandler.release();
 
-            // remove from old parent
-            auto& markerStorage = getMarkerStorage(
-                    serializedMarker.getState(),
-                    serializedMarker.getMarker().getObjectSerializedType());
-            auto pos = std::find(markerStorage.begin(), markerStorage.end(), serializedMarker.getMarker().getObjectId());
-            markerStorage.erase(pos);
             // add to new parent
             auto& newMarkerStorage = getMarkerStorage(
                     m_state,

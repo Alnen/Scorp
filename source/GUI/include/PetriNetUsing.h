@@ -15,6 +15,7 @@
 
 #include <iostream>
 
+size_t getRandom(size_t upperBound);
 double getRandom();
 
 template <class _PetriNetTraits, class Transition>
@@ -135,7 +136,7 @@ public:
     boost::optional<std::pair<IdType, IdType>> operator()(
             const container::PetriNet<PetriNetTraits>& petriNet,
             const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
-            const container::StateWrapper<State, PetriNetTraits>& state) const
+            container::StateWrapper<State, PetriNetTraits>& state) const
     {
         container::internal::MarkerExtractor1<PetriNetTraits, State> extractor(state);
         meta::ForEachLooper<MarkerList, decltype(extractor)> looper(extractor);
@@ -160,13 +161,17 @@ public:
     boost::optional<std::pair<IdType, IdType>> operator()(
             const container::PetriNet<PetriNetTraits>& petriNet,
             const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
-            const container::StateWrapper<State, PetriNetTraits>& state) const
+            container::StateWrapper<State, PetriNetTraits>& state) const
     {
         auto& markerStorage = state.template getMarkerStorage<PetriNetComponent::Train>();
-        if (!markerStorage.empty() && getRandom() < 0.5)
+        if (!markerStorage.empty() && getRandom() < 0.2)
         {
+            IdType value = markerStorage.back();
+            markerStorage.pop_back();
             return boost::optional<std::pair<IdType, IdType>>(
-                    std::make_pair(markerStorage.front(), MarkerEnum::template getValue<PetriNetComponent::Train>()));
+                    std::make_pair(
+                            value,
+                            MarkerEnum::template getValue<PetriNetComponent::Train>()));
         }
         else
         {
@@ -189,13 +194,17 @@ public:
     boost::optional<std::pair<IdType, IdType>> operator()(
             const container::PetriNet<PetriNetTraits>& petriNet,
             const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
-            const container::StateWrapper<State, PetriNetTraits>& state) const
+            container::StateWrapper<State, PetriNetTraits>& state) const
     {
         auto& markerStorage = state.template getMarkerStorage<PetriNetComponent::Train>();
-        if (!markerStorage.empty() && getRandom() < 0.5)
+        if (!markerStorage.empty() && getRandom() < 0.2)
         {
+            IdType value = markerStorage.back();
+            markerStorage.pop_back();
             return boost::optional<std::pair<IdType, IdType>>(
-                    std::make_pair(markerStorage.front(), MarkerEnum::template getValue<PetriNetComponent::Train>()));
+                    std::make_pair(
+                                   value,
+                                   MarkerEnum::template getValue<PetriNetComponent::Train>()));
         }
         else
         {
