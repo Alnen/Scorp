@@ -154,6 +154,7 @@ void MainWindow::defineMainMenu()
     actSetAddTrainMapMode = new QAction(tr("Add Train"), mnSetMode);
     actSetAddAccessTokenMapMode = new QAction(tr("Add Access Token"), mnSetMode);
     actSetDeleteMapMode = new QAction(tr("Delete"), mnSetMode);
+    actSetDeleteTrainMapMode = new QAction(tr("Delete Train"), mnSetMode);
     actStationsList = new QAction(tr("Stations List"), mnMap);
     actTrainsList = new QAction(tr("Trains List"), mnMap);
     actToursList = new QAction(tr("Tours List"), mnMap);
@@ -164,6 +165,7 @@ void MainWindow::defineMainMenu()
     actSetAddTrainMapMode->setCheckable(true);
     actSetAddAccessTokenMapMode->setCheckable(true);
     actSetDeleteMapMode->setCheckable(true);
+    actSetDeleteTrainMapMode->setCheckable(true);
     QActionGroup* map_modes = new QActionGroup(mnSetMode);
     map_modes->addAction(actSetViewMapMode);
     map_modes->addAction(actSetMoveMapMode);
@@ -172,6 +174,7 @@ void MainWindow::defineMainMenu()
     map_modes->addAction(actSetAddTrainMapMode);
     map_modes->addAction(actSetAddAccessTokenMapMode);
     map_modes->addAction(actSetDeleteMapMode);
+    map_modes->addAction(actSetDeleteTrainMapMode);
     mnSetMode->addActions(map_modes->actions());
     actSetViewMapMode->setChecked(true);
     mnMap->addMenu(mnSetMode);
@@ -214,8 +217,9 @@ void MainWindow::defineToolBar()
     actSetAddStateMode = new QAction(QIcon(QPixmap("images/state.png")), tr("Add State"), m_toolBar);
     actSetAddLinkMode = new QAction(QIcon(QPixmap("images/link.png")), tr("Add Link"), m_toolBar);
     actSetAddTrainMode = new QAction(QIcon(QPixmap("images/train2.png")), tr("Add Train"), m_toolBar);
-    actSetAddAccessTokenMode = new QAction(QIcon(QPixmap("images/marker.png")), tr("Add Access Token"), m_toolBar);
+    actSetAddAccessTokenMode = new QAction(QIcon(QPixmap("images/mutex.png")), tr("Add Access Token"), m_toolBar);
     actSetDeleteMode = new QAction(QIcon(QPixmap("images/delete.png")), tr("Delete"), m_toolBar);
+    actSetDeleteTrainMode = new QAction(QIcon(QPixmap("images/delete_train.png")), tr("Delete Train"), m_toolBar);
 
     QList<QAction*> actions_list;
     actions_list << actSetViewMode
@@ -224,7 +228,8 @@ void MainWindow::defineToolBar()
                  << actSetAddLinkMode
                  << actSetAddTrainMode
                  << actSetAddAccessTokenMode
-                 << actSetDeleteMode;
+                 << actSetDeleteMode
+                 << actSetDeleteTrainMode;
     m_toolBar->addActions(actions_list);
     //m_toolbar->addSeparator();
 }
@@ -366,6 +371,7 @@ void MainWindow::defineMap()
     connect(actSetAddTrainMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrain);});
     connect(actSetAddAccessTokenMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddAccessToken);});
     connect(actSetDeleteMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
+    connect(actSetDeleteTrainMode, &QAction::triggered, [this](){this->changeMode(MapMode::DeleteTrain);});
 
     connect(actSetViewMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
     connect(actSetMoveMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
@@ -374,6 +380,7 @@ void MainWindow::defineMap()
     connect(actSetAddTrainMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrain);});
     connect(actSetAddAccessTokenMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddAccessToken);});
     connect(actSetDeleteMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
+    connect(actSetDeleteTrainMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::DeleteTrain);});
 }
 
 void MainWindow::defineStationsList()
@@ -1049,6 +1056,9 @@ void MainWindow::changeMode(MapMode mode)
         break;
     case MapMode::Delete:
         lbCurrentOperation->setText(tr("Current Operation: Delete"));
+        break;
+    case MapMode::DeleteTrain:
+        lbCurrentOperation->setText(tr("Current Operation: Delete Train"));
         break;
     }
 }

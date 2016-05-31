@@ -376,6 +376,13 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
             }
         }
     }
+    else if (m_mode == MapMode::DeleteTrain)
+    {
+        if ((choosen_items.size() == 1) && (choosen_items[0]->type() == GraphicsObjectType::StateType))
+        {
+            removeMarker((StateGraphicsObject*)choosen_items[0]);
+        }
+    }
     QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
@@ -546,8 +553,8 @@ StateGraphicsObject* MapScene::createNewState(int x, int y)
     //int state_id = state_id_generator++;
     StateGraphicsObject* state = new StateGraphicsObject(state_id, x, y, 10);
     state->setFillColor(QColor::fromRgb(0, 200, 0));
-    state->setBorderWidth(3.f);
-    state->setBorderColor(QColor::fromRgb(0, 0, 200));
+    state->setBorderWidth(2.f);
+    state->setBorderColor(QColor::fromRgb(0, 0, 0));
     //unselectItems();
     //clearSelectedItems();
     //MarkerObject* marker = new MarkerObject(0, TRAIN_COLOR, state);
@@ -586,5 +593,26 @@ void MapScene::createNewMarker(StateGraphicsObject* state, int color)
             state->addMarker(new MarkerObject(marker_id, color, state));
         }
         this->update(this->sceneRect());
+    }
+}
+
+void MapScene::removeMarker(StateGraphicsObject* state)
+{
+    if (m_petriNet.get())
+    {
+        MarkerObject* marker = state->getLastMarker();
+        if (marker)
+        {
+            if (marker->getColor() == TRAIN_COLOR)
+            {
+                m_petriNet->removeMarker<PetriNetComponent::Train>(marker->getId());
+            }
+            else
+            {
+                m_petriNet->removeMarker<PetriNetComponent::AccessToken>(marker->getId());
+            }
+            state->removeMarker(marker);
+            this->update(this->sceneRect());
+        }
     }
 }

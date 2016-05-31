@@ -23,6 +23,7 @@ public:
     void addMarker(MarkerObject* marker);
     void removeMarker(MarkerObject* marker);
     MarkerObject* getMarker(int marker_id);
+    MarkerObject* getLastMarker();
     std::vector<MarkerObject*> getMarkers();
 
 protected:

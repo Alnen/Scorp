@@ -245,6 +245,7 @@ private:
 	QAction* actSetAddTrainMapMode;
     QAction* actSetAddAccessTokenMapMode;
     QAction* actSetDeleteMapMode;
+    QAction* actSetDeleteTrainMapMode;
     QAction* actStationsList;
     QAction* actTrainsList;
     QAction* actToursList;
@@ -261,6 +262,7 @@ private:
 	QAction* actSetAddTrainMode;
     QAction* actSetAddAccessTokenMode;
     QAction* actSetDeleteMode;
+    QAction* actSetDeleteTrainMode;
 
     // StatusBar
     QStatusBar* m_statusBar;
