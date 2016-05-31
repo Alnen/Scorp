@@ -345,7 +345,7 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
         }
         if (link_state)
         {
-            if (m_linkedState)
+            if (m_linkedState && (link_state != m_linkedState))
             {
                 createNewLink(m_linkedState, link_state);
                 link_state = nullptr;
@@ -421,7 +421,10 @@ void MapScene::keyPressEvent(QKeyEvent *event)
         switch (event->key())
         {
         case Qt::Key_D:
+            disconnect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
             unselectItems(true);
+            connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
+            clearSelectedItems();
             this->update(this->sceneRect());
             break;
         case Qt::Key_Delete:
@@ -433,7 +436,9 @@ void MapScene::keyPressEvent(QKeyEvent *event)
         case Qt::Key_Escape:
             if (m_mode == MapMode::AddLink)
             {
+                disconnect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
                 unselectItems(true);
+                connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
                 clearSelectedItems();
                 m_linkedState = nullptr;
                 this->update(this->sceneRect());
