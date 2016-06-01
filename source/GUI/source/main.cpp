@@ -257,9 +257,269 @@ void serialize(std::ostream& output, RailwayPetriNet* petriNet)
     }
 }
 
-void deserialize(const std::istream& input, RailwayPetriNet& petri_net)
+void deserialize(std::istream& input, RailwayPetriNet* petriNet)
 {
-    //
+    std::string line;
+    std::getline(input, line, '\n');
+
+    while (true)
+    {
+        std::getline(input, line, '\n');
+        if (line.compare("Transition::EnterToStation") == 0)
+        {
+            break;
+        }
+        else
+        {
+            petriNet->addTransition<PetriNetComponent::ExitFromStation>(PetriNetComponent::ExitFromStation());
+        }
+    }
+    //=======================
+    /*
+    for (auto it = petriNet->beginTransition<PetriNetComponent::ExitFromStation>(); it != petriNet->endTransition<PetriNetComponent::ExitFromStation>(); ++it)
+    {
+        (*it).second.serialize(output);
+        output << "\n";
+    }
+    output << "Transition::EnterToStation\n";
+    for (auto it = petriNet->beginTransition<PetriNetComponent::EnterToStation>(); it != petriNet->endTransition<PetriNetComponent::EnterToStation>(); ++it)
+    {
+        (*it).second.serialize(output);
+        output << "\n";
+    }
+    output << "State::Station\n";
+    for (auto it = petriNet->beginState<PetriNetComponent::Station>(); it != petriNet->endState<PetriNetComponent::Station>(); ++it)
+    {
+        auto& state = (*it).second;
+        state.serialize(output);
+        output << "\n";
+        auto marker_storage = state.getMarkerStorage<PetriNetComponent::Train>();
+        output << "{";
+        bool is_first = true;
+        for (auto marker_id : marker_storage)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << marker_id;
+            is_first = false;
+            //auto marker = petriNet->getMarkerById<PetriNetComponent::Train>(marker_id);
+            //marker.serialize(output);
+        }
+        output << "}\n";
+        auto transition_storage1 = state.getInTransitionStorage<PetriNetComponent::ExitFromStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage1)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage2 = state.getInTransitionStorage<PetriNetComponent::EnterToStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage2)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage3 = state.getOutTransitionStorage<PetriNetComponent::ExitFromStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage3)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage4 = state.getOutTransitionStorage<PetriNetComponent::EnterToStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage4)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n#\n";
+    }
+    output << "State::InterState\n";
+    for (auto it = petriNet->beginState<PetriNetComponent::InterState>(); it != petriNet->endState<PetriNetComponent::InterState>(); ++it)
+    {
+        auto& state = (*it).second;
+        state.serialize(output);
+        auto marker_storage = state.getMarkerStorage<PetriNetComponent::Train>();
+        output << "{";
+        bool is_first = true;
+        for (auto marker_id : marker_storage)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << marker_id;
+            is_first = false;
+            //auto marker = petriNet->getMarkerById<PetriNetComponent::Train>(marker_id);
+            //marker.serialize(output);
+        }
+        output << "}\n";
+        auto transition_storage1 = state.getInTransitionStorage<PetriNetComponent::ExitFromStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage1)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage2 = state.getInTransitionStorage<PetriNetComponent::EnterToStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage2)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage3 = state.getOutTransitionStorage<PetriNetComponent::ExitFromStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage3)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage4 = state.getOutTransitionStorage<PetriNetComponent::EnterToStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage4)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+    }
+    output << "State::Semaphore\n";
+    for (auto it = petriNet->beginState<PetriNetComponent::Semaphore>(); it != petriNet->endState<PetriNetComponent::Semaphore>(); ++it)
+    {
+        auto& state = (*it).second;
+        state.serialize(output);
+        auto marker_storage = state.getMarkerStorage<PetriNetComponent::Train>();
+        output << "{";
+        bool is_first = true;
+        for (auto marker_id : marker_storage)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << marker_id;
+            is_first = false;
+            //auto marker = petriNet->getMarkerById<PetriNetComponent::Train>(marker_id);
+            //marker.serialize(output);
+        }
+        output << "}\n";
+        auto transition_storage1 = state.getInTransitionStorage<PetriNetComponent::ExitFromStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage1)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage2 = state.getInTransitionStorage<PetriNetComponent::EnterToStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage2)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage3 = state.getOutTransitionStorage<PetriNetComponent::ExitFromStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage3)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+        auto transition_storage4 = state.getOutTransitionStorage<PetriNetComponent::EnterToStation>();
+        output << "{";
+        is_first = true;
+        for (auto transition_id : transition_storage4)
+        {
+            if (!is_first)
+            {
+                output << ",";
+            }
+            output << transition_id;
+            is_first = false;
+        }
+        output << "}\n";
+    }
+    output << "Marker::Train\n";
+    for (auto it = petriNet->beginMarker<PetriNetComponent::Train>(); it != petriNet->endMarker<PetriNetComponent::Train>(); ++it)
+    {
+        (*it).second.serialize(output);
+        output << "\n";
+    }
+    output << "Marker::AccessToken\n";
+    for (auto it = petriNet->beginMarker<PetriNetComponent::AccessToken>(); it != petriNet->endMarker<PetriNetComponent::AccessToken>(); ++it)
+    {
+        (*it).second.serialize(output);
+        output << "\n";
+    }
+    */
 }
 
 int main(int argc, char *argv[])
