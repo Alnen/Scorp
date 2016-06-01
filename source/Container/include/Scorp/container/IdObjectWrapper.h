@@ -23,7 +23,7 @@ public:
         return m_id;
     }
 
-private:
+protected:
     IdType m_id;
 };
 

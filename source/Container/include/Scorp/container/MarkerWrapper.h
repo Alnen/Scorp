@@ -5,6 +5,8 @@
 #include "IdObjectWrapper.h"
 #include "Scorp/container/internal/PetriNetStorage.h"
 
+#include <iostream>
+
 namespace container
 {
 
@@ -30,7 +32,7 @@ public:
         return m_marker;
     }
 
-private:
+protected:
     Marker m_marker;
 };
 
@@ -57,7 +59,7 @@ public:
         m_stateId = parentId;
     }
 
-private:
+protected:
     IdType m_stateId;
 };
 
@@ -97,6 +99,26 @@ public:
             IdObjectWrapper<IdType>(id),
             StateIdWrapper<_PetriNetTraits>(parentId)
     {
+    }
+    
+    void serialize(std::ostream& output) const
+    {
+        output << "{" << (int)IdObjectWrapper<IdType>::m_id << ";";
+        output << (int)StateIdWrapper<PetriNetTraits>::m_stateId << ";";
+        MarkerObjectWrapper<Marker>::m_marker.serialize(output);
+        output << "}";
+    }
+    
+    void deserialize(std::istream& input)
+    {
+        std::string item;
+        std::getline(input, item, '{');
+        std::getline(input, item, ';');
+        IdObjectWrapper<IdType>::m_id = std::stoi(item);
+        std::getline(input, item, ';');
+        StateIdWrapper<PetriNetTraits>::m_stateId = std::stoi(item);
+        MarkerObjectWrapper<Marker>::m_marker.deserialize(input);
+        std::getline(input, item, '}');
     }
 
     ~MarkerWrapper() {

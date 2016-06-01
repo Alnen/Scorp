@@ -79,22 +79,18 @@ size_t Time::getSeconds() const
 
 Time Time::fromString(const std::string& str_time)
 {
-    std::stringstream ss(str_time);
     Time time;
     std::string item;
-    while (std::getline(ss, item, '-'))
-    {
-    }
-    std::stringstream ss2(item);
-    std::getline(ss2, item, 'T');
+    std::stringstream ss(str_time);
+    std::getline(ss, item, '-');
+    std::getline(ss, item, '-');
+    std::getline(ss, item, 'T');
     time.setDays(std::stoi(item));
-    std::getline(ss2, item, 'T');
-    std::stringstream ss3(item);
-    std::getline(ss3, item, ':');
+    std::getline(ss, item, ':');
     time.setHours(std::stoi(item));
-    std::getline(ss3, item, ':');
+    std::getline(ss, item, ':');
     time.setMinutes(std::stoi(item));
-    std::getline(ss3, item, ':');
+    std::getline(ss, item, ':');
     time.setSeconds(std::stoi(item));
     return time;
 }

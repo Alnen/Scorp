@@ -5,6 +5,8 @@
 #include "IdObjectWrapper.h"
 #include "Scorp/meta/TypeListStorage.h"
 
+#include <iostream>
+
 namespace container
 {
 
@@ -31,7 +33,7 @@ public:
         return m_transition;
     }
 
-private:
+protected:
     Transition m_transition;
 };
 
@@ -70,7 +72,7 @@ public:
         return m_outStateStorage.template getStorage<T>();
     }
 
-private:
+protected:
     template <class V>
     using IdTypeFactory = meta::TypeHolder<IdType>;
 
@@ -101,6 +103,23 @@ public:
             TransitionObjectWrapper<_Transition>(std::forward<Arguments>(arguments)...),
             IdObjectWrapper<IdType>(id)
     {
+    }
+    
+    void serialize(std::ostream& output) const
+    {
+        output << "{" << (int)IdObjectWrapper<IdType>::m_id << ";";
+        TransitionObjectWrapper<Transition>::m_transition.serialize(output);
+        output << "}";
+    }
+    
+    void deserialize(std::istream& input)
+    {
+        std::string item;
+        std::getline(input, item, '{');
+        std::getline(input, item, ';');
+        IdObjectWrapper<IdType>::m_id = std::stoi(item);
+        TransitionObjectWrapper<Transition>::m_transition.deserialize(input);
+        std::getline(input, item, '}');
     }
 
     ~TransitionWrapper() {

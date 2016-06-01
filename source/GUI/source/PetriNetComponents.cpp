@@ -36,23 +36,20 @@ int Station::getCapacity() const
 
 void Station::serialize(std::ostream& output) const
 {
-    output << "Station(" << m_name << ", " << m_x << ", "
-           << m_y << ", " << m_capacity << ")" << std::endl;
+    output << "{" << m_name << ";" << m_x << ";" << m_y << ";" << m_capacity << "}";
 }
 
 void Station::deserialize(std::istream& input)
 {
     std::string line;
-    std::getline(input, line, '(');
-    std::getline(input, line, ')');
-    std::stringstream ss(line);
-    std::getline(ss, line, ',');
+    std::getline(input, line, '{');
+    std::getline(input, line, ';');
     m_name = line;
-    std::getline(ss, line, ',');
+    std::getline(input, line, ';');
     m_x = std::stoi(line);
-    std::getline(ss, line, ',');
+    std::getline(input, line, ';');
     m_y = std::stoi(line);
-    std::getline(ss, line, ',');
+    std::getline(input, line, '}');
     m_capacity = std::stoi(line);
 }
 
@@ -107,14 +104,14 @@ int Train::getNumber() const
 
 void Train::serialize(std::ostream& output) const
 {
-    output << "Train(" << m_number << ")" << std::endl;
+    output << "{" << m_number << "}";
 }
 
 void Train::deserialize(std::istream& input)
 {
     std::string line;
-    std::getline(input, line, '(');
-    std::getline(input, line, ')');
+    std::getline(input, line, '{');
+    std::getline(input, line, '}');
     m_number = std::stoi(line);
 }
 

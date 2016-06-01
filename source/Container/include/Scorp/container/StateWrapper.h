@@ -6,6 +6,8 @@
 #include "PetriNetTraits.h"
 #include "IdObjectWrapper.h"
 
+#include <iostream>
+
 namespace container
 {
 
@@ -37,7 +39,7 @@ public:
         return m_state;
     }
 
-private:
+protected:
     State m_state;
 };
 
@@ -89,7 +91,7 @@ public:
         return m_outTransitionStorage.template getStorage<T>();
     }
 
-private:
+protected:
     template <class V>
     using IdTypeFactory = meta::TypeHolder<IdType>;
 
@@ -128,6 +130,23 @@ public:
         StateObjectWrapper<State>(std::forward<Arguments>(arguments)...),
         IdObjectWrapper<IdType>(id)
     {
+    }
+    
+    void serialize(std::ostream& output) const
+    {
+        output << "{" << (int)IdObjectWrapper<IdType>::m_id << ";";
+        StateObjectWrapper<State>::m_state.serialize(output);
+        output << "}";
+    }
+    
+    void deserialize(std::istream& input)
+    {
+        std::string item;
+        std::getline(input, item, '{');
+        std::getline(input, item, ';');
+        IdObjectWrapper<IdType>::m_id = std::stoi(item);
+        StateObjectWrapper<State>::m_state.deserialize(input);
+        std::getline(input, item, '}');
     }
 
     ~StateWrapper() {
