@@ -10,6 +10,10 @@
 #include "Scorp/container/internal/PetriNetHelpers.h"
 #include "Scorp/container/PetriNetIterator.h"
 
+#include <iostream>
+
+#include "PetriNetUsing.h"
+
 namespace container
 {
 
@@ -63,6 +67,44 @@ public:
     void operator=(const PetriNet&) = delete;
     void operator=(PetriNet&&) = delete;
 
+    template <class Marker>
+    void deserializeMarker(std::istream& input)
+    {
+        auto marker_wrapper = MarkerWrapperType<Marker>(0, std::forward<Marker>(Marker()));
+        marker_wrapper.deserialize(input);
+        //addSerializedMarker(marker_wrapper.getId(), marker_wrapper.getMarker());
+        auto markerId = marker_wrapper.getId();
+        auto parentId = marker_wrapper.getStateId();
+        auto marker = marker_wrapper.getMarker();
+        auto& markerStorage = m_petriNetStorage.template getMarkerStorage<Marker>();
+        markerStorage.emplace(
+                std::make_pair(
+                        markerId,
+                        MarkerWrapperType<Marker>(
+                                markerId,
+                                parentId,
+                                std::forward<Marker>(marker)
+                        )
+                )
+        );
+    }
+    
+    template <class Marker>
+    void addSerializedMarker(IdType markerId, IdType parentId, Marker&& marker)
+    {
+        auto& markerStorage = m_petriNetStorage.template getMarkerStorage<Marker>();
+        markerStorage.emplace(
+                std::make_pair(
+                        markerId,
+                        MarkerWrapperType<Marker>(
+                                markerId,
+                                parentId,
+                                std::forward<Marker>(marker)
+                        )
+                )
+        );
+    }
+    
     template <class Marker>
     IdType addMarker(IdType parentId, Marker&& marker)
     {
@@ -174,6 +216,15 @@ public:
         auto& markerWrapper = markerStorage.find(id)->second;
         return markerWrapper;
     }
+    
+    template <class Marker>
+    const MarkerWrapperType<Marker>& getMarkerWrapperById(IdType id)
+    {
+        auto& markerStorage = m_petriNetStorage.template getMarkerStorage<Marker>();
+        auto& markerWrapper = markerStorage.find(id)->second;
+        return markerWrapper;
+    }
+
 
     template <class State>
     const StateWrapperType<State>& getStateWrapperById(IdType id) const
@@ -193,6 +244,14 @@ public:
 
     template <class Transition>
     const TransitionWrapperType<Transition>& getTransitionWrapperById(IdType id) const
+    {
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        auto& transitionWrapper = transitionStorage.find(id)->second;
+        return transitionWrapper;
+    }
+    
+    template <class Transition>
+    const TransitionWrapperType<Transition>& getTransitionWrapperById(IdType id)
     {
         auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
         auto& transitionWrapper = transitionStorage.find(id)->second;
@@ -240,7 +299,43 @@ public:
 
         return true;
     }
+    
+    template <class State>
+    IdType deserializeState(std::istream& input)
+    {
+        auto state_wrapper = StateWrapperType<State>(0, std::forward<State>(State()));
+        state_wrapper.deserialize(input);
+        //addSerializedState(state_wrapper.getId(), state_wrapper.getState());
+        auto newId = state_wrapper.getId();
+        auto state = state_wrapper.getState();
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        stateStorage.emplace(
+                std::make_pair(
+                        newId,
+                        StateWrapperType<State>(
+                                newId,
+                                std::forward<State>(state)
+                        )
+                )
+        );
+        return state_wrapper.getId();
+    }
 
+    template <class State>
+    void addSerializedState(IdType newId, State&& state)
+    {
+        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
+        stateStorage.emplace(
+                std::make_pair(
+                        newId,
+                        StateWrapperType<State>(
+                                newId,
+                                std::forward<State>(state)
+                        )
+                )
+        );
+    }
+    
     template <class State>
     IdType addState(State&& state)
     {
@@ -258,7 +353,44 @@ public:
 
         return newId;
     }
-
+    
+    template <class Transition>
+    IdType deserializeTransition(std::istream& input)
+    {
+        auto transition_wrapper = TransitionWrapperType<Transition>(0, std::forward<Transition>(Transition()));
+        transition_wrapper.deserialize(input);
+        //auto it = addSerializedTransition(transition_wrapper.getId(), transition_wrapper.getTransition());
+        //return it;
+        auto transitionId = transition_wrapper.getId();
+        auto transition = transition_wrapper.getTransition();
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        transitionStorage.emplace(
+                std::make_pair(
+                        transitionId,
+                        TransitionWrapperType<Transition>(
+                                transitionId,
+                                std::forward<Transition>(transition)
+                        )
+                )
+        );
+        return transitionId;
+    }
+    
+    template <class Transition>
+    void addSerializedTransition(IdType transitionId, Transition&& transition)
+    {
+        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
+        auto it = transitionStorage.emplace(
+                std::make_pair(
+                        transitionId,
+                        TransitionWrapperType<Transition>(
+                                transitionId,
+                                std::forward<Transition>(transition)
+                        )
+                )
+        );
+    }
+    
     template <class Transition>
     IdType addTransition(Transition&& transition)
     {
