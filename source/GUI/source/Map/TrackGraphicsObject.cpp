@@ -1,23 +1,19 @@
-#include "Map/TrackGraphicsObject.h"
-#include "Map/StateGraphicsObject.h"
-#include "Map/TransitionGraphicsObject.h"
 #include <QPen>
 #include <QBrush>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
-
 #include <QDebug>
-
-#include <math.h>
 #include <QtMath>
+#include "Scorp/GUI/Map/TrackGraphicsObject.h"
+#include "Scorp/GUI/Map/StateGraphicsObject.h"
+#include "Scorp/GUI/Map/TransitionGraphicsObject.h"
 
 TrackGraphicsObject::TrackGraphicsObject(int object_id, StateGraphicsObject* state,
-    TransitionGraphicsObject* transition, TrackDirection direction, QColor fill_color,
+    TransitionGraphicsObject* transition, Direction direction, QColor fill_color,
     float width, QGraphicsItem *parent)
-    : PointGraphicsObject(object_id, 0.f, 0.f, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent),
-      m_direction(direction), m_width(width), m_isLinkWithTransition(true), m_arrowLenght(5.f), m_arrowWidth(6.f),
-      m_drawEnable(true)
+    : PointGraphicsObject(object_id, 0.f, 0.f, fill_color, QColor::fromRgb(0, 0, 0), width, parent),
+      m_direction(direction), m_isLinkWithTransition(true), m_drawEnable(true), m_style(fill_color, width, 5.f, 6.f)
 {   
     m_selectionExtrude = 3.f;
     setLine(state, transition);
@@ -26,10 +22,9 @@ TrackGraphicsObject::TrackGraphicsObject(int object_id, StateGraphicsObject* sta
 }
 
 TrackGraphicsObject::TrackGraphicsObject(int object_id, StateGraphicsObject* state1, StateGraphicsObject* state2,
-    TrackDirection direction, QColor fill_color, float width, QGraphicsItem *parent)
-    : PointGraphicsObject(object_id, 0.f, 0.f, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent),
-      m_direction(direction), m_width(width), m_isLinkWithTransition(false), m_arrowLenght(5.f), m_arrowWidth(6.f),
-      m_drawEnable(true)
+    Direction direction, QColor fill_color, float width, QGraphicsItem *parent)
+    : PointGraphicsObject(object_id, 0.f, 0.f, fill_color, QColor::fromRgb(0, 0, 0), width, parent),
+      m_direction(direction), m_isLinkWithTransition(false), m_drawEnable(true), m_style(fill_color, width, 5.f, 6.f)
 {
     m_selectionExtrude = 3.f;
     setLine(state1, state2);
@@ -37,12 +32,12 @@ TrackGraphicsObject::TrackGraphicsObject(int object_id, StateGraphicsObject* sta
     setFlags(ItemIsSelectable | ItemIsMovable);
 }
 
-TrackDirection TrackGraphicsObject::getDirection() const
+TrackGraphicsObject::Direction TrackGraphicsObject::getDirection() const
 {
     return m_direction;
 }
 
-void TrackGraphicsObject::setDirection(TrackDirection direction)
+void TrackGraphicsObject::setDirection(Direction direction)
 {
     m_direction = direction;
 }
@@ -99,18 +94,18 @@ QPointF TrackGraphicsObject::getCenter() const
 void TrackGraphicsObject::setFillColor(QColor color)
 {
     m_fillColor = color;
-    setPen(QPen(QBrush(m_fillColor), m_width));
+    setPen(QPen(QBrush(m_fillColor), m_style.lineWidth));
 }
 
 float TrackGraphicsObject::getWidth() const
 {
-    return m_width;
+    return m_style.lineWidth;
 }
 
 void TrackGraphicsObject::setWidth(float width)
 {
-    m_width = width;
-    setPen(QPen(QBrush(m_fillColor), m_width));
+    m_style.lineWidth = width;
+    setPen(QPen(QBrush(m_fillColor), m_style.lineWidth));
 }
 
 QLineF TrackGraphicsObject::expandLine(float width)
@@ -223,7 +218,7 @@ void TrackGraphicsObject::setLine(StateGraphicsObject* state, TransitionGraphics
     }
     else
     {
-        m_boundingRect.setRect(0, -0.5*m_arrowWidth, m_length, m_arrowWidth);
+        m_boundingRect.setRect(0, -0.5*m_style.arrowWidth, m_length, m_style.arrowWidth);
     }
 }
 
@@ -267,7 +262,7 @@ void TrackGraphicsObject::setLine(StateGraphicsObject* state1, StateGraphicsObje
     }
     else
     {
-        m_boundingRect.setRect(0, -0.5*m_arrowWidth, m_length, m_arrowWidth);
+        m_boundingRect.setRect(0, -0.5*m_style.arrowWidth, m_length, m_style.arrowWidth);
     }
 }
 
@@ -304,17 +299,19 @@ void TrackGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
         //m_boundingRect.setRect(0, -0.5*m_arrowWidth, m_length, m_arrowWidth);
         fillColor = m_fillColor;
     }
-    painter->setPen(QPen(QBrush(fillColor), m_width));
+    painter->setPen(QPen(QBrush(fillColor), m_style.lineWidth));
     painter->drawLine(m_x1, m_y1, m_x2, m_y2);
-    if ((m_direction == TrackDirection::BOTH) || (m_direction == TrackDirection::FROM_FIRST_TO_SECOND))
+    if ((m_direction == TrackGraphicsObject::Direction::Both)
+        || (m_direction == TrackGraphicsObject::Direction::FromFirstToSecond))
     {
-        painter->drawLine(m_x2, m_y2, m_x2 - m_arrowLenght, m_y2 + 0.5*m_arrowWidth);
-        painter->drawLine(m_x2, m_y2, m_x2 - m_arrowLenght, m_y2 - 0.5*m_arrowWidth);
+        painter->drawLine(m_x2, m_y2, m_x2 - m_style.arrowLenght, m_y2 + 0.5*m_style.arrowWidth);
+        painter->drawLine(m_x2, m_y2, m_x2 - m_style.arrowLenght, m_y2 - 0.5*m_style.arrowWidth);
     }
-    if ((m_direction == TrackDirection::BOTH) || (m_direction == TrackDirection::FROM_SECOND_TO_FIRST))
+    if ((m_direction == TrackGraphicsObject::Direction::Both)
+        || (m_direction == TrackGraphicsObject::Direction::FromSecondToFirst))
     {
-        painter->drawLine(m_x1, m_y1, m_x1 + m_arrowLenght, m_y1 + 0.5*m_arrowWidth);
-        painter->drawLine(m_x1, m_y1, m_x1 + m_arrowLenght, m_y1 - 0.5*m_arrowWidth);
+        painter->drawLine(m_x1, m_y1, m_x1 + m_style.arrowLenght, m_y1 + 0.5*m_style.arrowWidth);
+        painter->drawLine(m_x1, m_y1, m_x1 + m_style.arrowLenght, m_y1 - 0.5*m_style.arrowWidth);
     }
 }
 
@@ -322,12 +319,12 @@ void TrackGraphicsObject::select(bool graphics_selection)
 {
     if (!m_selected)
     {
-        m_boundingRect.setRect(-1, -0.5*m_arrowWidth - 1, m_length + 2, m_arrowWidth + 2);
+        m_boundingRect.setRect(-1, -0.5*m_style.arrowWidth - 1, m_length + 2, m_style.arrowWidth + 2);
         m_selected = true;
         //if ((graphics_selection || m_parentID >=0) && (!this->isSelected()))
-        {
+        //{
             this->setSelected(true);
-        }
+        //}
         //this->setSelected(true);
         //this->update();
     }
@@ -337,18 +334,18 @@ void TrackGraphicsObject::deselect(bool graphics_selection)
 {
     if (m_selected)
     {
-        m_boundingRect.setRect(0, -0.5*m_arrowWidth, m_length, m_arrowWidth);
+        m_boundingRect.setRect(0, -0.5*m_style.arrowWidth, m_length, m_style.arrowWidth);
         m_selected = false;
         //if ((graphics_selection || m_parentID >=0) && (this->isSelected()))
-        {
+        //{
             this->setSelected(false);
-        }
+        //}
         //this->setSelected(false);
         //this->update();
     }
 }
 
-QPointF TrackGraphicsObject::getPointFromScaledLine(float scale_factor)
+QPointF TrackGraphicsObject::getPointFromScaledLine(float scale_factor) const
 {
     float r = scale_factor * m_length;
     return QPointF(qCos(qDegreesToRadians(m_angle)) * r, qSin(qDegreesToRadians(m_angle)) * r) + pos();
@@ -423,4 +420,14 @@ QPointF TrackGraphicsObject::getLineIntersection(QPointF p1, QPointF p2, QPointF
         }
     }
     return QPointF(fx, fy);
+}
+
+void TrackGraphicsObject::setStyle(const MapSceneStyle::TrackStyle& style)
+{
+    m_style = style;
+}
+
+MapSceneStyle::TrackStyle TrackGraphicsObject::getStyle() const
+{
+    return m_style;
 }

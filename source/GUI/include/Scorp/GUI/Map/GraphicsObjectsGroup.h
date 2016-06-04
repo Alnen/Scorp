@@ -4,20 +4,22 @@
 #include <vector>
 
 class PointGraphicsObject;
-class MapScene;
-class LinkGraphicsObject;
+
+using size_t = unsigned int;
 
 class GraphicsObjectsGroup
 {
-    friend class LinkGraphicsObject;
-public:
+public:    
     GraphicsObjectsGroup();
     ~GraphicsObjectsGroup();
-    bool contains(PointGraphicsObject* item);
+    bool contains(PointGraphicsObject* item) const;
     void addItem(PointGraphicsObject* item);
     void removeItem(PointGraphicsObject* item);
     void clear();
-    std::vector<PointGraphicsObject*> getItems();
+    PointGraphicsObject* getItem(size_t index) const;
+    void setItem(size_t index, PointGraphicsObject* item);
+    size_t getItemCount() const;
+    std::vector<PointGraphicsObject*> getItems() const;
     void selectItems(bool graphics_selection);
     void deselectItems(bool graphics_selection);
     void hideItems();

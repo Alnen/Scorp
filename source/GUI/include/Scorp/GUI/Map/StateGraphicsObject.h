@@ -1,11 +1,11 @@
 #ifndef STATE_GRAPHICS_OBJECT_H
 #define STATE_GRAPHICS_OBJECT_H
 
-#include "PointGraphicsObject.h"
 #include <QRectF>
+#include "Scorp/GUI/Map/PointGraphicsObject.h"
+#include "Scorp/GUI/Map/MapSceneStyle.h"
 
 class MarkerObject;
-//static int paintStateCounter = 0;
 
 class StateGraphicsObject : public PointGraphicsObject
 {
@@ -16,15 +16,16 @@ public:
     float getRadius() const;
     void setRadius(float radius);
     QRectF boundingRect() const Q_DECL_OVERRIDE;
-    //QPainterPath shape() const Q_DECL_OVERRIDE;
     int type() const Q_DECL_OVERRIDE;
     void select(bool graphics_selection) override;
     void deselect(bool graphics_selection) override;
     void addMarker(MarkerObject* marker);
     void removeMarker(MarkerObject* marker);
-    MarkerObject* getMarker(int marker_id);
-    MarkerObject* getLastMarker();
-    std::vector<MarkerObject*> getMarkers();
+    MarkerObject* getMarker(int marker_id) const;
+    MarkerObject* getLastMarker() const;
+    std::vector<MarkerObject*> getMarkers() const;
+    void setStyle(const MapSceneStyle::StateStyle& style);
+    MapSceneStyle::StateStyle getStyle() const;
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
@@ -32,6 +33,7 @@ protected:
 protected:
     float m_radius;
     std::vector<MarkerObject*> m_markerList;
+    MapSceneStyle::StateStyle m_style;
 };
 
 #endif // STATE_GRAPHICS_OBJECT_H

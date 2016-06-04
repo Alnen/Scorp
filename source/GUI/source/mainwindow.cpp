@@ -1,4 +1,7 @@
-#include "../include/mainwindow.h"
+#include <array>
+#include <sstream>
+#include <iostream>
+#include <fstream>
 #include <QTreeView>
 #include <QGraphicsScene>
 #include <QToolBar>
@@ -32,25 +35,21 @@
 #include <QMessageBox>
 #include <QCompleter>
 #include <QStringListModel>
-
 #include <QResizeEvent>
 #include <QDebug>
-#include <array>
-
-//#include "Exceptions/ScorpDBException.h"
+#include "Scorp/GUI/mainwindow.h"
 #include "Scorp/DB/ScorpDBShell.h"
-#include "../include/Map/MapScene.h"
-#include "../include/Map/TrackGraphicsObject.h"
-#include "../include/Map/PointGraphicsObject.h"
-#include "../include/Map/StateGraphicsObject.h"
-#include "../include/Map/TransitionGraphicsObject.h"
-#include "../include/Map/GraphicsObjectsGroup.h"
-#include "../include/StationsList/TreeModel.h"
-#include "../include/StationsList/StationsListModel.h"
-
-#include "../include/Map/MarkerCommandQueue.h"
-
-#include "PetriNetComponents.h"
+#include "Scorp/GUI/Map/MapScene.h"
+#include "Scorp/GUI/Map/TrackGraphicsObject.h"
+#include "Scorp/GUI/Map/PointGraphicsObject.h"
+#include "Scorp/GUI/Map/StateGraphicsObject.h"
+#include "Scorp/GUI/Map/TransitionGraphicsObject.h"
+#include "Scorp/GUI/Map/GraphicsObjectsGroup.h"
+#include "Scorp/GUI/StationsList/TreeModel.h"
+#include "Scorp/GUI/StationsList/StationsListModel.h"
+#include "Scorp/GUI/Map/MarkerCommandQueue.h"
+#include "Scorp/Core/PetriNetComponents.h"
+#include "Scorp/Core/Serialization.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_userDBPath("ScorpUserDB.db"),
@@ -96,7 +95,6 @@ MainWindow::MainWindow(QWidget *parent)
     btnMakeStep = new QPushButton(tr("Make Step"), this);
     btnMakeStep->setGeometry(this->width() - 84, frameAuthorization->y()+frameAuthorization->height()+2, 80, 20);
     connect(btnMakeStep, &QPushButton::clicked, this, &MainWindow::makeStep);
-
     connect(this, &MainWindow::mainWindowCreated, this, &MainWindow::connectToDatabase);
     emit mainWindowCreated();
 }
@@ -364,23 +362,23 @@ void MainWindow::defineMap()
     m_mapView->setDragMode(QGraphicsView::RubberBandDrag);
 
     //connect(m_mapScene, &MapScene::itemsUpdated, [this](){m_mapView->repaint();});
-    connect(actSetViewMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
-    connect(actSetMoveMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
-    connect(actSetAddStateMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
-    connect(actSetAddLinkMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddLink);});
-    connect(actSetAddTrainMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrain);});
-    connect(actSetAddAccessTokenMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddAccessToken);});
-    connect(actSetDeleteMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
-    connect(actSetDeleteTrainMode, &QAction::triggered, [this](){this->changeMode(MapMode::DeleteTrain);});
+    connect(actSetViewMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::View);});
+    connect(actSetMoveMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::Move);});
+    connect(actSetAddStateMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::AddState);});
+    connect(actSetAddLinkMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::AddLink);});
+    connect(actSetAddTrainMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::AddTrain);});
+    connect(actSetAddAccessTokenMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::AddAccessToken);});
+    connect(actSetDeleteMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::Delete);});
+    connect(actSetDeleteTrainMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::DeleteTrain);});
 
-    connect(actSetViewMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::View);});
-    connect(actSetMoveMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Move);});
-    connect(actSetAddStateMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddState);});
-    connect(actSetAddLinkMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddLink);});
-    connect(actSetAddTrainMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddTrain);});
-    connect(actSetAddAccessTokenMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::AddAccessToken);});
-    connect(actSetDeleteMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::Delete);});
-    connect(actSetDeleteTrainMapMode, &QAction::triggered, [this](){this->changeMode(MapMode::DeleteTrain);});
+    connect(actSetViewMapMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::View);});
+    connect(actSetMoveMapMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::Move);});
+    connect(actSetAddStateMapMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::AddState);});
+    connect(actSetAddLinkMapMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::AddLink);});
+    connect(actSetAddTrainMapMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::AddTrain);});
+    connect(actSetAddAccessTokenMapMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::AddAccessToken);});
+    connect(actSetDeleteMapMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::Delete);});
+    connect(actSetDeleteTrainMapMode, &QAction::triggered, [this](){this->changeMode(MapScene::MapMode::DeleteTrain);});
 }
 
 void MainWindow::defineStationsList()
@@ -1031,33 +1029,33 @@ void MainWindow::btnAuthLogoutClicked()
     emit userChanged();
 }
 
-void MainWindow::changeMode(MapMode mode)
+void MainWindow::changeMode(MapScene::MapMode mode)
 {
     m_mapScene->setMode(mode);
     switch (mode)
     {
-    case MapMode::View:
+    case MapScene::MapMode::View:
         lbCurrentOperation->setText(tr("Current Operation: View"));
         break;
-    case MapMode::Move:
+    case MapScene::MapMode::Move:
         lbCurrentOperation->setText(tr("Current Operation: Move"));
         break;
-    case MapMode::AddState:
+    case MapScene::MapMode::AddState:
         lbCurrentOperation->setText(tr("Current Operation: Add State"));
         break;
-    case MapMode::AddLink:
+    case MapScene::MapMode::AddLink:
         lbCurrentOperation->setText(tr("Current Operation: Add Link"));
         break;
-    case MapMode::AddTrain:
+    case MapScene::MapMode::AddTrain:
         lbCurrentOperation->setText(tr("Current Operation: Add Train"));
         break;
-    case MapMode::AddAccessToken:
+    case MapScene::MapMode::AddAccessToken:
         lbCurrentOperation->setText(tr("Current Operation: Add Access Token"));
         break;
-    case MapMode::Delete:
+    case MapScene::MapMode::Delete:
         lbCurrentOperation->setText(tr("Current Operation: Delete"));
         break;
-    case MapMode::DeleteTrain:
+    case MapScene::MapMode::DeleteTrain:
         lbCurrentOperation->setText(tr("Current Operation: Delete Train"));
         break;
     }
@@ -1585,6 +1583,21 @@ void MainWindow::updateUIbyUserGroup()
 
 void MainWindow::makeStep()
 {
+    /*
+    std::ofstream output("serialize_test.txt");
+    serialize(output, m_mapScene->getPetriNet());
+    return;
+    */
+    /*
+    std::ifstream input("serialize_test.txt");
+    deserialize(input, m_mapScene->getPetriNet());
+    input.close();
+    std::ofstream output("deserialize_test.txt");
+    serialize(output, m_mapScene->getPetriNet());
+    output.close();
+    m_mapScene->buildMapByContainer();
+    return;
+    */
     /*
     addMarkerCommand(int id, int state_id);
     moveMarkerCommand(int id, int new_state_id);

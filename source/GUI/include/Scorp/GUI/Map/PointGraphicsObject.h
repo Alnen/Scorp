@@ -1,12 +1,12 @@
 #ifndef POINT_GRAPHICS_ITEM_H
 #define POINT_GRAPHICS_ITEM_H
 
+#include <vector>
+#include <QObject>
 #include <QAbstractGraphicsShapeItem>
 #include <QColor>
 #include <QPoint>
 #include <QGraphicsItem>
-#include <QObject>
-#include <vector>
 
 namespace GraphicsObjectType
 {
@@ -18,7 +18,7 @@ class PointGraphicsObject : public QObject, public QAbstractGraphicsShapeItem
     Q_OBJECT
 public:
     PointGraphicsObject(int object_id, float center_x, float center_y, QColor fill_color,
-                 QColor border_color = QColor::fromRgb(0, 0, 0), float border_width = 1.f, QGraphicsItem* parent = nullptr);
+        QColor border_color = QColor::fromRgb(0, 0, 0), float border_width = 1.f, QGraphicsItem* parent = nullptr);
     PointGraphicsObject(int object_id, float center_x, float center_y, QGraphicsItem* parent = nullptr);
     virtual void setCenter(float x, float y);
     virtual QPointF getCenter() const;
@@ -47,6 +47,7 @@ public:
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
 
+protected:
     QColor m_borderColor;
     float m_borderWidth;
     QColor m_fillColor;

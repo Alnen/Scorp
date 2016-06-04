@@ -1,6 +1,6 @@
-#include "Map/GraphicsObjectsGroup.h"
-#include "Map/PointGraphicsObject.h"
-#include "Map/MapScene.h"
+#include "Scorp/GUI/Map/GraphicsObjectsGroup.h"
+#include "Scorp/GUI/Map/PointGraphicsObject.h"
+#include "Scorp/GUI/Map/MapScene.h"
 
 GraphicsObjectsGroup::GraphicsObjectsGroup()
 {
@@ -11,7 +11,7 @@ GraphicsObjectsGroup::~GraphicsObjectsGroup()
     this->clear();
 }
 
-bool GraphicsObjectsGroup::contains(PointGraphicsObject* item)
+bool GraphicsObjectsGroup::contains(PointGraphicsObject* item) const
 {
     for (size_t i = 0; i < m_items.size(); ++i)
     {
@@ -48,7 +48,29 @@ void GraphicsObjectsGroup::clear()
     m_items.clear();
 }
 
-std::vector<PointGraphicsObject*> GraphicsObjectsGroup::getItems()
+PointGraphicsObject* GraphicsObjectsGroup::getItem(size_t index) const
+{
+    if (index < m_items.size())
+    {
+        return m_items[index];
+    }
+    return nullptr;
+}
+
+void GraphicsObjectsGroup::setItem(size_t index, PointGraphicsObject* item)
+{
+    if (index < m_items.size())
+    {
+        m_items[index] = item;
+    }
+}
+
+size_t GraphicsObjectsGroup::getItemCount() const
+{
+    return m_items.size();
+}
+
+std::vector<PointGraphicsObject*> GraphicsObjectsGroup::getItems() const
 {
     return m_items;
 }

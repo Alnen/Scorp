@@ -1,8 +1,8 @@
-#include "../../include/Map/MarkerObject.h"
-#include "../../include/Map/StateGraphicsObject.h"
+#include "Scorp/GUI/Map/MarkerObject.h"
+#include "Scorp/GUI/Map/StateGraphicsObject.h"
 
-MarkerObject::MarkerObject(int id, int color, StateGraphicsObject* parent)
-    : m_id(id), m_color(color), m_parentState(parent)
+MarkerObject::MarkerObject(int id, MarkerType type, StateGraphicsObject* parent)
+    : m_id(id), m_type(type), m_parentState(parent)
 {
 }
 
@@ -16,12 +16,35 @@ void MarkerObject::disconnectFromState()
     m_parentState = nullptr;
 }
 
-int MarkerObject::getId()
+int MarkerObject::getId() const
 {
     return m_id;
 }
 
-int MarkerObject::getColor()
+MarkerObject::MarkerType MarkerObject::getType() const
 {
-    return m_color;
+    return m_type;
+}
+
+int MarkerObject::MarkerTypeToInt(MarkerType type)
+{
+    if (type == MarkerType::Train)
+    {
+        return 0;
+    }
+    else if (type == MarkerType::AccessToken)
+    {
+        return 1;
+    }
+    return -1;
+}
+
+void MarkerObject::setStyle(const MapSceneStyle::MarkerStyle& style)
+{
+    m_style = style;
+}
+
+MapSceneStyle::MarkerStyle MarkerObject::getStyle() const
+{
+    return m_style;
 }

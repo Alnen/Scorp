@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-#include "PetriNetUsing.h"
+#include "Scorp/Core/PetriNetUsing.h"
 
 namespace container
 {
@@ -68,11 +68,10 @@ public:
     void operator=(PetriNet&&) = delete;
 
     template <class Marker>
-    void deserializeMarker(std::istream& input)
+    IdType deserializeMarker(std::istream& input)
     {
-        auto marker_wrapper = MarkerWrapperType<Marker>(0, std::forward<Marker>(Marker()));
+        auto marker_wrapper = MarkerWrapperType<Marker>();
         marker_wrapper.deserialize(input);
-        //addSerializedMarker(marker_wrapper.getId(), marker_wrapper.getMarker());
         auto markerId = marker_wrapper.getId();
         auto parentId = marker_wrapper.getStateId();
         auto marker = marker_wrapper.getMarker();
@@ -87,22 +86,7 @@ public:
                         )
                 )
         );
-    }
-    
-    template <class Marker>
-    void addSerializedMarker(IdType markerId, IdType parentId, Marker&& marker)
-    {
-        auto& markerStorage = m_petriNetStorage.template getMarkerStorage<Marker>();
-        markerStorage.emplace(
-                std::make_pair(
-                        markerId,
-                        MarkerWrapperType<Marker>(
-                                markerId,
-                                parentId,
-                                std::forward<Marker>(marker)
-                        )
-                )
-        );
+        return markerId;
     }
     
     template <class Marker>
@@ -251,7 +235,7 @@ public:
     }
     
     template <class Transition>
-    const TransitionWrapperType<Transition>& getTransitionWrapperById(IdType id)
+    TransitionWrapperType<Transition>& getTransitionWrapperById(IdType id)
     {
         auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
         auto& transitionWrapper = transitionStorage.find(id)->second;
@@ -305,7 +289,6 @@ public:
     {
         auto state_wrapper = StateWrapperType<State>(0, std::forward<State>(State()));
         state_wrapper.deserialize(input);
-        //addSerializedState(state_wrapper.getId(), state_wrapper.getState());
         auto newId = state_wrapper.getId();
         auto state = state_wrapper.getState();
         auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
@@ -318,22 +301,7 @@ public:
                         )
                 )
         );
-        return state_wrapper.getId();
-    }
-
-    template <class State>
-    void addSerializedState(IdType newId, State&& state)
-    {
-        auto& stateStorage = m_petriNetStorage.template getStateStorage<State>();
-        stateStorage.emplace(
-                std::make_pair(
-                        newId,
-                        StateWrapperType<State>(
-                                newId,
-                                std::forward<State>(state)
-                        )
-                )
-        );
+        return newId;
     }
     
     template <class State>
@@ -359,8 +327,6 @@ public:
     {
         auto transition_wrapper = TransitionWrapperType<Transition>(0, std::forward<Transition>(Transition()));
         transition_wrapper.deserialize(input);
-        //auto it = addSerializedTransition(transition_wrapper.getId(), transition_wrapper.getTransition());
-        //return it;
         auto transitionId = transition_wrapper.getId();
         auto transition = transition_wrapper.getTransition();
         auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
@@ -374,21 +340,6 @@ public:
                 )
         );
         return transitionId;
-    }
-    
-    template <class Transition>
-    void addSerializedTransition(IdType transitionId, Transition&& transition)
-    {
-        auto& transitionStorage = m_petriNetStorage.template getTransitionStorage<Transition>();
-        auto it = transitionStorage.emplace(
-                std::make_pair(
-                        transitionId,
-                        TransitionWrapperType<Transition>(
-                                transitionId,
-                                std::forward<Transition>(transition)
-                        )
-                )
-        );
     }
     
     template <class Transition>

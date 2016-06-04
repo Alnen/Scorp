@@ -18,14 +18,13 @@ class Station : public ISerializable
 {
 public:
     Station();
-    Station(std::string name, int x, int y, int capacity=1);
+    Station(std::string name, int x, int y, int capacity = 1);
     std::string getName() const;
     int getX() const;
     int getY() const;
     int getCapacity() const;
     void serialize(std::ostream& output) const override;
     void deserialize(std::istream& input) override;
-    //Station& operator=(const Station&) = default;
     
 private:
     std::string m_name;
@@ -40,7 +39,6 @@ public:
     InterState();
     void serialize(std::ostream& output) const override;
     void deserialize(std::istream& input) override;
-    //InterState& operator=(const InterState&) = default;
 };
 
 class Semaphore : public ISerializable
@@ -49,7 +47,6 @@ public:
     Semaphore();
     void serialize(std::ostream& output) const override; 
     void deserialize(std::istream& input) override;
-    //Semaphore& operator=(const Semaphore&) = default;
 };
 
 class AccessToken : public ISerializable
@@ -58,17 +55,16 @@ public:
     AccessToken();
     void serialize(std::ostream& output) const override;
     void deserialize(std::istream& input) override;
-    //AccessToken& operator=(const AccessToken&) = default;
 };
 
 class Train : public ISerializable
 {
 public:
-    Train(int number = 0);
+    Train();
+    Train(int number);
     int getNumber() const;
     void serialize(std::ostream& output) const override;
     void deserialize(std::istream& input) override;
-    //Train& operator=(const Train&) = default;
     
 private:
     int m_number;
@@ -80,7 +76,6 @@ public:
     ExitFromStation();
     void serialize(std::ostream& output) const override;
     void deserialize(std::istream& input) override;
-    //ExitFromStation& operator=(const ExitFromStation&) = default;
 };
 
 class EnterToStation : public ISerializable
@@ -89,7 +84,6 @@ public:
     EnterToStation();
     void serialize(std::ostream& output) const override;
     void deserialize(std::istream& input) override;
-    //EnterToStation& operator=(const EnterToStation&) = default;
 };
 
 }

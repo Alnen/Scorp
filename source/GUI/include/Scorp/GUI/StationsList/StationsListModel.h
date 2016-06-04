@@ -27,7 +27,7 @@ public:
     int stationsCount() const;
     int trainsCount() const;
     int trainsCount(int station_index) const;
-    QStringList getStationNameList();
+    QStringList getStationNameList() const;
 
 private:
     TreeModel* m_model;

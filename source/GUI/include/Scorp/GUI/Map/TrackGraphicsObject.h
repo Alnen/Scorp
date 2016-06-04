@@ -1,26 +1,27 @@
 #ifndef TRACK_GRAPHICS_OBJECT_H
 #define TRACK_GRAPHICS_OBJECT_H
 
-#include "PointGraphicsObject.h"
 #include <QGraphicsLineItem>
 #include <QColor>
+#include "Scorp/GUI/Map/PointGraphicsObject.h"
+#include "Scorp/GUI/Map/MapSceneStyle.h"
 
 class StateGraphicsObject;
 class TransitionGraphicsObject;
 
-enum class TrackDirection { NONE, FROM_FIRST_TO_SECOND, FROM_SECOND_TO_FIRST, BOTH };
-
 class TrackGraphicsObject : public PointGraphicsObject
 {
 public:
+    enum class Direction { None, FromFirstToSecond, FromSecondToFirst, Both };
+
     TrackGraphicsObject(int object_id, StateGraphicsObject* state, TransitionGraphicsObject* transition,
-        TrackDirection direction = TrackDirection::FROM_FIRST_TO_SECOND,
-        QColor fill_color = QColor::fromRgb(0, 0, 0), float width = 1.f, QGraphicsItem *parent = 0);
+        Direction direction = Direction::FromFirstToSecond, QColor fill_color = QColor::fromRgb(0, 0, 0),
+        float width = 1.f, QGraphicsItem* parent = nullptr);
     TrackGraphicsObject(int object_id, StateGraphicsObject* state1, StateGraphicsObject* state2,
-        TrackDirection direction = TrackDirection::FROM_FIRST_TO_SECOND,
-        QColor fill_color = QColor::fromRgb(0, 0, 0), float width = 1.f, QGraphicsItem *parent = 0);
-    TrackDirection getDirection() const;
-    void setDirection(TrackDirection direction);
+        Direction direction = Direction::FromFirstToSecond, QColor fill_color = QColor::fromRgb(0, 0, 0),
+        float width = 1.f, QGraphicsItem* parent = nullptr);
+    Direction getDirection() const;
+    void setDirection(Direction direction);
     float getX1() const;
     float getY1() const;
     float getX2() const;
@@ -37,7 +38,9 @@ public:
     int type() const Q_DECL_OVERRIDE;
     void select(bool graphics_selection) override;
     void deselect(bool graphics_selection) override;
-    QPointF getPointFromScaledLine(float scale_factor);
+    QPointF getPointFromScaledLine(float scale_factor) const;
+    void setStyle(const MapSceneStyle::TrackStyle& style);
+    MapSceneStyle::TrackStyle getStyle() const;
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) Q_DECL_OVERRIDE;
@@ -50,7 +53,7 @@ private:
 
 protected:
     QLineF m_arrow_parts[4];
-    TrackDirection m_direction;
+    Direction m_direction;
     float m_angle;
     bool m_drawEnable;
     float m_x1;
@@ -58,9 +61,7 @@ protected:
     float m_y1;
     float m_y2;
     float m_length;
-    float m_width;
-    float m_arrowLenght;
-    float m_arrowWidth;
+    MapSceneStyle::TrackStyle m_style;
     bool m_isLinkWithTransition;
 };
 

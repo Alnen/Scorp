@@ -1,9 +1,9 @@
-#include "Map/PointGraphicsObject.h"
 #include <QPen>
 #include <QBrush>
 #include <QPainter>
 #include <QGraphicsEllipseItem>
 #include <QtMath>
+#include "Scorp/GUI/Map/PointGraphicsObject.h"
 
 PointGraphicsObject::PointGraphicsObject(int object_id, float center_x, float center_y, QColor fill_color, QColor border_color,
     float border_width, QGraphicsItem* parent)

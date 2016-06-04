@@ -1,6 +1,5 @@
-#include "PetriNetComponents.h"
-
 #include <sstream>
+#include "Scorp/Core/PetriNetComponents.h"
 
 namespace PetriNetComponent
 {
@@ -94,6 +93,10 @@ void AccessToken::deserialize(std::istream& input)
 }
 
 // class Train
+Train::Train() : m_number(0)
+{
+}
+
 Train::Train(int number) : m_number(number)
 {
 }

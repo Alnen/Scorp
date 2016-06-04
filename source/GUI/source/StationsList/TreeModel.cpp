@@ -1,5 +1,5 @@
-#include "../include/StationsList/TreeModel.h"
-#include "../include/StationsList/TreeModelItem.h"
+#include "Scorp/GUI/StationsList/TreeModel.h"
+#include "Scorp/GUI/StationsList/TreeModelItem.h"
 #include <QStringList>
 
 TreeModel::TreeModel(QObject *parent) : QAbstractItemModel(parent)

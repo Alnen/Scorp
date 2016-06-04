@@ -1,7 +1,7 @@
-#include "../include/StationsList/TreeModel.h"
-#include "../include/StationsList/StationsListModel.h"
-#include "../include/StationsList/TreeModelItem.h"
 #include <QStringList>
+#include "Scorp/GUI/StationsList/TreeModel.h"
+#include "Scorp/GUI/StationsList/StationsListModel.h"
+#include "Scorp/GUI/StationsList/TreeModelItem.h"
 
 StationsListModel::StationsListModel()
     : StationsListModel(QObject::tr("Station \""), QObject::tr("\""), QObject::tr("Train "), QObject::tr(""))
@@ -222,7 +222,7 @@ int StationsListModel::trainsCount(int station_index) const
     }
 }
 
-QStringList StationsListModel::getStationNameList()
+QStringList StationsListModel::getStationNameList() const
 {
     QStringList stations_list;
     TreeModelItem* station = nullptr;

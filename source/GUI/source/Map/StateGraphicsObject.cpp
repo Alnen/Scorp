@@ -1,15 +1,15 @@
-#include "Map/StateGraphicsObject.h"
-#include "Map/MarkerObject.h"
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsEllipseItem>
 #include <QStyleOptionGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
-
 #include <QDebug>
+#include "Scorp/GUI/Map/StateGraphicsObject.h"
+#include "Scorp/GUI/Map/MarkerObject.h"
 
 StateGraphicsObject::StateGraphicsObject(int object_id, float center_x, float center_y, float radius, QColor fill_color, QGraphicsItem* parent)
-    : PointGraphicsObject(object_id, center_x, center_y, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent), m_radius(radius)
+    : PointGraphicsObject(object_id, center_x, center_y, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent), m_radius(radius),
+      m_style(fill_color, QColor::fromRgb(0, 0, 0), 1.f, radius)
 {
     m_boundingRect.setRect(-m_radius, -m_radius, 2*m_radius, 2*m_radius);
     m_selectionExtrude = 4.f;
@@ -103,7 +103,7 @@ void StateGraphicsObject::removeMarker(MarkerObject* marker)
     }
 }
 
-MarkerObject* StateGraphicsObject::getMarker(int marker_id)
+MarkerObject* StateGraphicsObject::getMarker(int marker_id) const
 {
     for (size_t i = 0; i < m_markerList.size(); ++i)
     {
@@ -115,7 +115,7 @@ MarkerObject* StateGraphicsObject::getMarker(int marker_id)
     return nullptr;
 }
 
-MarkerObject* StateGraphicsObject::getLastMarker()
+MarkerObject* StateGraphicsObject::getLastMarker() const
 {
     if (!m_markerList.empty())
     {
@@ -124,7 +124,7 @@ MarkerObject* StateGraphicsObject::getLastMarker()
     return nullptr;
 }
 
-std::vector<MarkerObject*> StateGraphicsObject::getMarkers()
+std::vector<MarkerObject*> StateGraphicsObject::getMarkers() const
 {
     return m_markerList;
 }
@@ -164,19 +164,33 @@ void StateGraphicsObject::paint(QPainter* painter, const QStyleOptionGraphicsIte
     // draw markers
     if (m_markerList.size() > 0)
     {
-        if (m_markerList[0]->getColor() == 0)
+        MapSceneStyle::MarkerStyle marker_style = m_markerList[0]->getStyle();
+        if (!marker_style.imagePath.isEmpty())
         {
-            int image_width = 8;
-            painter->drawImage(QRect(-image_width, -image_width, 2*image_width, 2*image_width), QPixmap("images/train.png").toImage());
+            painter->drawImage(QRect(-marker_style.radius, -marker_style.radius, 2*marker_style.radius, 2*marker_style.radius),
+                               QPixmap(marker_style.imagePath).toImage());
         }
         else
         {
-            int marker_r = 5;
-            painter->setPen(QPen(QBrush(QColor::fromRgb(0, 0, 0)), 1.f));
-            painter->setBrush(QBrush(QColor::fromRgb(255, 255, 0)));
-            painter->drawEllipse(-marker_r, -marker_r, 2*marker_r, 2*marker_r);
+            painter->setPen(QPen(QBrush(marker_style.borderColor), marker_style.borderWidth));
+            painter->setBrush(QBrush(marker_style.fillColor));
+            painter->drawEllipse(-marker_style.radius, -marker_style.radius, 2*marker_style.radius, 2*marker_style.radius);
         }
         painter->setPen(QPen(QBrush(QColor::fromRgb(0, 0, 0)), 1.f));
         painter->drawText(-15, 15, QString::number(m_markerList.size()));
     }
+}
+
+void StateGraphicsObject::setStyle(const MapSceneStyle::StateStyle& style)
+{
+    m_style = style;
+    m_fillColor = m_style.fillColor;
+    m_borderColor = m_style.borderColor;
+    m_borderWidth = m_style.borderWidth;
+    setRadius(m_radius);
+}
+
+MapSceneStyle::StateStyle StateGraphicsObject::getStyle() const
+{
+    return m_style;
 }

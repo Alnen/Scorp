@@ -4,8 +4,11 @@
 #include <string>
 
 enum class UserGroupName { User, Admin, Operator };
-enum class UserRight { ViewMap, EditMap, Authorization, AccountManagement, EditStationInfo,
-    EditSchedule, EditTrainsList, FindTrips };
+enum class UserRight
+{
+    ViewMap, EditMap, Authorization, AccountManagement, EditStationInfo,
+    EditSchedule, EditTrainsList, FindTrips
+};
 
 std::string userRightToString(UserRight right);
 std::string userGroupToString(UserGroupName group);

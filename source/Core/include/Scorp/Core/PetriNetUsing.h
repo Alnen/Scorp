@@ -1,19 +1,16 @@
 #ifndef PETRINETUSING
 #define PETRINETUSING
 
-#include "PetriNetComponents.h"
-
+#include <utility>
+#include <random>
 #include "Scorp/container/PetriNetTraits.h"
 #include "Scorp/container/PetriNet.h"
 #include "Scorp/container/PetriNetTraits.h"
 #include "Scorp/meta/RuntimeTypeSwitch.h"
 #include "Scorp/container/TransitionWrapper.h"
 #include "Scorp/container/StateWrapper.h"
-#include "Map/MarkerCommandQueue.h"
-#include <utility>
-#include <random>
-
-#include <iostream>
+#include "Scorp/GUI/Map/MarkerCommandQueue.h"
+#include "Scorp/Core/PetriNetComponents.h"
 
 size_t getRandom(size_t upperBound);
 double getRandom();
@@ -62,9 +59,10 @@ public:
             case meta::TypeEnum<StateList, IndexType>::template getValue<PetriNetComponent::Semaphore>():
             {
                 std::cout << "PropagationSolver(Enter)::getValue<PetriNetComponent::Semaphore> run" << std::endl;
-				IndexType markerId = serializedMarkerInState.template createState<PetriNetComponent::AccessToken>();
+                IndexType markerId = serializedMarkerInState.template createState<PetriNetComponent::AccessToken>();
                 // log new point
-                MarkerCommandQueue::getInstance().addMarkerCommand(markerId, serializedMarkerInState.getState().getObjectId());
+                MarkerCommandQueue::getInstance().addMarkerCommand(markerId, serializedMarkerInState.getState().getObjectId(),
+                    MarkerObject::MarkerType::AccessToken);
                 break;
             }
 

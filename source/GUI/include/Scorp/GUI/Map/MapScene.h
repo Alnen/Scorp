@@ -1,51 +1,33 @@
 #ifndef MAP_SCEHE_H
 #define MAP_SCEHE_H
 
-#include <QGraphicsScene>
-#include <QGraphicsRectItem>
 #include <vector>
 #include <memory>
-#include "LinkGraphicsObject.h"
-#include "PetriNetUsing.h"
-
-class TestPetriNet;
+#include <QGraphicsScene>
+#include <QGraphicsRectItem>
+#include "Scorp/GUI/Map/LinkGraphicsObject.h"
+#include "Scorp/GUI/Map/MapSceneStyle.h"
+#include "Scorp/GUI/Map/MarkerObject.h"
+#include "Scorp/GUI/Map/StateGraphicsObject.h"
+#include "Scorp/Core/PetriNetUsing.h"
 
 class StateGraphicsObject;
-//class LinkGraphicsObject;
 class PointGraphicsObject;
-
-enum class MapMode { View, Move, AddState, AddLink, AddTrain, AddAccessToken, Delete, DeleteTrain };
-enum class MapViewType { Detailed, Generalized, Mixed };
-
-/*
-enum class MarkerCommand { ADD, DELETE, MOVE };
-
-struct MarkerCommandStruct
-{
-    MarkerCommand command;
-    int param1;
-    int param2;
-    MarkerCommandStruct(MarkerCommand cmd, int p1=0, int p2=0)
-        : command(cmd), param1(p1), param2(p2)
-    {
-    }
-};
-*/
 
 class MapScene : public QGraphicsScene
 {
     Q_OBJECT
 public:
+    enum class MapMode { View, Move, AddState, AddLink, AddTrain, AddAccessToken, Delete, DeleteTrain };
+
     explicit MapScene(QObject *parent = 0);
     explicit MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent = 0);
     bool contains(PointGraphicsObject* item) const;
-    RailwayPetriNet* getPetriNet();
-	/*
-    void addMarkerCommand(int id, int state_id);
-    void moveMarkerCommand(int id, int new_state_id);
-    void deleteMarkerCommand(int id);
-    void makeCommand();
-    */
+    RailwayPetriNet* getPetriNet() const;
+    void setStyle(const MapSceneStyle::MapSceneStyle& style);
+    MapSceneStyle::MapSceneStyle getStyle() const;
+    void clearMap();
+    void buildMapByContainer();
 	
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;
@@ -55,9 +37,13 @@ protected:
 	
 	StateGraphicsObject* createNewState(int x, int y);
     void createNewLink(StateGraphicsObject* state1, StateGraphicsObject* state2);
-	void createNewMarker(StateGraphicsObject* state, int color);
+	void createNewMarker(StateGraphicsObject* state, MarkerObject::MarkerType marker_type);
     void removeMarker(StateGraphicsObject* state);
-
+    template<class StateType>
+    void addMarkersToState(StateGraphicsObject* state_obj,
+                           const RailwayPetriNet::StateWrapperType<StateType>& state_wrapper);
+    void buildStationsByContainer();
+    void buildLinksByContainer();
 
 public slots:
     void setMode(MapMode mode);
@@ -74,7 +60,7 @@ private:
     void removeLinkFromScene(int index);
     StateGraphicsObject* getSecondLinkedState(int link_id, StateGraphicsObject* first_state);
     void unlinkStates(int link_id);
-    int findLinkIndex(int id);
+    int findLinkIndex(int id) const;
     void updateSelectedItems();
     void retainSelectedItems();
     void clearSelectedItems();
@@ -85,8 +71,6 @@ private:
     void updateLinksPosition(const std::vector<StateGraphicsObject*>& moved_states);
     void updateStatesPosition();
     void updateObjectsPosition();
-    StateGraphicsObject* getStateById(int id);
-    StateGraphicsObject* getMarkerById(int id);
 
 private:
     struct StateLink {
@@ -100,7 +84,7 @@ private:
     };
 
 private:
-    enum MarkerColorType { TRAIN_COLOR = 0, MUTEX_COLOR };
+    MapSceneStyle::MapSceneStyle m_style;
     MapMode m_mode;
     StateGraphicsObject* m_linkedState;
     std::vector<StateGraphicsObject*> m_selectedStates;
@@ -109,8 +93,42 @@ private:
     std::vector<LinkGraphicsObject> m_links;
     int new_state_id;
     int new_link_id;
-    //std::vector<MarkerCommandStruct> m_markerCommandQueue;
     std::unique_ptr<RailwayPetriNet> m_petriNet;
 };
+
+template <class T>
+bool MapScene::contains(const std::vector<T>& container, T value) const
+{
+    for (size_t i = 0; i < container.size(); ++i)
+    {
+        if (container[i] == value)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<class StateType>
+void MapScene::addMarkersToState(StateGraphicsObject* state_obj, const RailwayPetriNet::StateWrapperType<StateType>& state_wrapper)
+{
+    MarkerObject* marker = nullptr;
+    // add trains markers
+    auto& train_storage = state_wrapper.template getMarkerStorage<PetriNetComponent::Train>();
+    for (size_t i = 0; i < train_storage.size(); ++i)
+    {
+        marker = new MarkerObject((int)train_storage[i], MarkerObject::MarkerType::Train);
+        marker->setStyle(m_style.trainStyle);
+        state_obj->addMarker(marker);
+    }
+    // add access token markers
+    auto& access_token_storage = state_wrapper.template getMarkerStorage<PetriNetComponent::AccessToken>();
+    for (size_t i = 0; i < access_token_storage.size(); ++i)
+    {
+        marker = new MarkerObject((int)access_token_storage[i], MarkerObject::MarkerType::AccessToken);
+        marker->setStyle(m_style.accessTokenStyle);
+        state_obj->addMarker(marker);
+    }
+}
 
 #endif // MAP_SCEHE_H

@@ -1,10 +1,9 @@
-#include "../../include/Map/MarkerCommandQueue.h"
-#include "../../include/Map/MapScene.h"
-#include "../../include/Map/StateGraphicsObject.h"
-#include "../../include/Map/PointGraphicsObject.h"
-#include "../../include/Map/MarkerObject.h"
-
 #include <QDebug>
+#include "Scorp/GUI/Map/MarkerCommandQueue.h"
+#include "Scorp/GUI/Map/MapScene.h"
+#include "Scorp/GUI/Map/StateGraphicsObject.h"
+#include "Scorp/GUI/Map/PointGraphicsObject.h"
+#include "Scorp/GUI/Map/MarkerObject.h"
 
 MarkerCommandQueue::MarkerCommandQueue() : m_scene(nullptr)
 {
@@ -33,9 +32,9 @@ MarkerCommandQueue& MarkerCommandQueue::getInstance()
     return *p_instance;
 }
 
-void MarkerCommandQueue::addMarkerCommand(int id, int state_id)
+void MarkerCommandQueue::addMarkerCommand(int id, int state_id, MarkerObject::MarkerType type)
 {
-    m_commands.push_back(MarkerCommandStruct(MarkerCommand::ADD, id, state_id));
+    m_commands.push_back(MarkerCommandStruct(MarkerCommand::ADD, id, state_id, type));
 }
 
 void MarkerCommandQueue::moveMarkerCommand(int id, int new_state_id)
@@ -55,6 +54,7 @@ void MarkerCommandQueue::makeCommand()
     if (m_commands.size() > 0)
     {
         StateGraphicsObject* curr_state = nullptr;
+        MarkerObject* marker = nullptr;
         if (m_commands[0].command == MarkerCommand::ADD)
         {
             qDebug() << "makeCommand: ADD (" << m_commands[0].param1 << ")";
@@ -65,7 +65,19 @@ void MarkerCommandQueue::makeCommand()
                     curr_state = (StateGraphicsObject*)item;
                     if (curr_state->getId() == m_commands[0].param2)
                     {
-                        curr_state->addMarker(new MarkerObject(m_commands[0].param1, 1, curr_state));
+                        if (m_commands[0].markerType == MarkerObject::MarkerType::Train)
+                        {
+                            marker = new MarkerObject(m_commands[0].param1, MarkerObject::MarkerType::Train,
+                                curr_state);
+                            marker->setStyle(m_scene->getStyle().trainStyle);
+                        }
+                        else
+                        {
+                            marker = new MarkerObject(m_commands[0].param1, MarkerObject::MarkerType::AccessToken,
+                                curr_state);
+                            marker->setStyle(m_scene->getStyle().accessTokenStyle);
+                        }
+                        curr_state->addMarker(marker);
                         break;
                     }
                 }

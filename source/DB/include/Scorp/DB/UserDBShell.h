@@ -20,7 +20,6 @@ public:
 	bool changeUserRights(UserGroupName group, const std::array<bool, 8>& rights);
 	bool removeUser(const std::string& login);
 	bool removeUserGroup(UserGroupName group);
-    //
 	std::array<bool, 8> getUserRights(UserGroupName group);
 	UserGroupName getUserGroup(const std::string& login);
 	bool isUserExist(const std::string& login);

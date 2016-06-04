@@ -1,7 +1,7 @@
 #ifndef SCORP_DB_EXCEPTION_H
 #define SCORP_DB_EXCEPTION_H
 
-#include "ScorpException.h"
+#include "Scorp/Exceptions/ScorpException.h"
 
 namespace ScorpDBException
 {

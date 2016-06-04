@@ -1,4 +1,4 @@
-#include "../include/StationsList/TreeModelItem.h"
+#include "Scorp/GUI/StationsList/TreeModelItem.h"
 #include <QStringList>
 
 TreeModelItem::TreeModelItem(TreeModelItem *parent)

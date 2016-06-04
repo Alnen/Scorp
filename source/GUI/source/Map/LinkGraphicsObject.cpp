@@ -1,26 +1,61 @@
-#include "../../include/Map/LinkGraphicsObject.h"
 #include <QDebug>
 #include <QtMath>
-#include "../../include/Map/StateGraphicsObject.h"
-#include "../../include/Map/TrackGraphicsObject.h"
-#include "../../include/Map/TransitionGraphicsObject.h"
-#include "../../include/Map/MapScene.h"
-#include "../../include/Map/MarkerObject.h"
+#include "Scorp/GUI/Map/LinkGraphicsObject.h"
+#include "Scorp/GUI/Map/StateGraphicsObject.h"
+#include "Scorp/GUI/Map/TrackGraphicsObject.h"
+#include "Scorp/GUI/Map/TransitionGraphicsObject.h"
+#include "Scorp/GUI/Map/MapScene.h"
+#include "Scorp/GUI/Map/MarkerObject.h"
 
-#include <QDebug>
-
-//static int train_counter = 0;
+LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
+                                       RailwayPetriNet* petri_net, const std::array<int, 4>& id_array)
+    : m_id(id), m_selectionEnable(false), m_selected(false), m_minLength(100.f),
+      m_middleHalfLength(0.25f), m_prologueLength(0.25f), m_extrude(40.f)
+{
+    createLinkItems(state1, state2, petri_net, id_array);
+}
 
 LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, StateGraphicsObject* state2,
                                        RailwayPetriNet* petri_net)
-    : m_id(id), m_selectionEnable(false), m_viewMode(LinkViewMode::FLEXIBLE), m_selected(false)
+    : m_id(id), m_selectionEnable(false), m_selected(false), m_minLength(100.f),
+      m_middleHalfLength(0.25f), m_prologueLength(0.25f), m_extrude(40.f)
 {
-    m_minLength = 100.f;
-    m_middleHalfLength = 0.25f;
-    m_prologueLength = 0.25f;
-    m_extrude = 40.f;
     if (state1 && state2 && petri_net)
     {
+        // add to container and define id
+        int exit_transition_id = petri_net->addTransition<PetriNetComponent::ExitFromStation>(PetriNetComponent::ExitFromStation());
+        int enter_transition_id = petri_net->addTransition<PetriNetComponent::EnterToStation>(PetriNetComponent::EnterToStation());
+        int inter_state_id = petri_net->addState<PetriNetComponent::InterState>(PetriNetComponent::InterState());
+        int semaphore_id = petri_net->addState<PetriNetComponent::Semaphore>(PetriNetComponent::Semaphore());
+        int access_token_id = petri_net->addMarker<PetriNetComponent::AccessToken>(semaphore_id, PetriNetComponent::AccessToken());
+        petri_net->addStateToTransitionConnection<PetriNetComponent::Station, PetriNetComponent::ExitFromStation>(state1->getId(), exit_transition_id);
+        petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Station>(enter_transition_id, state2->getId());
+        petri_net->addTransitionToStateConnection<PetriNetComponent::ExitFromStation, PetriNetComponent::InterState>(exit_transition_id, inter_state_id);
+        petri_net->addStateToTransitionConnection<PetriNetComponent::InterState, PetriNetComponent::EnterToStation>(inter_state_id, enter_transition_id);
+        petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Semaphore>(enter_transition_id, semaphore_id);
+        petri_net->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::ExitFromStation>(semaphore_id, exit_transition_id);
+        std::array<int, 4> id_array{{
+            exit_transition_id,
+            enter_transition_id,
+            inter_state_id,
+            semaphore_id
+        }};
+        // create items and add them to scene
+        createLinkItems(state1, state2, petri_net, id_array);
+        // create markers
+        StateGraphicsObject* semaphore_state = (StateGraphicsObject*)getDetailsItem(DetailsItem::Semaphore);
+        MarkerObject* access_token = new MarkerObject(access_token_id, MarkerObject::MarkerType::AccessToken);
+        access_token->setStyle(m_style.accessTokenStyle);
+        semaphore_state->addMarker(access_token);
+    }
+}
+
+void LinkGraphicsObject::createLinkItems(StateGraphicsObject* state1, StateGraphicsObject* state2,
+        RailwayPetriNet* petri_net, const std::array<int, 4>& id_array)
+{
+    if (state1 && state2 && petri_net)
+    {
+        // find items position
         TrackGraphicsObject main_line(0, state1, state2);
         QPointF quarter_point = main_line.getPointFromScaledLine(m_prologueLength);
         QPointF half_point = main_line.getPointFromScaledLine(m_prologueLength+m_middleHalfLength);
@@ -29,82 +64,79 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
         float delta_y = half_point.y() - quarter_point.y();
         float k_a = -delta_x/delta_y;
         float b_a = half_point.y() - k_a * half_point.x();
-        QPointF interm_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
+        QPointF inter_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
             half_point.y(), half_point.x() - 1, k_a, b_a, m_extrude);
-        QPointF mutex_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
+        QPointF semaphore_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
             half_point.y(), half_point.x() + 1, k_a, b_a, m_extrude);
         float part_length = qSqrt(delta_x * delta_x + delta_y * delta_y);
         float cos_alpha = delta_x / part_length;
         float sin_alpha = delta_y / part_length;
         float angle = main_line.getAngle(sin_alpha, cos_alpha);
 
-        // add to container and define id
-        int exit_transition_id = petri_net->addTransition<PetriNetComponent::ExitFromStation>(PetriNetComponent::ExitFromStation());
-        int enter_transition_id = petri_net->addTransition<PetriNetComponent::EnterToStation>(PetriNetComponent::EnterToStation());
-        int inter_state_id = petri_net->addState<PetriNetComponent::InterState>(PetriNetComponent::InterState());
-        int semaphore_id = petri_net->addState<PetriNetComponent::Semaphore>(PetriNetComponent::Semaphore());
-        int track_id[6] = {
-            petri_net->addStateToTransitionConnection<PetriNetComponent::Station, PetriNetComponent::ExitFromStation>(state1->getId(), exit_transition_id),
-            petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Station>(enter_transition_id, state2->getId()),
-            petri_net->addTransitionToStateConnection<PetriNetComponent::ExitFromStation, PetriNetComponent::InterState>(exit_transition_id, inter_state_id),
-            petri_net->addStateToTransitionConnection<PetriNetComponent::InterState, PetriNetComponent::EnterToStation>(inter_state_id, enter_transition_id),
-            petri_net->addTransitionToStateConnection<PetriNetComponent::EnterToStation, PetriNetComponent::Semaphore>(enter_transition_id, semaphore_id),
-            petri_net->addStateToTransitionConnection<PetriNetComponent::Semaphore, PetriNetComponent::ExitFromStation>(semaphore_id, exit_transition_id)
-        };
-        //++train_counter;
-        //int train_marker_id = petri_net->addMarker<PetriNetComponent::Train>(state1->getId(), PetriNetComponent::Train(train_counter));
-        int access_token_id = petri_net->addMarker<PetriNetComponent::AccessToken>(semaphore_id, PetriNetComponent::AccessToken());
-
-        // add to details group
-        TransitionGraphicsObject* first_transition = new TransitionGraphicsObject(exit_transition_id, quarter_point.x(), quarter_point.y(),
-                                                         6, 18, QColor::fromRgb(0, 200, 200));
-        first_transition->setRotation(angle);
-        first_transition->setParentID(m_id);
-        m_detailsInfoGroup.addItem(first_transition);
-        TransitionGraphicsObject* second_transition = new TransitionGraphicsObject(enter_transition_id, three_quarters_point.x(), three_quarters_point.y(),
-                                                          6, 18, QColor::fromRgb(200, 100, 0));
-        second_transition->setRotation(angle);
-        second_transition->setParentID(m_id);
-        m_detailsInfoGroup.addItem(second_transition);
-        StateGraphicsObject* interm_state = new StateGraphicsObject(inter_state_id, interm_state_point.x(), interm_state_point.y(), 10,
-                                                                    QColor::fromRgb(200, 200, 0));
-        interm_state->setParentID(m_id);
-        m_detailsInfoGroup.addItem(interm_state);
-        StateGraphicsObject* blocking_state = new StateGraphicsObject(semaphore_id, mutex_state_point.x(), mutex_state_point.y(), 10,
-                                                                      QColor::fromRgb(200, 200, 200));
-        blocking_state->setParentID(m_id);
-        m_detailsInfoGroup.addItem(blocking_state);
-        TrackGraphicsObject* track = new TrackGraphicsObject(track_id[0], state1, first_transition);
+        // add items to details group
+        TransitionGraphicsObject* exit_transition = new TransitionGraphicsObject(id_array[0], quarter_point.x(),
+            quarter_point.y(), m_style.exitTransitionStyle.width, m_style.exitTransitionStyle.height, m_style.exitTransitionStyle.fillColor);
+        exit_transition->setRotation(angle);
+        exit_transition->setParentID(m_id);
+        exit_transition->setStyle(m_style.exitTransitionStyle);
+        m_detailsInfoGroup.addItem(exit_transition);
+        TransitionGraphicsObject* enter_transition = new TransitionGraphicsObject(id_array[1], three_quarters_point.x(), three_quarters_point.y(),
+            m_style.enterTransitionStyle.width, m_style.enterTransitionStyle.height, m_style.enterTransitionStyle.fillColor);
+        enter_transition->setRotation(angle);
+        enter_transition->setParentID(m_id);
+        enter_transition->setStyle(m_style.enterTransitionStyle);
+        m_detailsInfoGroup.addItem(enter_transition);
+        StateGraphicsObject* inter_state = new StateGraphicsObject(id_array[2], inter_state_point.x(), inter_state_point.y(),
+            m_style.interStateStyle.radius, m_style.interStateStyle.fillColor);
+        inter_state->setParentID(m_id);
+        inter_state->setStyle(m_style.interStateStyle);
+        m_detailsInfoGroup.addItem(inter_state);
+        StateGraphicsObject* semaphore_state = new StateGraphicsObject(id_array[3], semaphore_point.x(), semaphore_point.y(),
+            m_style.semaphoreStyle.radius, m_style.semaphoreStyle.fillColor);
+        semaphore_state->setParentID(m_id);
+        semaphore_state->setStyle(m_style.semaphoreStyle);
+        m_detailsInfoGroup.addItem(semaphore_state);
+        TrackGraphicsObject* track = new TrackGraphicsObject(4, state1, exit_transition);
         track->setParentID(m_id);
+        track->setStyle(m_style.trackStyle);
         m_detailsInfoGroup.addItem(track);
-        track = new TrackGraphicsObject(track_id[1], state2, second_transition, TrackDirection::FROM_SECOND_TO_FIRST);
+        track = new TrackGraphicsObject(5, state2, enter_transition, TrackGraphicsObject::Direction::FromSecondToFirst);
         track->setParentID(m_id);
+        track->setStyle(m_style.trackStyle);
         m_detailsInfoGroup.addItem(track);
-        track = new TrackGraphicsObject(track_id[2], interm_state, first_transition, TrackDirection::FROM_SECOND_TO_FIRST);
+        track = new TrackGraphicsObject(6, inter_state, exit_transition, TrackGraphicsObject::Direction::FromSecondToFirst);
         track->setParentID(m_id);
+        track->setStyle(m_style.trackStyle);
         m_detailsInfoGroup.addItem(track);
-        track = new TrackGraphicsObject(track_id[3], interm_state, second_transition);
+        track = new TrackGraphicsObject(7, inter_state, enter_transition);
         track->setParentID(m_id);
+        track->setStyle(m_style.trackStyle);
         m_detailsInfoGroup.addItem(track);
-        track = new TrackGraphicsObject(track_id[4], blocking_state, first_transition);
+        track = new TrackGraphicsObject(8, semaphore_state, exit_transition);
         track->setParentID(m_id);
+        track->setStyle(m_style.trackStyle);
         m_detailsInfoGroup.addItem(track);
-        track = new TrackGraphicsObject(track_id[5], blocking_state, second_transition, TrackDirection::FROM_SECOND_TO_FIRST);
+        track = new TrackGraphicsObject(9, semaphore_state, enter_transition, TrackGraphicsObject::Direction::FromSecondToFirst);
         track->setParentID(m_id);
+        track->setStyle(m_style.trackStyle);
         m_detailsInfoGroup.addItem(track);
 
         // dispose generic
-        interm_state->setRadius(5.f);
-        interm_state->setCenter(half_point.x(), half_point.y());
-        track = new TrackGraphicsObject(10, state1, interm_state);
+        inter_state->setRadius(7.f);
+        inter_state->setCenter(half_point.x(), half_point.y());
+        track = new TrackGraphicsObject(10, state1, inter_state);
         track->setParentID(m_id);
+        track->setStyle(m_style.trackStyle);
         m_genericInfoGroup.addItem(track);
-        TrackGraphicsObject* track2 = new TrackGraphicsObject(11, interm_state, state2);
-        track2->setParentID(m_id);
-        m_genericInfoGroup.addItem(track2);
-        m_genericInfoGroup.addItem(interm_state);
+        track = new TrackGraphicsObject(11, inter_state, state2);
+        track->setParentID(m_id);
+        track->setStyle(m_style.trackStyle);
+        m_genericInfoGroup.addItem(track);
+        m_genericInfoGroup.addItem(inter_state);
 
-        m_drawDetailsEnable = ((m_viewMode == LinkViewMode::DETAILED) || ((m_viewMode == LinkViewMode::FLEXIBLE) && (main_line.getLength() >= m_minLength)));
+        m_drawDetailsEnable = ((m_style.linkView == MapSceneStyle::LinkViewType::Detailed)
+                               || ((m_style.linkView == MapSceneStyle::LinkViewType::Flexible)
+                                   && (main_line.getLength() >= m_minLength)));
         if (!m_drawDetailsEnable)
         {
             m_detailsInfoGroup.hideItems();
@@ -112,16 +144,10 @@ LinkGraphicsObject::LinkGraphicsObject(int id, StateGraphicsObject* state1, Stat
         else
         {
             m_genericInfoGroup.hideItems();
-            interm_state->setRadius(10.f);
-            interm_state->setCenter(interm_state_point.x(), interm_state_point.y());
+            inter_state->setRadius(10.f);
+            inter_state->setCenter(inter_state_point.x(), inter_state_point.y());
         }
-        interm_state->show();
-
-        // create markers
-        //MarkerObject* train_marker = new MarkerObject(train_marker_id, 0);
-        //state1->addMarker(train_marker);
-        MarkerObject* access_token = new MarkerObject(access_token_id, 1);
-        blocking_state->addMarker(access_token);
+        inter_state->show();
     }
 }
 
@@ -158,15 +184,15 @@ bool LinkGraphicsObject::selectEnable()
     return m_selected;
 }
 
-std::vector<PointGraphicsObject*> LinkGraphicsObject::getLinkParts(bool all_parts)
+std::vector<PointGraphicsObject*> LinkGraphicsObject::getLinkParts(bool all_parts) const
 {
     if (all_parts)
     {
         auto detail_info_parts = m_detailsInfoGroup.getItems();
         auto generic_info_parts = m_genericInfoGroup.getItems();
         std::vector<PointGraphicsObject*> parts(detail_info_parts.size() + generic_info_parts.size());
-        auto p = move(detail_info_parts.begin(), detail_info_parts.end(), parts.begin());
-        move(generic_info_parts.begin(), generic_info_parts.end(), p);
+        auto p = std::copy(detail_info_parts.begin(), detail_info_parts.end(), parts.begin());
+        std::copy(generic_info_parts.begin(), generic_info_parts.end(), p);
         return parts;
     }
     else
@@ -182,7 +208,7 @@ std::vector<PointGraphicsObject*> LinkGraphicsObject::getLinkParts(bool all_part
     }
 }
 
-int LinkGraphicsObject::getID()
+int LinkGraphicsObject::getID() const
 {
     return m_id;
 }
@@ -197,9 +223,9 @@ void LinkGraphicsObject::setPosition(StateGraphicsObject* state1, StateGraphicsO
     float delta_y = half_point.y() - quarter_point.y();
     float k_a = -delta_x/delta_y;
     float b_a = half_point.y() - k_a * half_point.x();
-    QPointF interm_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
+    QPointF inter_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
         half_point.y(), half_point.x() - 1, k_a, b_a, m_extrude);
-    QPointF blocking_state_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
+    QPointF semaphore_point = TrackGraphicsObject::getPointByEquation(half_point.x(),
         half_point.y(), half_point.x() + 1, k_a, b_a, m_extrude);
     float part_length = qSqrt(delta_x * delta_x + delta_y * delta_y);
     float cos_alpha = delta_x / part_length;
@@ -207,31 +233,34 @@ void LinkGraphicsObject::setPosition(StateGraphicsObject* state1, StateGraphicsO
     float angle = main_line.getAngle(sin_alpha, cos_alpha);
 
     // dispose details
-    TransitionGraphicsObject* first_transition = (TransitionGraphicsObject*)m_detailsInfoGroup.m_items[FIRST_TRANSITION];
-    TransitionGraphicsObject* second_transition = (TransitionGraphicsObject*)m_detailsInfoGroup.m_items[SECOND_TRANSITION];
-    StateGraphicsObject* interm_state = (StateGraphicsObject*)m_detailsInfoGroup.m_items[INTERIM_STATE];
-    StateGraphicsObject* blocking_state = (StateGraphicsObject*)m_detailsInfoGroup.m_items[BLOCKING_STATE];
-    first_transition->setCenter(quarter_point.x(), quarter_point.y());
-    first_transition->setRotation(angle);
-    second_transition->setCenter(three_quarters_point.x(), three_quarters_point.y());
-    second_transition->setRotation(angle);
-    interm_state->setCenter(interm_state_point.x(), interm_state_point.y());
-    blocking_state->setCenter(blocking_state_point.x(), blocking_state_point.y());
+    TransitionGraphicsObject* exit_transition = (TransitionGraphicsObject*)getDetailsItem(DetailsItem::ExitTransition);
+    TransitionGraphicsObject* enter_transition = (TransitionGraphicsObject*)getDetailsItem(DetailsItem::EnterTransition);
+    StateGraphicsObject* inter_state = (StateGraphicsObject*)getDetailsItem(DetailsItem::InterState);
+    StateGraphicsObject* semaphore_state = (StateGraphicsObject*)getDetailsItem(DetailsItem::Semaphore);
+    exit_transition->setCenter(quarter_point.x(), quarter_point.y());
+    exit_transition->setRotation(angle);
+    enter_transition->setCenter(three_quarters_point.x(), three_quarters_point.y());
+    enter_transition->setRotation(angle);
+    inter_state->setCenter(inter_state_point.x(), inter_state_point.y());
+    semaphore_state->setCenter(semaphore_point.x(), semaphore_point.y());
 
-    ((TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_ST1_TO_TR1])->setLine(state1, first_transition);
-    ((TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_ST2_TO_TR2])->setLine(state2, second_transition);
-    ((TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_TR1_TO_IST])->setLine(interm_state, first_transition);
-    ((TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_TR2_TO_IST])->setLine(interm_state, second_transition);
-    ((TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_TR1_TO_BST])->setLine(blocking_state, first_transition);
-    ((TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_TR2_TO_BST])->setLine(blocking_state, second_transition);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromSt1ToExitTr))->setLine(state1, exit_transition);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromEnterTrToSt2))->setLine(state2, enter_transition);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromExitTrToInterSt))->setLine(inter_state, exit_transition);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromInterStToEnterTr))->setLine(inter_state, enter_transition);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromExitTrToSemaphore))->setLine(semaphore_state, exit_transition);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromSemaphoreToEnterTr))->setLine(semaphore_state, enter_transition);
 
     // dispose generic
-    interm_state->setRadius(5.f);
-    interm_state->setCenter(half_point.x(), half_point.y());
-    ((TrackGraphicsObject*)m_genericInfoGroup.m_items[TRACK_FROM_ST1_TO_IST])->setLine(state1, interm_state);
-    ((TrackGraphicsObject*)m_genericInfoGroup.m_items[TRACK_FROM_IST_TO_ST2])->setLine(interm_state, state2);
+    inter_state->setRadius(7.f);
+    inter_state->setCenter(half_point.x(), half_point.y());
 
-    m_drawDetailsEnable = ((m_viewMode == LinkViewMode::DETAILED) || ((m_viewMode == LinkViewMode::FLEXIBLE) && (main_line.getLength() >= m_minLength)));
+    ((TrackGraphicsObject*)getGenericItem(GenericItem::TrackFromSt1ToInterSt))->setLine(state1, inter_state);
+    ((TrackGraphicsObject*)getGenericItem(GenericItem::TrackFromInterStToSt2))->setLine(inter_state, state2);
+
+    m_drawDetailsEnable = ((m_style.linkView == MapSceneStyle::LinkViewType::Detailed)
+                           || ((m_style.linkView == MapSceneStyle::LinkViewType::Flexible)
+                               && (main_line.getLength() >= m_minLength)));
     if (!m_drawDetailsEnable)
     {
         m_detailsInfoGroup.hideItems();
@@ -240,30 +269,131 @@ void LinkGraphicsObject::setPosition(StateGraphicsObject* state1, StateGraphicsO
     else
     {
         m_genericInfoGroup.hideItems();
-        interm_state->setRadius(10.f);
-        interm_state->setCenter(interm_state_point.x(), interm_state_point.y());
+        inter_state->setRadius(10.f);
+        inter_state->setCenter(inter_state_point.x(), inter_state_point.y());
         m_detailsInfoGroup.showItems();
     }
 }
 
 QPointF LinkGraphicsObject::getP1(float r) const
 {
-    TrackGraphicsObject* track = (TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_ST1_TO_TR1];
+    TrackGraphicsObject* track = (TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromSt1ToExitTr);
     return QPointF(-qCos(qDegreesToRadians(track->rotation())) * r, -qSin(qDegreesToRadians(track->rotation())) * r) + track->pos();
 }
 
 QPointF LinkGraphicsObject::getP2(float r) const
 {
-    TrackGraphicsObject* track = (TrackGraphicsObject*)m_detailsInfoGroup.m_items[TRACK_FROM_ST2_TO_TR2];
+    TrackGraphicsObject* track = (TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromEnterTrToSt2);
     return QPointF(-qCos(qDegreesToRadians(track->rotation())) * r, -qSin(qDegreesToRadians(track->rotation())) * r) + track->pos();
 }
 
-bool LinkGraphicsObject::isSemaphore(StateGraphicsObject* state)
+bool LinkGraphicsObject::isSemaphore(StateGraphicsObject* state) const
 {
-    StateGraphicsObject* mutex_state = (StateGraphicsObject*)(m_detailsInfoGroup.getItems()[BLOCKING_STATE]);
-    if (state == mutex_state)
+    StateGraphicsObject* semaphore_state = (StateGraphicsObject*)getDetailsItem(DetailsItem::Semaphore);
+    if (state == semaphore_state)
     {
         return true;
     }
     return false;
+}
+
+PointGraphicsObject* LinkGraphicsObject::getDetailsItem(DetailsItem item) const
+{
+    if (item == DetailsItem::ExitTransition)
+    {
+        return m_detailsInfoGroup.getItem(0);
+    }
+    else if (item == DetailsItem::EnterTransition)
+    {
+        return m_detailsInfoGroup.getItem(1);
+    }
+    else if (item == DetailsItem::InterState)
+    {
+        return m_detailsInfoGroup.getItem(2);
+    }
+    else if (item == DetailsItem::Semaphore)
+    {
+        return m_detailsInfoGroup.getItem(3);
+    }
+    else if (item == DetailsItem::TrackFromSt1ToExitTr)
+    {
+        return m_detailsInfoGroup.getItem(4);
+    }
+    else if (item == DetailsItem::TrackFromEnterTrToSt2)
+    {
+        return m_detailsInfoGroup.getItem(5);
+    }
+    else if (item == DetailsItem::TrackFromExitTrToInterSt)
+    {
+        return m_detailsInfoGroup.getItem(6);
+    }
+    else if (item == DetailsItem::TrackFromInterStToEnterTr)
+    {
+        return m_detailsInfoGroup.getItem(7);
+    }
+    else if (item == DetailsItem::TrackFromExitTrToSemaphore)
+    {
+        return m_detailsInfoGroup.getItem(8);
+    }
+    else if (item == DetailsItem::TrackFromSemaphoreToEnterTr)
+    {
+        return m_detailsInfoGroup.getItem(9);
+    }
+    return nullptr;
+}
+
+PointGraphicsObject* LinkGraphicsObject::getGenericItem(GenericItem item) const
+{
+    if (item == GenericItem::TrackFromSt1ToInterSt)
+    {
+        return m_genericInfoGroup.getItem(0);
+    }
+    else if (item == GenericItem::TrackFromInterStToSt2)
+    {
+        return m_genericInfoGroup.getItem(1);
+    }
+    else if (item == GenericItem::InterState)
+    {
+        return m_genericInfoGroup.getItem(2);
+    }
+    return nullptr;
+}
+
+void LinkGraphicsObject::setStyle(const MapSceneStyle::LinkStyle& style)
+{
+    m_style = style;
+    ((TransitionGraphicsObject*)getDetailsItem(DetailsItem::ExitTransition))->setStyle(m_style.exitTransitionStyle);
+    ((TransitionGraphicsObject*)getDetailsItem(DetailsItem::EnterTransition))->setStyle(m_style.enterTransitionStyle);
+    StateGraphicsObject* inter_state = (StateGraphicsObject*)getDetailsItem(DetailsItem::InterState);
+    inter_state->setStyle(m_style.interStateStyle);
+    StateGraphicsObject* semaphore_state = (StateGraphicsObject*)getDetailsItem(DetailsItem::Semaphore);
+    semaphore_state->setStyle(m_style.semaphoreStyle);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromSt1ToExitTr))->setStyle(m_style.trackStyle);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromEnterTrToSt2))->setStyle(m_style.trackStyle);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromExitTrToInterSt))->setStyle(m_style.trackStyle);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromInterStToEnterTr))->setStyle(m_style.trackStyle);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromExitTrToSemaphore))->setStyle(m_style.trackStyle);
+    ((TrackGraphicsObject*)getDetailsItem(DetailsItem::TrackFromSemaphoreToEnterTr))->setStyle(m_style.trackStyle);
+    updateMarkerStyle(inter_state->getMarkers());
+    updateMarkerStyle(semaphore_state->getMarkers());
+}
+
+MapSceneStyle::LinkStyle LinkGraphicsObject::getStyle() const
+{
+    return m_style;
+}
+
+void LinkGraphicsObject::updateMarkerStyle(const std::vector<MarkerObject*>& marker_storage)
+{
+    for (MarkerObject* marker : marker_storage)
+    {
+        if (marker->getType() == MarkerObject::MarkerType::Train)
+        {
+            marker->setStyle(m_style.trainStyle);
+        }
+        else
+        {
+            marker->setStyle(m_style.accessTokenStyle);
+        }
+    }
 }

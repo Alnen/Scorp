@@ -1,6 +1,7 @@
+#include <set>
 #include "Scorp/DB/RailwayNetDBShell.h"
 #include "Scorp/Exceptions/ScorpDBException.h"
-#include "set"
+
 RailwayNetDBShell::RailwayNetDBShell()
     : ScorpDBShell()
 {

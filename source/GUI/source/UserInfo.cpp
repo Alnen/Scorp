@@ -1,7 +1,6 @@
-#include "../include/UserInfo.h"
 #include <QObject>
-
 #include <QDebug>
+#include "Scorp/GUI/UserInfo.h"
 
 UserInfo::UserInfo()
     : m_login(QObject::tr("guest")), m_group(UserGroupName::User)

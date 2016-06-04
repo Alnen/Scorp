@@ -9,5 +9,7 @@ set(SOURCE_FILES
         ${SOURCE_FILES}
         ${CMAKE_CURRENT_SOURCE_DIR}/source/ScorpCore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/source/ScorpRoute.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/source/ScorpTime.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/ScorpTime.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/PetriNetComponents.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/PetriNetUsing.cpp
         PARENT_SCOPE)

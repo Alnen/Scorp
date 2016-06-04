@@ -1,4 +1,4 @@
-#include "../include/Scorp/Exceptions/ScorpDBException.h"
+#include "Scorp/Exceptions/ScorpDBException.h"
 
 namespace ScorpDBException
 {

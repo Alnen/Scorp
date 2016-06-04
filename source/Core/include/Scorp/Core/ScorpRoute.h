@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "ScorpTime.h"
+#include "Scorp/Core/ScorpTime.h"
 
 namespace ScorpCore
 {

@@ -1,11 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
 #include <memory>
-#include "UserInfo.h"
+#include <QMainWindow>
+#include "Scorp/GUI/UserInfo.h"
 #include "Scorp/DB/UserDBShell.h"
 #include "Scorp/DB/RailwayNetDBShell.h"
+#include "Scorp/GUI/Map/MapScene.h"
 
 class QTreeView;
 class QGraphicsView;
@@ -27,9 +28,7 @@ class QDateTime;
 class QDateTimeEdit;
 class QTimeEdit;
 class QCalendarWidget;
-class MapScene;
 class StationsListModel;
-enum class MapMode;
 class QCompleter;
 class QAbstractItemModel;
 
@@ -88,7 +87,7 @@ private slots:
     void btnAuthLoginClicked();
     void btnAuthLogoutClicked();
 
-    void changeMode(MapMode mode);
+    void changeMode(MapScene::MapMode mode);
 
     void openUsersListForm();
     void openEditProfileDialog();

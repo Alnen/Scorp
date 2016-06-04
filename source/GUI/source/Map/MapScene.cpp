@@ -1,30 +1,25 @@
-#include "../../include/Map/MapScene.h"
-#include "../../include/Map/StateGraphicsObject.h"
-#include "../../include/Map/LinkGraphicsObject.h"
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QDebug>
-#include "../../include/Map/MarkerObject.h"
+#include "Scorp/GUI/Map/MapScene.h"
+#include "Scorp/GUI/Map/StateGraphicsObject.h"
+#include "Scorp/GUI/Map/LinkGraphicsObject.h"
+#include "Scorp/GUI/Map/MarkerObject.h"
 
 static int marker_id_generator = -1;
 
 int state_id_generator = 0;
 
-MapScene::MapScene(QObject *parent)
-    : QGraphicsScene(parent), m_mode(MapMode::View), m_linkedState(nullptr),
-      m_petriNet(new RailwayPetriNet())
+MapScene::MapScene(QObject *parent) : MapScene(0, 0, 100, 100, parent)
 {
-    new_state_id = 0;
-    new_link_id = 0;
-    connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
 }
 
 MapScene::MapScene(qreal x, qreal y, qreal width, qreal height, QObject *parent)
     : QGraphicsScene(x, y, width, height, parent), m_mode(MapMode::View), m_linkedState(nullptr),
-      m_petriNet(new RailwayPetriNet())
+      m_petriNet(new RailwayPetriNet()), new_state_id(0), new_link_id(0)
 {
-    new_state_id = 0;
-    new_link_id = 0;
+    m_style.trainStyle.radius = 8.f;
+    m_style.trainStyle.imagePath = tr("images/train.png");
     connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
 }
 
@@ -41,9 +36,19 @@ bool MapScene::contains(PointGraphicsObject* item) const
     return false;
 }
 
-RailwayPetriNet* MapScene::getPetriNet()
+RailwayPetriNet* MapScene::getPetriNet() const
 {
     return m_petriNet.get();
+}
+
+void MapScene::setStyle(const MapSceneStyle::MapSceneStyle& style)
+{
+    m_style = style;
+}
+
+MapSceneStyle::MapSceneStyle MapScene::getStyle() const
+{
+    return m_style;
 }
 
 void MapScene::addLinkToScene(int index)
@@ -108,7 +113,7 @@ void MapScene::unlinkStates(int link_id)
     }
 }
 
-int MapScene::findLinkIndex(int id)
+int MapScene::findLinkIndex(int id) const
 {
     for (size_t i = 0; i < m_links.size(); ++i)
     {
@@ -169,15 +174,12 @@ void MapScene::updateSelectedItems()
         m_selectedStates[i]->deselect(false);
     }
     int link_id = -1;
-    LinkGraphicsObject link(-1, nullptr, nullptr);
     for (size_t i = 0; i < m_selectedLinks.size(); ++i)
     {
         link_id = findLinkIndex(m_selectedLinks[i]);
         if (link_id >= 0)
         {
-            link = m_links[link_id];
-            link.deselect(true);
-            //m_links[link_id].deselect(true);
+            m_links[link_id].deselect(true);
         }
     }
     m_selectedStates.clear();
@@ -204,11 +206,9 @@ void MapScene::updateSelectedItems()
             link_id = findLinkIndex(parent_id);
             if (link_id >= 0)
             {
-                //m_links[link_id].select(true);
                 if (!contains(m_selectedLinks, parent_id))
                 {
-                    link = m_links[link_id];
-                    link.select(true);
+                    m_links[link_id].select(true);
                     m_selectedLinks.push_back(parent_id);
                 }
             }
@@ -255,19 +255,6 @@ void MapScene::unselectItems(bool graphics_selection)
     }
     //connect(this, &MapScene::selectionChanged, this, &MapScene::updateSelectionItems);
     //this->update(this->sceneRect());
-}
-
-template <class T>
-bool MapScene::contains(const std::vector<T>& container, T value) const
-{
-    for (size_t i = 0; i < container.size(); ++i)
-    {
-        if (container[i] == value)
-        {
-            return true;
-        }
-    }
-    return false;
 }
 
 void MapScene::deleteSelectedItems()
@@ -362,7 +349,7 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
         if ((choosen_items.size() == 1) && (choosen_items[0]->type() == GraphicsObjectType::StateType)
              && (((StateGraphicsObject*)choosen_items[0])->parentID() < 0))
         {
-            createNewMarker((StateGraphicsObject*)choosen_items[0], TRAIN_COLOR);
+            createNewMarker((StateGraphicsObject*)choosen_items[0], MarkerObject::MarkerType::Train);
         }
     }
     else if (m_mode == MapMode::AddAccessToken)
@@ -372,7 +359,7 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
             int link_id = ((StateGraphicsObject*)choosen_items[0])->parentID();
             if ((link_id >= 0) && m_links[findLinkIndex(link_id)].isSemaphore((StateGraphicsObject*)choosen_items[0]))
             {
-                createNewMarker((StateGraphicsObject*)choosen_items[0], MUTEX_COLOR);
+                createNewMarker((StateGraphicsObject*)choosen_items[0], MarkerObject::MarkerType::AccessToken);
             }
         }
     }
@@ -550,22 +537,16 @@ StateGraphicsObject* MapScene::createNewState(int x, int y)
 {
     std::string station_name = "Station " + std::to_string(++new_state_id);
     int state_id = m_petriNet->addState<PetriNetComponent::Station>(PetriNetComponent::Station(station_name, x, y, 2));
-    //int state_id = state_id_generator++;
-    StateGraphicsObject* state = new StateGraphicsObject(state_id, x, y, 10);
-    state->setFillColor(QColor::fromRgb(0, 200, 0));
-    state->setBorderWidth(2.f);
-    state->setBorderColor(QColor::fromRgb(0, 0, 0));
+    StateGraphicsObject* state = new StateGraphicsObject(state_id, x, y, m_style.stationStyle.radius);
+    state->setStyle(m_style.stationStyle);
     //unselectItems();
     //clearSelectedItems();
-    //MarkerObject* marker = new MarkerObject(0, TRAIN_COLOR, state);
-    //state->addMarker(marker);
     addItem(state);
     return state;
 }
 
 void MapScene::createNewLink(StateGraphicsObject* state1, StateGraphicsObject* state2)
 {
-    //m_links.push_back(LinkGraphicsObject(++new_link_id, state1, state2, nullptr));
     m_links.push_back(LinkGraphicsObject(++new_link_id, state1, state2, m_petriNet.get()));
     m_stateLinks.push_back(StateLink(state1, m_links[m_links.size()-1].getID(), true));
     m_stateLinks.push_back(StateLink(state2, m_links[m_links.size()-1].getID(), false));
@@ -577,21 +558,26 @@ void MapScene::createNewLink(StateGraphicsObject* state1, StateGraphicsObject* s
     m_links[m_links.size()-1].select(true);
 }
 
-void MapScene::createNewMarker(StateGraphicsObject* state, int color)
+void MapScene::createNewMarker(StateGraphicsObject* state, MarkerObject::MarkerType marker_type)
 {
     if (m_petriNet.get())
     {
         ++marker_id_generator;
-        if (color == TRAIN_COLOR)
+        MarkerObject* marker;
+        int marker_id;
+        if (marker_type == MarkerObject::MarkerType::Train)
         {
-            int train_id = m_petriNet->addMarker<PetriNetComponent::Train>(state->getId(), PetriNetComponent::Train(marker_id_generator));
-            state->addMarker(new MarkerObject(train_id, color, state));
+            marker_id = m_petriNet->addMarker<PetriNetComponent::Train>(state->getId(), PetriNetComponent::Train(marker_id_generator));
+            marker = new MarkerObject(marker_id, marker_type, state);
+            marker->setStyle(m_style.trainStyle);
         }
         else
         {
-            int marker_id = m_petriNet->addMarker<PetriNetComponent::AccessToken>(state->getId(), PetriNetComponent::AccessToken());
-            state->addMarker(new MarkerObject(marker_id, color, state));
+            marker_id = m_petriNet->addMarker<PetriNetComponent::AccessToken>(state->getId(), PetriNetComponent::AccessToken());
+            marker = new MarkerObject(marker_id, marker_type, state);
+            marker->setStyle(m_style.accessTokenStyle);
         }
+        state->addMarker(marker);
         this->update(this->sceneRect());
     }
 }
@@ -603,7 +589,7 @@ void MapScene::removeMarker(StateGraphicsObject* state)
         MarkerObject* marker = state->getLastMarker();
         if (marker)
         {
-            if (marker->getColor() == TRAIN_COLOR)
+            if (marker->getType() == MarkerObject::MarkerType::Train)
             {
                 m_petriNet->removeMarker<PetriNetComponent::Train>(marker->getId());
             }
@@ -615,4 +601,133 @@ void MapScene::removeMarker(StateGraphicsObject* state)
             this->update(this->sceneRect());
         }
     }
+}
+
+void MapScene::clearMap()
+{
+    m_linkedState = nullptr;
+    this->clearSelectedItems();
+    m_stateLinks.clear();
+    m_links.clear();
+    this->clear();
+}
+
+void MapScene::buildStationsByContainer()
+{
+    StateGraphicsObject* state_obj = nullptr;
+    for (auto it = m_petriNet->beginState<PetriNetComponent::Station>(); it != m_petriNet->endState<PetriNetComponent::Station>(); ++it)
+    {
+        // create state object
+        auto& state_wrapper = it->second;
+        auto state_info = state_wrapper.getState();
+        state_obj = new StateGraphicsObject(it->first, state_info.getX(), state_info.getY(), m_style.stationStyle.radius);
+        state_obj->setStyle(m_style.stationStyle);
+        addItem(state_obj);
+        addMarkersToState<PetriNetComponent::Station>(state_obj, state_wrapper);
+    }
+}
+
+void MapScene::buildLinksByContainer()
+{
+    int j = 0;
+    for (auto it = m_petriNet->beginState<PetriNetComponent::Station>(); it != m_petriNet->endState<PetriNetComponent::Station>(); ++it)
+    {
+        qDebug() << "[buildLinksByContainer] step " << QString::number(j);
+        ++j;
+        int state1_id = it->first;
+        auto& state_wrapper = it->second;
+        auto& exit_tr_storage = state_wrapper.template getOutTransitionStorage<PetriNetComponent::ExitFromStation>();
+        qDebug() << "[buildLinksByContainer] e 1: " << exit_tr_storage.size();
+        for (size_t i = 0; i < exit_tr_storage.size(); ++i)
+        {
+            // find link items id
+            auto& exit_tr_wrapper = m_petriNet->getTransitionWrapperById<PetriNetComponent::ExitFromStation>(exit_tr_storage[i]);
+            auto& inter_state_storage = exit_tr_wrapper.template getOutStateStorage<PetriNetComponent::InterState>();
+            if (inter_state_storage.size() != 1)
+            {
+                qDebug() << "[buildLinksByContainer] continue 1: " << inter_state_storage.size();
+                continue;
+            }
+            auto& semaphore_storage = exit_tr_wrapper.template getInStateStorage<PetriNetComponent::Semaphore>();
+            if (semaphore_storage.size() != 1)
+            {
+                qDebug() << "[buildLinksByContainer] continue 2";
+                continue;
+            }
+            auto& inter_state_wrapper = m_petriNet->getStateWrapperById<PetriNetComponent::InterState>(inter_state_storage[0]);
+            auto& semaphore_wrapper = m_petriNet->getStateWrapperById<PetriNetComponent::Semaphore>(semaphore_storage[0]);
+            auto& enter_tr_storage1 = inter_state_wrapper.template getOutTransitionStorage<PetriNetComponent::EnterToStation>();
+            auto& enter_tr_storage2 = semaphore_wrapper.template getInTransitionStorage<PetriNetComponent::EnterToStation>();
+            if ((enter_tr_storage1.size() != 1) || (enter_tr_storage2.size() != 1)
+                || (((int)enter_tr_storage1[0]) != ((int)enter_tr_storage2[0])))
+            {
+                qDebug() << "[buildLinksByContainer] continue 3";
+                continue;
+            }
+            auto& enter_tr_wrapper = m_petriNet->getTransitionWrapperById<PetriNetComponent::EnterToStation>(enter_tr_storage1[0]);
+            auto& out_state_storage = enter_tr_wrapper.template getOutStateStorage<PetriNetComponent::Station>();
+            if (out_state_storage.size() != 1)
+            {
+                qDebug() << "[buildLinksByContainer] continue 4";
+                continue;
+            }
+            int state2_id = out_state_storage[0];
+            // find stations object for link
+            StateGraphicsObject* curr_state = nullptr;
+            StateGraphicsObject* first_state = nullptr;
+            StateGraphicsObject* second_state = nullptr;
+            for (QGraphicsItem* item : this->items())
+            {
+                if (item->type() == GraphicsObjectType::StateType)
+                {
+                    curr_state = (StateGraphicsObject*)item;
+                    if (curr_state->getId() == state1_id)
+                    {
+                        first_state = curr_state;
+                    }
+                    else if (curr_state->getId() == state2_id)
+                    {
+                        second_state = curr_state;
+                    }
+                    if (first_state && second_state)
+                    {
+                        break;
+                    }
+                }
+            }
+            if ((!first_state) || (!second_state))
+            {
+                qDebug() << "[buildLinksByContainer] continue 5";
+                continue;
+            }
+            // create link object
+            qDebug() << "[buildLinksByContainer] e 2";
+            std::array<int, 4> id_array{{
+                (int)exit_tr_storage[i],
+                (int)enter_tr_storage1[0],
+                (int)inter_state_storage[0],
+                (int)semaphore_storage[0]
+            }};
+            m_links.push_back(LinkGraphicsObject(++new_link_id, first_state, second_state, m_petriNet.get(), id_array));
+            m_stateLinks.push_back(StateLink(first_state, m_links[m_links.size()-1].getID(), true));
+            m_stateLinks.push_back(StateLink(second_state, m_links[m_links.size()-1].getID(), false));
+            addLinkToScene(m_links.size()-1);
+            qDebug() << "[buildLinksByContainer] e 3";
+            // add markers to inter state
+            StateGraphicsObject* inter_state_obj = (StateGraphicsObject*)m_links[m_links.size()-1].getDetailsItem(LinkGraphicsObject::DetailsItem::InterState);
+            addMarkersToState<PetriNetComponent::InterState>(inter_state_obj, inter_state_wrapper);
+            // add markers to semaphore
+            StateGraphicsObject* semaphore_obj = (StateGraphicsObject*)m_links[m_links.size()-1].getDetailsItem(LinkGraphicsObject::DetailsItem::Semaphore);
+            addMarkersToState<PetriNetComponent::Semaphore>(semaphore_obj, semaphore_wrapper);
+            qDebug() << "[buildLinksByContainer] e 4";
+        }
+        qDebug() << "[buildLinksByContainer] end";
+    }
+}
+
+void MapScene::buildMapByContainer()
+{
+    buildStationsByContainer();
+    buildLinksByContainer();
+    this->update(this->sceneRect());
 }

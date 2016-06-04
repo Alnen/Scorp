@@ -1,10 +1,6 @@
-#include "Scorp/Core/ScorpTime.h"
-
 #include <sstream>
-#include <vector>
 #include <string>
-
-#include <iostream>
+#include "Scorp/Core/ScorpTime.h"
 
 namespace ScorpCore
 {

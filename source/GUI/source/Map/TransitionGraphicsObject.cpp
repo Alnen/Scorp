@@ -1,12 +1,11 @@
-#include "Map/TransitionGraphicsObject.h"
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsEllipseItem>
 #include <QStyleOptionGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
-
 #include <QDebug>
 #include <QtMath>
+#include "Scorp/GUI/Map/TransitionGraphicsObject.h"
 
 TransitionGraphicsObject::TransitionGraphicsObject(int object_id, float center_x, float center_y, float width, float height, QColor fill_color, QGraphicsItem* parent)
     : PointGraphicsObject(object_id, center_x, center_y, fill_color, QColor::fromRgb(0, 0, 0), 1.f, parent), m_width(width), m_height(height)
@@ -16,7 +15,7 @@ TransitionGraphicsObject::TransitionGraphicsObject(int object_id, float center_x
     updateTilt();
 }
 
-QPolygonF TransitionGraphicsObject::getVerteciesCoord()
+QPolygonF TransitionGraphicsObject::getVerteciesCoord() const
 {
     QPolygonF polygon(getVerteciesOffset());
     for (size_t i = 0; i < 4; ++i)
@@ -26,7 +25,7 @@ QPolygonF TransitionGraphicsObject::getVerteciesCoord()
     return polygon;
 }
 
-QPolygonF TransitionGraphicsObject::getVerteciesOffset()
+QPolygonF TransitionGraphicsObject::getVerteciesOffset() const
 {
     float tr_length = sqrt(m_width * m_width + m_height * m_height);
     //float tr_cos = m_width / tr_length;
@@ -59,13 +58,12 @@ void TransitionGraphicsObject::setRotation(qreal angle)
     PointGraphicsObject::setRotation(angle);
 }
 
-
 float TransitionGraphicsObject::getTilt() const
 {
     return m_tilt;
 }
 
-float TransitionGraphicsObject::getWidth()
+float TransitionGraphicsObject::getWidth() const
 {
     return m_width;
 }
@@ -76,7 +74,7 @@ void TransitionGraphicsObject::setWidth(float width)
     updateTilt();
 }
 
-float TransitionGraphicsObject::getHeight()
+float TransitionGraphicsObject::getHeight() const
 {
     return m_height;
 }
@@ -172,4 +170,14 @@ void TransitionGraphicsObject::deselect(bool graphics_selection)
         //this->setSelected(false);
         //this->update();
     }
+}
+
+void TransitionGraphicsObject::setStyle(const MapSceneStyle::TransitionStyle& style)
+{
+    m_style = style;
+}
+
+MapSceneStyle::TransitionStyle TransitionGraphicsObject::getStyle() const
+{
+    return m_style;
 }
