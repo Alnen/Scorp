@@ -36,9 +36,9 @@
 #include <QCompleter>
 #include <QStringListModel>
 #include <QResizeEvent>
+#include <QFileDialog>
 #include <QDebug>
 #include "Scorp/GUI/mainwindow.h"
-#include "Scorp/DB/ScorpDBShell.h"
 #include "Scorp/GUI/Map/MapScene.h"
 #include "Scorp/GUI/Map/TrackGraphicsObject.h"
 #include "Scorp/GUI/Map/PointGraphicsObject.h"
@@ -47,7 +47,8 @@
 #include "Scorp/GUI/Map/GraphicsObjectsGroup.h"
 #include "Scorp/GUI/StationsList/TreeModel.h"
 #include "Scorp/GUI/StationsList/StationsListModel.h"
-#include "Scorp/GUI/Map/MarkerCommandQueue.h"
+#include "Scorp/DB/ScorpDBShell.h"
+#include "Scorp/Core/MarkerCommandQueue.h"
 #include "Scorp/Core/PetriNetComponents.h"
 #include "Scorp/Core/Serialization.h"
 
@@ -954,12 +955,28 @@ void MainWindow::connectToDatabase()
 
 void MainWindow::loadFromFile()
 {
-    //
+    QString file_path = QFileDialog::getOpenFileName(this, "Select a file...",
+        QDir::homePath(), tr("Scorp files (*.scorp);;All files (*.*)"));
+    if (!file_path.isEmpty())
+    {
+        std::ifstream input(file_path.toStdString());
+        deserialize(input, m_mapScene->getPetriNet());
+        input.close();
+        m_mapScene->buildMapByContainer();
+    }
 }
 
 void MainWindow::saveToFile()
 {
-    //
+    QString file_path = QFileDialog::getSaveFileName(this, tr("Save File"), QDir::homePath(),
+        tr("Scorp files (*.scorp);;All files (*.*)"));
+    if (!file_path.isEmpty())
+    {
+        qDebug() << "Save to:\"" << file_path << "\"";
+        std::ofstream output(file_path.toStdString());
+        serialize(output, m_mapScene->getPetriNet());
+        output.close();
+    }
 }
 
 void MainWindow::btnEnterLoginOkClicked()
@@ -1520,16 +1537,16 @@ void MainWindow::updateUIbyUserGroup()
     if (m_currentUser.getRightStatus(UserRight::EditMap))
     {
         mnSetMode->menuAction()->setVisible(true);
-        //mnFile->menuAction()->setVisible(true);
+        mnFile->menuAction()->setVisible(true);
         m_toolBar->show();
     }
     else
     {
         mnSetMode->menuAction()->setVisible(false);
-        //mnFile->menuAction()->setVisible(false);
+        mnFile->menuAction()->setVisible(false);
         m_toolBar->hide();
     }
-    mnFile->menuAction()->setVisible(false);
+    //mnFile->menuAction()->setVisible(false);
     // Tours Editable
     /*
     if (m_currentUser.getRightStatus(UserRight::EditSchedule))
@@ -1583,78 +1600,7 @@ void MainWindow::updateUIbyUserGroup()
 
 void MainWindow::makeStep()
 {
-    /*
-    std::ofstream output("serialize_test.txt");
-    serialize(output, m_mapScene->getPetriNet());
-    return;
-    */
-    /*
-    std::ifstream input("serialize_test.txt");
-    deserialize(input, m_mapScene->getPetriNet());
-    input.close();
-    std::ofstream output("deserialize_test.txt");
-    serialize(output, m_mapScene->getPetriNet());
-    output.close();
-    m_mapScene->buildMapByContainer();
-    return;
-    */
-    /*
-    addMarkerCommand(int id, int state_id);
-    moveMarkerCommand(int id, int new_state_id);
-    deleteMarkerCommand(int id);
-    makeCommand();
-    */
-    // container -> make step
-    //
-    //MarkerCommandQueue::getInstance().setScene(m_mapScene);
-    //MarkerCommandQueue::getInstance().addMarkerCommand(0, 1);
-    //MarkerCommandQueue::getInstance().makeCommand();
-
-    //qDebug() << "makeStep: 0";
-    MarkerCommandQueue::getInstance().setScene(m_mapScene);
-    //qDebug() << "makeStep: 1";
-    int value = 0;
-    qDebug() << "------------- makeStep: Before ----------";
-    for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::Train>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::Train>(); ++it)
-    {
-        value = it->first;
-        qDebug() << "Train id = " << value;
-        auto& temp = it->second;
-        value = temp.getStateId();
-        qDebug() << "Train parent = " << value;
-    }
-    for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::AccessToken>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::AccessToken>(); ++it)
-    {
-        value = it->first;
-        qDebug() << "Access id = " << value;
-        auto& temp = it->second;
-        value = temp.getStateId();
-        qDebug() << "Access parent = " << value;
-    }
-
     IdType numberOfJumps = m_mapScene->getPetriNet()->executeMarkersPropagation();
-    std::cout << "NUMBER OF JUMPS " << numberOfJumps << std::endl;
-    qDebug() << "------------- makeStep: After ----------";
-    for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::Train>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::Train>(); ++it)
-    {
-        value = it->first;
-        qDebug() << "Train id = " << value;
-        auto& temp = it->second;
-        value = temp.getStateId();
-        qDebug() << "Train parent = " << value;
-    }
-    for (auto it = m_mapScene->getPetriNet()->beginMarker<PetriNetComponent::AccessToken>(); it != m_mapScene->getPetriNet()->endMarker<PetriNetComponent::AccessToken>(); ++it)
-    {
-        value = it->first;
-        qDebug() << "Access id = " << value;
-        auto& temp = it->second;
-        value = temp.getStateId();
-        qDebug() << "Access parent = " << value;
-    }
-    qDebug() << "--------------------------";
-    //qDebug() << "makeStep: 2";
-    MarkerCommandQueue::getInstance().makeAllCommands();
-    //qDebug() << "makeStep: 3";
+    m_mapScene->makeAllMarkerCommands();
     m_mapScene->update(m_mapScene->sceneRect());
-    //qDebug() << "makeStep: 4";
 }

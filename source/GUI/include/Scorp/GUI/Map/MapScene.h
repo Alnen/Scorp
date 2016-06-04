@@ -28,6 +28,8 @@ public:
     MapSceneStyle::MapSceneStyle getStyle() const;
     void clearMap();
     void buildMapByContainer();
+    void makeMarkerCommand();
+    void makeAllMarkerCommands();
 	
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) Q_DECL_OVERRIDE;

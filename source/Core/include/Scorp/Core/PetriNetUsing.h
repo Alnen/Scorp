@@ -9,7 +9,7 @@
 #include "Scorp/meta/RuntimeTypeSwitch.h"
 #include "Scorp/container/TransitionWrapper.h"
 #include "Scorp/container/StateWrapper.h"
-#include "Scorp/GUI/Map/MarkerCommandQueue.h"
+#include "Scorp/Core/MarkerCommandQueue.h"
 #include "Scorp/Core/PetriNetComponents.h"
 
 size_t getRandom(size_t upperBound);
@@ -62,7 +62,7 @@ public:
                 IndexType markerId = serializedMarkerInState.template createState<PetriNetComponent::AccessToken>();
                 // log new point
                 MarkerCommandQueue::getInstance().addMarkerCommand(markerId, serializedMarkerInState.getState().getObjectId(),
-                    MarkerObject::MarkerType::AccessToken);
+                    MarkerCommandStruct::MarkerType::AccessToken);
                 break;
             }
 

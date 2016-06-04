@@ -2,17 +2,23 @@
 #define MARKER_COMMAND_QUEUE_H
 
 #include <vector>
-#include "Scorp/GUI/Map/MarkerObject.h"
 
-enum class MarkerCommand { ADD, DELETE, MOVE };
+enum class MarkerCommand { Add, Delete, Move, None };
 
 struct MarkerCommandStruct
 {
+    enum class MarkerType { Train, AccessToken };
+    
     MarkerCommand command;
     int param1;
     int param2;
-    MarkerObject::MarkerType markerType;
-    MarkerCommandStruct(MarkerCommand cmd, int p1=0, int p2=0, MarkerObject::MarkerType type = MarkerObject::MarkerType::Train)
+    MarkerType markerType;
+
+    MarkerCommandStruct() : command(MarkerCommand::None), param1(0), param2(0),
+        markerType(MarkerType::Train)
+    {
+    }
+    MarkerCommandStruct(MarkerCommand cmd, int p1=0, int p2=0, MarkerType type = MarkerType::Train)
         : command(cmd), param1(p1), param2(p2), markerType(type)
     {
     }
@@ -48,12 +54,11 @@ protected:
 
 public:
     static MarkerCommandQueue& getInstance();
-    void addMarkerCommand(int id, int state_id, MarkerObject::MarkerType type);
+    void addMarkerCommand(int id, int state_id, MarkerCommandStruct::MarkerType type);
     void moveMarkerCommand(int id, int new_state_id);
     void deleteMarkerCommand(int id);
-    void makeCommand();
-    void makeAllCommands();
-    void setScene(MapScene* scene);
+    bool commandExist();
+    MarkerCommandStruct getCommand();
 };
 
 #endif // MARKER_COMMAND_QUEUE_H

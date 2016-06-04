@@ -12,4 +12,5 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/source/ScorpTime.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/source/PetriNetComponents.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/source/PetriNetUsing.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/MarkerCommandQueue.cpp
         PARENT_SCOPE)

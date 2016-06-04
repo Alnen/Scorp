@@ -5,6 +5,7 @@
 #include "Scorp/GUI/Map/StateGraphicsObject.h"
 #include "Scorp/GUI/Map/LinkGraphicsObject.h"
 #include "Scorp/GUI/Map/MarkerObject.h"
+#include "Scorp/Core/MarkerCommandQueue.h"
 
 static int marker_id_generator = -1;
 
@@ -730,4 +731,105 @@ void MapScene::buildMapByContainer()
     buildStationsByContainer();
     buildLinksByContainer();
     this->update(this->sceneRect());
+}
+
+void MapScene::makeMarkerCommand()
+{
+    MarkerCommandQueue::getInstance();
+    if (MarkerCommandQueue::getInstance().commandExist())
+    {
+        StateGraphicsObject* curr_state = nullptr;
+        MarkerObject* marker = nullptr;
+        MarkerCommandStruct cmd = MarkerCommandQueue::getInstance().getCommand();
+        if (cmd.command == MarkerCommand::Add)
+        {
+            //qDebug() << "makeCommand: ADD (" << cmd.param1 << ")";
+            for (auto item : this->items())
+            {
+                if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
+                {
+                    curr_state = (StateGraphicsObject*)item;
+                    if (curr_state->getId() == cmd.param2)
+                    {
+                        if (cmd.markerType == MarkerCommandStruct::MarkerType::Train)
+                        {
+                            marker = new MarkerObject(cmd.param1, MarkerObject::MarkerType::Train,
+                                curr_state);
+                            marker->setStyle(m_style.trainStyle);
+                        }
+                        else
+                        {
+                            marker = new MarkerObject(cmd.param1, MarkerObject::MarkerType::AccessToken,
+                                curr_state);
+                            marker->setStyle(m_style.accessTokenStyle);
+                        }
+                        curr_state->addMarker(marker);
+                        break;
+                    }
+                }
+            }
+            curr_state = nullptr;
+        }
+        else if (cmd.command == MarkerCommand::Delete)
+        {
+            //qDebug() << "makeCommand: DELETE (" << cmd.param1 << ")";
+            MarkerObject* found_marker = nullptr;
+            for (auto item : this->items())
+            {
+                if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
+                {
+                    curr_state = (StateGraphicsObject*)item;
+                    found_marker = curr_state->getMarker(cmd.param1);
+                    if (found_marker)
+                    {
+                        curr_state->removeMarker(found_marker);
+                        delete found_marker;
+                        break;
+                    }
+                }
+            }
+        }
+        else if (cmd.command == MarkerCommand::Move)
+        {
+            //qDebug() << "makeCommand: MOVE (" << cmd.param1
+            //         << ", " << cmd.param2 << ")";
+            MarkerObject* found_marker = nullptr;
+            StateGraphicsObject* old_state = nullptr;
+            StateGraphicsObject* new_state = nullptr;
+            for (auto item : this->items())
+            {
+                if (((PointGraphicsObject*)item)->type() == GraphicsObjectType::StateType)
+                {
+                    curr_state = (StateGraphicsObject*)item;
+                    MarkerObject* current_found_marker = curr_state->getMarker(cmd.param1);
+                    if (current_found_marker)
+                    {
+                        found_marker = current_found_marker;
+                        old_state = curr_state;
+                    }
+                    if (curr_state->getId() == cmd.param2)
+                    {
+                        new_state = curr_state;
+                    }
+                    if (old_state && new_state)
+                    {
+                        break;
+                    }
+                }
+            }
+            if (old_state && new_state)
+            {
+                old_state->removeMarker(found_marker);
+                new_state->addMarker(found_marker);
+            }
+        }
+    }
+}
+
+void MapScene::makeAllMarkerCommands()
+{
+    while (MarkerCommandQueue::getInstance().commandExist())
+    {
+        makeMarkerCommand();
+    }
 }
