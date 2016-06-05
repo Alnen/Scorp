@@ -56,7 +56,7 @@ public:
     MarkerExtractor1() = default;
     MarkerExtractor1(const MarkerExtractor1<PetriNetTraits, State>&) = default;
 
-    MarkerExtractor1(const container::StateWrapper<State, PetriNetTraits>& state):
+    MarkerExtractor1(container::StateWrapper<State, PetriNetTraits>& state):
          m_state(state)
     {
     }
@@ -64,10 +64,12 @@ public:
     template <class Marker>
     bool operator()()
     {
-        const auto& markerStorage = m_state.template getMarkerStorage<Marker>();
+        auto& markerStorage = m_state.template getMarkerStorage<Marker>();
         if (!markerStorage.empty())
         {
-            serializedMarker = std::make_pair(markerStorage.front(), MarkerEnum::template getValue<Marker>());
+            IndexType markerId = markerStorage.back();
+            markerStorage.pop_back();
+            serializedMarker = std::make_pair(markerId, MarkerEnum::template getValue<Marker>());
             return true;
         } else {
             return false;
@@ -75,7 +77,7 @@ public:
     }
 
     std::pair<IndexType, IndexType> serializedMarker;
-    const container::StateWrapper<State, PetriNetTraits>& m_state;
+    container::StateWrapper<State, PetriNetTraits>& m_state;
 };
 
 template <class _PetriNetTraits, class _Transition, class _State>
@@ -91,7 +93,7 @@ public:
     boost::optional<std::pair<IdType, IdType>> operator()(
             const container::PetriNet<PetriNetTraits>& petriNet,
             const container::TransitionWrapper<Transition, PetriNetTraits>& transition,
-            const container::StateWrapper<State, PetriNetTraits>& state) const
+            container::StateWrapper<State, PetriNetTraits>& state) const
     {
         std::cout << "MarkerExtractor: stateId = " << state.getId() << std::endl;
 		MarkerExtractor1<PetriNetTraits, State> extractor(state);

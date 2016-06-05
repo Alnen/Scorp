@@ -411,9 +411,21 @@ public:
         return m_petriNetStorage.template getMarkerStorage<Marker>().begin();
     }
 
+    template <class Marker>
+    MarkerIterator<Marker> beginMarker() const
+    {
+        return m_petriNetStorage.template getMarkerStorage<Marker>().begin();
+    }
+
 
     template <class State>
     StateIterator<State> beginState()
+    {
+        return m_petriNetStorage.template getStateStorage<State>().begin();
+    }
+
+    template <class State>
+    StateIterator<State> beginState() const
     {
         return m_petriNetStorage.template getStateStorage<State>().begin();
     }
@@ -425,6 +437,11 @@ public:
         return m_petriNetStorage.template getTransitionStorage<Transition>().begin();
     }
 
+    template <class Transition>
+    TransitionIterator<Transition> beginTransition() const
+    {
+        return m_petriNetStorage.template getTransitionStorage<Transition>().begin();
+    }
 
     template <class Marker>
     MarkerIterator<Marker> endMarker()
@@ -432,6 +449,11 @@ public:
         return m_petriNetStorage.template getMarkerStorage<Marker>().end();
     }
 
+    template <class Marker>
+    MarkerIterator<Marker> endMarker() const
+    {
+        return m_petriNetStorage.template getMarkerStorage<Marker>().end();
+    }
 
     template <class State>
     StateIterator<State> endState()
@@ -439,6 +461,11 @@ public:
         return m_petriNetStorage.template getStateStorage<State>().end();
     }
 
+    template <class State>
+    StateIterator<State> endState() const
+    {
+        return m_petriNetStorage.template getStateStorage<State>().end();
+    }
 
     template <class Transition>
     TransitionIterator<Transition> endTransition()
@@ -446,6 +473,11 @@ public:
         return m_petriNetStorage.template getTransitionStorage<Transition>().end();
     }
 
+    template <class Transition>
+    TransitionIterator<Transition> endTransition() const
+    {
+        return m_petriNetStorage.template getTransitionStorage<Transition>().end();
+    }
 
     template <class Marker>
     size_t sizeMarker()
