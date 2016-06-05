@@ -611,6 +611,7 @@ void MapScene::clearMap()
     m_stateLinks.clear();
     m_links.clear();
     this->clear();
+    m_petriNet.reset(new RailwayPetriNet());
 }
 
 void MapScene::buildStationsByContainer()

@@ -959,6 +959,7 @@ void MainWindow::loadFromFile()
         QDir::homePath(), tr("Scorp files (*.scorp);;All files (*.*)"));
     if (!file_path.isEmpty())
     {
+        m_mapScene->clearMap();
         std::ifstream input(file_path.toStdString());
         deserialize(input, m_mapScene->getPetriNet());
         input.close();
